@@ -1,0 +1,102 @@
+name: 'AEO Audit'
+description: 'Audit a URL for AI engine optimization readiness and get a 0-100 AEO score'
+author: 'Hansel Wahjono'
+
+branding:
+  icon: 'search'
+  color: 'blue'
+
+inputs:
+  url:
+    description: 'URL to audit'
+    required: true
+  fail-under:
+    description: 'Fail if score is below this threshold (0-100)'
+    required: false
+  fail-on-blocked-bots:
+    description: 'Fail (exit 2) if any AI bot is blocked'
+    required: false
+    default: 'false'
+  single-page:
+    description: 'Audit only the given URL (skip multi-page discovery)'
+    required: false
+    default: 'false'
+  max-pages:
+    description: 'Maximum pages to audit in multi-page mode'
+    required: false
+    default: '10'
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.12'
+
+outputs:
+  score:
+    description: 'Overall AEO score (0-100)'
+    value: ${{ steps.audit.outputs.score }}
+  report-json:
+    description: 'Full audit report as JSON'
+    value: ${{ steps.audit.outputs.report_json }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'pip'
+
+    - name: Install aeo-cli
+      shell: bash
+      run: pip install aeo-cli
+
+    - name: Install crawl4ai browser
+      shell: bash
+      run: |
+        crawl4ai-setup || echo "::warning::crawl4ai browser setup failed, content analysis may be limited"
+
+    - name: Run AEO audit
+      id: audit
+      shell: bash
+      run: |
+        # Build command
+        CMD="aeo-cli audit '${{ inputs.url }}'"
+
+        if [ "${{ inputs.single-page }}" = "true" ]; then
+          CMD="$CMD --single"
+        else
+          CMD="$CMD --max-pages ${{ inputs.max-pages }}"
+        fi
+
+        CMD="$CMD --json"
+
+        # Run audit and capture JSON output
+        REPORT=$(eval $CMD 2>/dev/null || true)
+
+        # Extract score from JSON
+        SCORE=$(echo "$REPORT" | python3 -c "import sys, json; print(json.load(sys.stdin)['overall_score'])" 2>/dev/null || echo "0")
+
+        echo "score=$SCORE" >> $GITHUB_OUTPUT
+        echo "report_json<<REPORT_EOF" >> $GITHUB_OUTPUT
+        echo "$REPORT" >> $GITHUB_OUTPUT
+        echo "REPORT_EOF" >> $GITHUB_OUTPUT
+
+        # Now run with formatting for the step summary
+        SUMMARY_CMD="aeo-cli audit '${{ inputs.url }}'"
+
+        if [ "${{ inputs.single-page }}" = "true" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --single"
+        else
+          SUMMARY_CMD="$SUMMARY_CMD --max-pages ${{ inputs.max-pages }}"
+        fi
+
+        if [ -n "${{ inputs.fail-under }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --fail-under ${{ inputs.fail-under }}"
+        fi
+
+        if [ "${{ inputs.fail-on-blocked-bots }}" = "true" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --fail-on-blocked-bots"
+        fi
+
+        eval $SUMMARY_CMD
