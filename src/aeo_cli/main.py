@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 
 import typer
 from rich.console import Console
@@ -162,31 +163,76 @@ def audit(
         format = OutputFormat.json
 
     if quiet:
-        _audit_quiet(url, single, max_pages)
+        # Backwards compat: --quiet uses threshold 50 unless --fail-under overrides
+        threshold = fail_under if fail_under is not None else 50
+        _audit_quiet(url, single, max_pages, threshold, fail_on_blocked_bots)
         return
 
+    # Normal flow
+    report = _run_audit(url, single, max_pages)
+    _render_output(report, format, verbose, single)
+    _write_github_step_summary(report, fail_under)
+
+    if fail_under is not None or fail_on_blocked_bots:
+        _check_exit_conditions(report, fail_under, fail_on_blocked_bots)
+
+
+def _run_audit(
+    url: str, single: bool, max_pages: int,
+) -> AuditReport | SiteAuditReport:
+    """Execute the audit and return the report."""
     if single:
-        _audit_single(url, format, verbose)
-    else:
-        _audit_site(url, format, max_pages, verbose)
+        with console.status(f"Auditing {url}..."):
+            return asyncio.run(audit_url(url))
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+    ) as progress:
+        task_id = progress.add_task(f"Discovering pages on {url}...", total=max_pages)
+
+        def on_progress(msg: str) -> None:
+            progress.update(task_id, description=msg, advance=1)
+
+        report = asyncio.run(
+            audit_site(url, max_pages=max_pages, progress_callback=on_progress)
+        )
+        progress.update(task_id, description="Done", completed=max_pages)
+    return report
 
 
-def _audit_single(url: str, format: OutputFormat | None, verbose: bool = False) -> None:
-    """Run a single-page audit."""
-    with console.status(f"Auditing {url}..."):
-        report = asyncio.run(audit_url(url))
-
+def _render_output(
+    report: AuditReport | SiteAuditReport,
+    format: OutputFormat | None,
+    verbose: bool,
+    single: bool,
+) -> None:
+    """Render the audit report in the requested format."""
     if format == OutputFormat.json:
         console.print(report.model_dump_json(indent=2))
         return
     if format == OutputFormat.csv:
-        console.print(format_single_report_csv(report), end="")
+        if isinstance(report, SiteAuditReport):
+            console.print(format_site_report_csv(report), end="")
+        else:
+            console.print(format_single_report_csv(report), end="")
         return
     if format == OutputFormat.markdown:
-        console.print(format_single_report_md(report), end="")
+        if isinstance(report, SiteAuditReport):
+            console.print(format_site_report_md(report), end="")
+        else:
+            console.print(format_single_report_md(report), end="")
         return
 
-    # Build Rich table
+    # Rich output
+    if isinstance(report, SiteAuditReport):
+        _render_site_report(report)
+        return
+
+    # Single-page Rich table
     table = Table(title=f"AEO Audit: {report.url}")
     table.add_column("Pillar", style="bold")
     table.add_column("Score", justify="right")
@@ -258,48 +304,52 @@ def _render_verbose(report) -> None:
     console.print(Panel("\n".join(content_lines), title="Content Detail", border_style="blue"))
 
 
-def _audit_site(
-    url: str, format: OutputFormat | None, max_pages: int, verbose: bool = False,
+def _check_exit_conditions(
+    report: AuditReport | SiteAuditReport,
+    fail_under: float | None,
+    fail_on_blocked_bots: bool,
 ) -> None:
-    """Run a multi-page site audit with progress display."""
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console,
-    ) as progress:
-        task_id = progress.add_task(f"Discovering pages on {url}...", total=max_pages)
+    """Check CI exit conditions and raise SystemExit if thresholds are breached."""
+    # Bot blocking takes priority over score failure (exit 2 before exit 1)
+    if fail_on_blocked_bots and report.robots.found:
+        if any(not b.allowed for b in report.robots.bots):
+            raise SystemExit(2)
+    if fail_under is not None and report.overall_score < fail_under:
+        raise SystemExit(1)
 
-        def on_progress(msg: str) -> None:
-            progress.update(task_id, description=msg, advance=1)
 
-        report = asyncio.run(audit_site(url, max_pages=max_pages, progress_callback=on_progress))
-        progress.update(task_id, description="Done", completed=max_pages)
-
-    if format == OutputFormat.json:
-        console.print(report.model_dump_json(indent=2))
+def _write_github_step_summary(
+    report: AuditReport | SiteAuditReport, fail_under: float | None,
+) -> None:
+    """Write CI summary to $GITHUB_STEP_SUMMARY if running in GitHub Actions."""
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary_path:
         return
-    if format == OutputFormat.csv:
-        console.print(format_site_report_csv(report), end="")
-        return
-    if format == OutputFormat.markdown:
-        console.print(format_site_report_md(report), end="")
-        return
+    from aeo_cli.formatters.ci_summary import format_ci_summary
 
-    _render_site_report(report)
+    md = format_ci_summary(report, fail_under=fail_under)
+    with open(summary_path, "a") as f:
+        f.write(md)
 
 
-def _audit_quiet(url: str, single: bool, max_pages: int) -> None:
-    """Run audit silently — exit 0 if score >= 50, else exit 1."""
+def _audit_quiet(
+    url: str,
+    single: bool,
+    max_pages: int,
+    threshold: float = 50,
+    fail_on_blocked_bots: bool = False,
+) -> None:
+    """Run audit silently — exit based on threshold and bot access."""
     report: AuditReport | SiteAuditReport
     if single:
         report = asyncio.run(audit_url(url))
     else:
         report = asyncio.run(audit_site(url, max_pages=max_pages))
-    score = report.overall_score
 
-    raise SystemExit(0 if score >= 50 else 1)
+    if fail_on_blocked_bots and report.robots.found:
+        if any(not b.allowed for b in report.robots.bots):
+            raise SystemExit(2)
+    raise SystemExit(0 if report.overall_score >= threshold else 1)
 
 
 @app.command()
