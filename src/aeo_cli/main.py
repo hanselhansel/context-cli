@@ -138,6 +138,9 @@ def audit(
     max_pages: int = typer.Option(
         10, "--max-pages", "-n", help="Max pages to audit in multi-page mode"
     ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed per-pillar breakdown with explanations"
+    ),
 ) -> None:
     """Run an AEO audit on a URL and display the results."""
     if not url.startswith("http"):
@@ -148,12 +151,12 @@ def audit(
         format = OutputFormat.json
 
     if single:
-        _audit_single(url, format)
+        _audit_single(url, format, verbose)
     else:
-        _audit_site(url, format, max_pages)
+        _audit_site(url, format, max_pages, verbose)
 
 
-def _audit_single(url: str, format: OutputFormat | None) -> None:
+def _audit_single(url: str, format: OutputFormat | None, verbose: bool = False) -> None:
     """Run a single-page audit."""
     with console.status(f"Auditing {url}..."):
         report = asyncio.run(audit_url(url))
@@ -186,13 +189,56 @@ def _audit_single(url: str, format: OutputFormat | None) -> None:
     console.print(table)
     console.print(f"\n[bold]Overall AEO Score:[/bold] [cyan]{report.overall_score}/100[/cyan]")
 
+    if verbose:
+        _render_verbose(report)
+
     if report.errors:
         console.print("\n[bold red]Errors:[/bold red]")
         for err in report.errors:
             console.print(f"  • {err}")
 
 
-def _audit_site(url: str, format: OutputFormat | None, max_pages: int) -> None:
+def _render_verbose(report) -> None:
+    """Render a detailed verbose breakdown with scoring explanations."""
+    console.print()
+
+    # Robots detail
+    robots_lines = [f"[bold]Robots.txt AI Bot Access[/bold] — Score: {report.robots.score}/25"]
+    if report.robots.found and report.robots.bots:
+        for bot in report.robots.bots:
+            status = "[green]Allowed[/green]" if bot.allowed else "[red]Blocked[/red]"
+            robots_lines.append(f"  {bot.bot}: {status}")
+    else:
+        robots_lines.append("  robots.txt not found or inaccessible")
+    console.print(Panel("\n".join(robots_lines), title="Robots.txt Detail", border_style="blue"))
+
+    # llms.txt detail
+    llms_info = f"Score: {report.llms_txt.score}/10"
+    if report.llms_txt.found:
+        llms_info += f"\n  Found at: {report.llms_txt.url}"
+    else:
+        llms_info += "\n  Not found at /llms.txt or /.well-known/llms.txt"
+    console.print(Panel(f"[bold]llms.txt[/bold] — {llms_info}", title="llms.txt Detail", border_style="blue"))
+
+    # Schema detail
+    schema_lines = [f"[bold]Schema.org JSON-LD[/bold] — Score: {report.schema_org.score}/25"]
+    schema_lines.append(f"  Blocks found: {report.schema_org.blocks_found}")
+    for s in report.schema_org.schemas:
+        schema_lines.append(f"  @type: {s.schema_type} ({len(s.properties)} properties)")
+    console.print(Panel("\n".join(schema_lines), title="Schema.org Detail", border_style="blue"))
+
+    # Content detail
+    content_lines = [
+        f"[bold]Content Density[/bold] — Score: {report.content.score}/40",
+        f"  Word count: {report.content.word_count}",
+        f"  Headings: {'Yes' if report.content.has_headings else 'No'} (+7 if present)",
+        f"  Lists: {'Yes' if report.content.has_lists else 'No'} (+5 if present)",
+        f"  Code blocks: {'Yes' if report.content.has_code_blocks else 'No'} (+3 if present)",
+    ]
+    console.print(Panel("\n".join(content_lines), title="Content Detail", border_style="blue"))
+
+
+def _audit_site(url: str, format: OutputFormat | None, max_pages: int, verbose: bool = False) -> None:
     """Run a multi-page site audit with progress display."""
     with Progress(
         SpinnerColumn(),
