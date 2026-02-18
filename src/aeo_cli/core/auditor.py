@@ -12,7 +12,7 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from bs4 import BeautifulSoup
 
-from aeo_cli.core.crawler import extract_page, extract_pages
+from aeo_cli.core.crawler import CrawlResult, extract_page, extract_pages
 from aeo_cli.core.discovery import discover_pages
 from aeo_cli.core.models import (
     AuditReport,
@@ -377,16 +377,18 @@ async def audit_url(url: str) -> AuditReport:
     if isinstance(llms_txt, BaseException):
         errors.append(f"llms.txt check failed: {llms_txt}")
         llms_txt = LlmsTxtReport(found=False, detail="Check failed")
+    crawl: CrawlResult | None = None
     if isinstance(crawl_result, BaseException):
         errors.append(f"Crawl failed: {crawl_result}")
-        crawl_result = None
+    else:
+        crawl = crawl_result
 
     # Run sync checks on crawl results
-    html = crawl_result.html if crawl_result and crawl_result.success else ""
-    markdown = crawl_result.markdown if crawl_result and crawl_result.success else ""
+    html = crawl.html if crawl and crawl.success else ""
+    markdown = crawl.markdown if crawl and crawl.success else ""
 
-    if crawl_result and not crawl_result.success and crawl_result.error:
-        errors.append(f"Crawl error: {crawl_result.error}")
+    if crawl and not crawl.success and crawl.error:
+        errors.append(f"Crawl error: {crawl.error}")
 
     schema_org = check_schema_org(html)
     content = check_content(markdown)
@@ -479,15 +481,17 @@ async def _audit_site_inner(
             errors.append(f"llms.txt check failed: {llms_txt}")
             llms_txt = LlmsTxtReport(found=False, detail="Check failed")
 
+        seed: CrawlResult | None = None
         if isinstance(seed_crawl, BaseException):
             errors.append(f"Seed crawl failed: {seed_crawl}")
-            seed_crawl = None
+        else:
+            seed = seed_crawl
 
         # Phase 2: Discover pages
         progress("Discovering pages...")
         seed_links = None
-        if seed_crawl and seed_crawl.success:
-            seed_links = seed_crawl.internal_links
+        if seed and seed.success:
+            seed_links = seed.internal_links
 
         discovery = await discover_pages(
             url,
@@ -501,15 +505,15 @@ async def _audit_site_inner(
     pages: list[PageAudit] = []
 
     # Audit the seed page first
-    if seed_crawl and seed_crawl.success:
-        schema, content = audit_page_content(seed_crawl.html, seed_crawl.markdown)
+    if seed and seed.success:
+        schema, content = audit_page_content(seed.html, seed.markdown)
         # Score the page-level pillar checks
         _, _, schema, content, _ = compute_scores(
             RobotsReport(found=False), LlmsTxtReport(found=False), schema, content
         )
         pages.append(PageAudit(url=url, schema_org=schema, content=content))
-    elif seed_crawl and not seed_crawl.success:
-        errors.append(f"Seed crawl error: {seed_crawl.error}")
+    elif seed and not seed.success:
+        errors.append(f"Seed crawl error: {seed.error}")
 
     # Crawl remaining sampled pages (exclude seed which is already crawled)
     remaining_urls = [u for u in discovery.urls_sampled if u != url]

@@ -7,6 +7,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from aeo_cli.core.auditor import audit_site, audit_url
+from aeo_cli.core.models import AuditReport, SiteAuditReport
 
 mcp = FastMCP(
     name="aeo-cli",
@@ -25,6 +26,7 @@ async def audit(url: str, single_page: bool = False, max_pages: int = 10) -> dic
     By default discovers and audits up to max_pages pages across the site.
     Set single_page=True to audit only the given URL.
     """
+    report: AuditReport | SiteAuditReport
     if single_page:
         report = await audit_url(url)
     else:
