@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastmcp import FastMCP
 
 from aeo_cli.core.auditor import audit_site, audit_url
@@ -17,7 +19,7 @@ mcp = FastMCP(
 
 
 @mcp.tool
-async def audit(url: str, single_page: bool = False, max_pages: int = 10) -> dict:
+async def audit(url: str, single_page: bool = False, max_pages: int = 10) -> dict[str, Any]:
     """Audit a URL for AI engine optimization readiness.
 
     By default discovers and audits up to max_pages pages across the site.
