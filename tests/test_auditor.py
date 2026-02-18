@@ -1,6 +1,13 @@
 """Tests for auditor pillar checks and scoring logic."""
 
-from aeo_cli.core.auditor import check_content, check_schema_org, compute_scores
+from __future__ import annotations
+
+from unittest.mock import AsyncMock
+
+import httpx
+import pytest
+
+from aeo_cli.core.auditor import check_content, check_robots, check_schema_org, compute_scores
 from aeo_cli.core.models import (
     BotAccessResult,
     ContentReport,
@@ -186,3 +193,55 @@ def test_compute_scores_partial():
     # Content: 15 (400+ words) + 7 (headings) + 5 (lists) = 27
     assert content.score == 27
     assert overall == 10.7 + 0 + 13 + 27
+
+
+# -- check_robots (async, mocked HTTP) ----------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_check_robots_returns_tuple():
+    """check_robots should return (RobotsReport, raw_robots_text | None)."""
+    robots_txt = "User-agent: *\nAllow: /\n\nUser-agent: GPTBot\nDisallow: /private\n"
+
+    mock_response = AsyncMock()
+    mock_response.status_code = 200
+    mock_response.text = robots_txt
+
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    mock_client.get = AsyncMock(return_value=mock_response)
+
+    report, raw_text = await check_robots("https://example.com/page", mock_client)
+
+    assert isinstance(report, RobotsReport)
+    assert report.found is True
+    assert len(report.bots) == 7  # all AI_BOTS checked
+    assert raw_text == robots_txt
+
+
+@pytest.mark.asyncio
+async def test_check_robots_not_found():
+    """check_robots should handle missing robots.txt gracefully."""
+    mock_response = AsyncMock()
+    mock_response.status_code = 404
+
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    mock_client.get = AsyncMock(return_value=mock_response)
+
+    report, raw_text = await check_robots("https://example.com", mock_client)
+
+    assert isinstance(report, RobotsReport)
+    assert report.found is False
+    assert raw_text is None
+
+
+@pytest.mark.asyncio
+async def test_check_robots_http_error():
+    """check_robots should handle HTTP errors without raising."""
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    mock_client.get = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
+
+    report, raw_text = await check_robots("https://example.com", mock_client)
+
+    assert isinstance(report, RobotsReport)
+    assert report.found is False
+    assert raw_text is None

@@ -75,3 +75,44 @@ class AuditReport(BaseModel):
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors encountered during audit"
     )
+
+
+class PageAudit(BaseModel):
+    """Per-page audit results (schema + content only)."""
+
+    url: str = Field(description="URL of the audited page")
+    schema_org: SchemaReport = Field(description="Schema.org JSON-LD analysis for this page")
+    content: ContentReport = Field(description="Content density analysis for this page")
+    errors: list[str] = Field(
+        default_factory=list, description="Non-fatal errors encountered for this page"
+    )
+
+
+class DiscoveryResult(BaseModel):
+    """How pages were discovered for multi-page audit."""
+
+    method: str = Field(description="Discovery method: 'sitemap' or 'spider'")
+    urls_found: int = Field(default=0, description="Total URLs discovered before sampling")
+    urls_sampled: list[str] = Field(
+        default_factory=list, description="URLs selected for auditing"
+    )
+    detail: str = Field(default="", description="Summary of discovery process")
+
+
+class SiteAuditReport(BaseModel):
+    """Site-level AEO audit with aggregate scores and per-page breakdown."""
+
+    url: str = Field(description="Seed URL for the audit")
+    domain: str = Field(description="Domain of the audited site")
+    overall_score: float = Field(default=0, description="Aggregate AEO score (0-100)")
+    robots: RobotsReport = Field(description="Robots.txt AI bot access (site-wide)")
+    llms_txt: LlmsTxtReport = Field(description="llms.txt presence (site-wide)")
+    schema_org: SchemaReport = Field(description="Aggregated Schema.org analysis across pages")
+    content: ContentReport = Field(description="Aggregated content density across pages")
+    discovery: DiscoveryResult = Field(description="Page discovery details")
+    pages: list[PageAudit] = Field(default_factory=list, description="Per-page audit results")
+    pages_audited: int = Field(default=0, description="Number of pages successfully audited")
+    pages_failed: int = Field(default=0, description="Number of pages that failed to audit")
+    errors: list[str] = Field(
+        default_factory=list, description="Non-fatal errors encountered during audit"
+    )
