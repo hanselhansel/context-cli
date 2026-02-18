@@ -195,3 +195,10 @@ class LlmsTxtContent(BaseModel):
     sections: list[LlmsTxtSection] = Field(
         default_factory=list, description="Sections with links"
     )
+
+
+class SchemaJsonLdOutput(BaseModel):
+    """LLM-generated Schema.org JSON-LD structured data."""
+
+    schema_type: str = Field(description="Primary @type (e.g., Organization, Product)")
+    json_ld: dict = Field(description="Complete JSON-LD object ready to embed in HTML")
