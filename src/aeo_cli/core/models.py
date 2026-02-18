@@ -2,7 +2,17 @@
 
 from __future__ import annotations
 
+from enum import Enum
+
 from pydantic import BaseModel, Field
+
+
+class OutputFormat(str, Enum):
+    """Supported output formats for audit reports."""
+
+    json = "json"
+    csv = "csv"
+    markdown = "markdown"
 
 
 class BotAccessResult(BaseModel):
