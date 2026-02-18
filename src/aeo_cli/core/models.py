@@ -202,3 +202,22 @@ class SchemaJsonLdOutput(BaseModel):
 
     schema_type: str = Field(description="Primary @type (e.g., Organization, Product)")
     json_ld: dict = Field(description="Complete JSON-LD object ready to embed in HTML")
+
+
+class GenerateResult(BaseModel):
+    """Result of the generate command — both generated assets plus metadata."""
+
+    url: str = Field(description="Source URL used for generation")
+    model_used: str = Field(description="LLM model that produced the output")
+    profile: ProfileType = Field(description="Industry profile used for prompt tuning")
+    llms_txt: LlmsTxtContent = Field(description="Generated llms.txt content")
+    schema_jsonld: SchemaJsonLdOutput = Field(description="Generated Schema.org JSON-LD")
+    llms_txt_path: str | None = Field(
+        default=None, description="File path where llms.txt was written"
+    )
+    schema_jsonld_path: str | None = Field(
+        default=None, description="File path where schema.jsonld was written"
+    )
+    errors: list[str] = Field(
+        default_factory=list, description="Non-fatal errors during generation"
+    )
