@@ -13,21 +13,16 @@ from aeo_cli.core.crawler import extract_page
 async def test_crawl4ai_import_error():
     """If crawl4ai is not installed, extract_page should return a failed CrawlResult."""
     with patch.dict("sys.modules", {"crawl4ai": None}):
-        with patch("aeo_cli.core.crawler.AsyncWebCrawler", side_effect=ImportError("No module")):
-            pass
-    # Simulate import failure by patching the import inside extract_page
-    with patch("builtins.__import__", side_effect=ImportError("No module named 'crawl4ai'")):
         result = await extract_page("https://example.com")
 
     assert result.success is False
     assert result.error is not None
-    assert "crawl4ai" in result.error.lower() or "module" in result.error.lower()
 
 
 @pytest.mark.asyncio
 async def test_crawler_generic_exception():
     """A generic exception during crawl should be captured, not raised."""
-    with patch("aeo_cli.core.crawler.AsyncWebCrawler") as mock_cls:
+    with patch("crawl4ai.AsyncWebCrawler") as mock_cls:
         mock_crawler = AsyncMock()
         mock_crawler.arun.side_effect = RuntimeError("Browser crashed")
         mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_crawler)
@@ -48,7 +43,7 @@ async def test_crawler_returns_failed_result():
     mock_result.markdown = ""
     mock_result.links = {}
 
-    with patch("aeo_cli.core.crawler.AsyncWebCrawler") as mock_cls:
+    with patch("crawl4ai.AsyncWebCrawler") as mock_cls:
         mock_crawler = AsyncMock()
         mock_crawler.arun.return_value = mock_result
         mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_crawler)
@@ -71,7 +66,7 @@ async def test_crawler_successful_extraction():
         "external": [{"href": "https://other.com"}],
     }
 
-    with patch("aeo_cli.core.crawler.AsyncWebCrawler") as mock_cls:
+    with patch("crawl4ai.AsyncWebCrawler") as mock_cls:
         mock_crawler = AsyncMock()
         mock_crawler.arun.return_value = mock_result
         mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_crawler)

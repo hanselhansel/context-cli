@@ -9,13 +9,17 @@ import pytest
 from aeo_cli.core.models import (
     AuditReport,
     ContentReport,
+    DiscoveryResult,
     LlmsTxtReport,
     RobotsReport,
     SchemaReport,
     SiteAuditReport,
-    DiscoveryResult,
 )
 from aeo_cli.server import audit
+
+# FastMCP 2.x wraps @mcp.tool functions in a FunctionTool object.
+# The underlying async function is accessible via .fn
+_audit_fn = audit.fn
 
 
 def _mock_single_report() -> AuditReport:
@@ -49,7 +53,7 @@ async def test_audit_tool_single_page():
     with patch("aeo_cli.server.audit_url", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_single_report()
 
-        result = await audit("https://example.com", single_page=True)
+        result = await _audit_fn("https://example.com", single_page=True)
 
         mock_audit.assert_called_once_with("https://example.com")
         assert result["url"] == "https://example.com"
@@ -64,7 +68,7 @@ async def test_audit_tool_site_audit():
     with patch("aeo_cli.server.audit_site", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_site_report()
 
-        result = await audit("https://example.com")
+        result = await _audit_fn("https://example.com")
 
         mock_audit.assert_called_once_with("https://example.com", max_pages=10)
         assert result["domain"] == "example.com"
@@ -78,7 +82,7 @@ async def test_audit_tool_custom_max_pages():
     with patch("aeo_cli.server.audit_site", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_site_report()
 
-        await audit("https://example.com", max_pages=5)
+        await _audit_fn("https://example.com", max_pages=5)
 
         mock_audit.assert_called_once_with("https://example.com", max_pages=5)
 
@@ -89,6 +93,6 @@ async def test_audit_tool_returns_dict():
     with patch("aeo_cli.server.audit_url", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_single_report()
 
-        result = await audit("https://example.com", single_page=True)
+        result = await _audit_fn("https://example.com", single_page=True)
 
         assert isinstance(result, dict)
