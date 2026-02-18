@@ -1,0 +1,21 @@
+# Basic AEO Audit workflow
+# Runs on every push to main and on pull requests.
+# Fails the build if the AEO score drops below 60.
+name: AEO Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  aeo-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run AEO Audit
+        uses: hanselhansel/aeo-cli@main
+        with:
+          url: 'https://your-site.com'
+          fail-under: '60'
