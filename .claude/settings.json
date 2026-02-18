@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install*)",
+      "Bash(pip3 install*)",
+      "Bash(python -m pytest*)",
+      "Bash(pytest*)",
+      "Bash(ruff*)",
+      "Bash(aeo-cli*)",
+      "Bash(python -c*)",
+      "Bash(python -m aeo_cli*)"
+    ],
+    "deny": []
+  }
+}
