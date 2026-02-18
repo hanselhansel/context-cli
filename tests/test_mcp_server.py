@@ -10,12 +10,18 @@ from aeo_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
+    GenerateResult,
+    LlmsTxtContent,
+    LlmsTxtLink,
     LlmsTxtReport,
+    LlmsTxtSection,
+    ProfileType,
     RobotsReport,
+    SchemaJsonLdOutput,
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.server import audit
+from aeo_cli.server import audit, generate
 
 # FastMCP 2.x wraps @mcp.tool functions in a FunctionTool object.
 # The underlying async function is accessible via .fn
@@ -96,3 +102,48 @@ async def test_audit_tool_returns_dict():
         result = await _audit_fn("https://example.com", single_page=True)
 
         assert isinstance(result, dict)
+
+
+# ── Generate MCP tool ────────────────────────────────────────────────────────
+
+_generate_fn = generate.fn
+
+
+def _mock_generate_result() -> GenerateResult:
+    return GenerateResult(
+        url="https://example.com",
+        model_used="gpt-4o-mini",
+        profile=ProfileType.generic,
+        llms_txt=LlmsTxtContent(
+            title="Example",
+            description="An example website",
+            sections=[
+                LlmsTxtSection(
+                    heading="Docs",
+                    links=[LlmsTxtLink(title="Docs", url="https://example.com/docs")],
+                )
+            ],
+        ),
+        schema_jsonld=SchemaJsonLdOutput(
+            schema_type="Organization",
+            json_ld={"@context": "https://schema.org", "@type": "Organization"},
+        ),
+        llms_txt_path="./aeo-output/llms.txt",
+        schema_jsonld_path="./aeo-output/schema.jsonld",
+    )
+
+
+@pytest.mark.asyncio
+async def test_generate_tool_returns_dict():
+    """MCP generate tool should return a plain dict."""
+    with patch(
+        "aeo_cli.core.generate.compiler.generate_assets", new_callable=AsyncMock
+    ) as mock_gen:
+        mock_gen.return_value = _mock_generate_result()
+        result = await _generate_fn("https://example.com")
+
+        assert isinstance(result, dict)
+        assert result["url"] == "https://example.com"
+        assert result["model_used"] == "gpt-4o-mini"
+        assert "llms_txt" in result
+        assert "schema_jsonld" in result
