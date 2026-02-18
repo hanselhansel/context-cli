@@ -144,6 +144,14 @@ def audit(
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Suppress output, exit code 0 if score >= 50, else 1"
     ),
+    fail_under: float = typer.Option(
+        None, "--fail-under", help="Exit code 1 if overall score is below this threshold (0-100)"
+    ),
+    fail_on_blocked_bots: bool = typer.Option(
+        False,
+        "--fail-on-blocked-bots",
+        help="Exit code 2 if any AI bot is blocked by robots.txt",
+    ),
 ) -> None:
     """Run an AEO audit on a URL and display the results."""
     if not url.startswith("http"):
