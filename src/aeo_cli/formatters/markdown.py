@@ -63,7 +63,9 @@ def format_site_report_md(report: SiteAuditReport) -> str:
         ])
         for page in report.pages:
             total = page.schema_org.score + page.content.score
-            lines.append(f"| {page.url} | {page.schema_org.score} | {page.content.score} | {total} |")
+            lines.append(
+                f"| {page.url} | {page.schema_org.score} | {page.content.score} | {total} |"
+            )
 
     lines.extend([
         "",

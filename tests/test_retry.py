@@ -21,7 +21,9 @@ async def test_no_retry_on_success():
     mock_client.request = AsyncMock(return_value=mock_response)
 
     config = RetryConfig(max_retries=3, backoff_base=0.01)
-    result = await request_with_retry(mock_client, "GET", "https://example.com", retry_config=config)
+    result = await request_with_retry(
+        mock_client, "GET", "https://example.com", retry_config=config
+    )
 
     assert result.status_code == 200
     assert mock_client.request.call_count == 1
@@ -98,7 +100,9 @@ async def test_no_retry_on_404():
     mock_client.request = AsyncMock(return_value=response_404)
 
     config = RetryConfig(max_retries=3, backoff_base=0.01)
-    result = await request_with_retry(mock_client, "GET", "https://example.com", retry_config=config)
+    result = await request_with_retry(
+        mock_client, "GET", "https://example.com", retry_config=config
+    )
 
     assert result.status_code == 404
     assert mock_client.request.call_count == 1

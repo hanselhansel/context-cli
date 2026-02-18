@@ -227,7 +227,10 @@ def _render_verbose(report) -> None:
         llms_info += f"\n  Found at: {report.llms_txt.url}"
     else:
         llms_info += "\n  Not found at /llms.txt or /.well-known/llms.txt"
-    console.print(Panel(f"[bold]llms.txt[/bold] — {llms_info}", title="llms.txt Detail", border_style="blue"))
+    console.print(Panel(
+        f"[bold]llms.txt[/bold] — {llms_info}",
+        title="llms.txt Detail", border_style="blue",
+    ))
 
     # Schema detail
     schema_lines = [f"[bold]Schema.org JSON-LD[/bold] — Score: {report.schema_org.score}/25"]
@@ -247,7 +250,9 @@ def _render_verbose(report) -> None:
     console.print(Panel("\n".join(content_lines), title="Content Detail", border_style="blue"))
 
 
-def _audit_site(url: str, format: OutputFormat | None, max_pages: int, verbose: bool = False) -> None:
+def _audit_site(
+    url: str, format: OutputFormat | None, max_pages: int, verbose: bool = False,
+) -> None:
     """Run a multi-page site audit with progress display."""
     with Progress(
         SpinnerColumn(),

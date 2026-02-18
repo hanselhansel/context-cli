@@ -5,7 +5,6 @@ from __future__ import annotations
 from aeo_cli.core.crawler import _extract_internal_links_bs4, _normalize_links
 from aeo_cli.core.discovery import _filter_by_robots
 
-
 # -- Internal link extraction (BeautifulSoup fallback) -------------------------
 
 
@@ -39,7 +38,7 @@ def test_extract_internal_links_deduplication():
     links = _extract_internal_links_bs4(html, "https://example.com/")
 
     # /about and /about (deduped) — fragment is stripped so /about#section = /about
-    about_count = sum(1 for l in links if "about" in l)
+    about_count = sum(1 for lnk in links if "about" in lnk)
     assert about_count == 1
 
 

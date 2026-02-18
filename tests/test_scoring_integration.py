@@ -40,10 +40,10 @@ def test_perfect_score():
         has_code_blocks=True,
     )
 
-    r, l, s, c, overall = compute_scores(robots, llms_txt, schema_org, content)
+    r, lt, s, c, overall = compute_scores(robots, llms_txt, schema_org, content)
 
     assert r.score == 25
-    assert l.score == 10
+    assert lt.score == 10
     assert s.score == 25  # 8 + 5*4 = 28, capped at 25
     assert c.score == 40  # 25 + 7 + 5 + 3 = 40
     assert overall == 100
@@ -51,7 +51,7 @@ def test_perfect_score():
 
 def test_zero_score():
     """Everything missing should yield 0."""
-    r, l, s, c, overall = compute_scores(
+    r, lt, s, c, overall = compute_scores(
         RobotsReport(found=False),
         LlmsTxtReport(found=False),
         SchemaReport(),
@@ -59,7 +59,7 @@ def test_zero_score():
     )
 
     assert r.score == 0
-    assert l.score == 0
+    assert lt.score == 0
     assert s.score == 0
     assert c.score == 0
     assert overall == 0
@@ -109,6 +109,6 @@ def test_overall_is_sum_of_pillars():
     )
     content = ContentReport(word_count=500, has_headings=True)
 
-    r, l, s, c, overall = compute_scores(robots, llms_txt, schema_org, content)
+    r, lt, s, c, overall = compute_scores(robots, llms_txt, schema_org, content)
 
-    assert overall == r.score + l.score + s.score + c.score
+    assert overall == r.score + lt.score + s.score + c.score
