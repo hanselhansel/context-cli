@@ -27,3 +27,23 @@ def _check_ollama_running() -> bool:
         return resp.status_code == 200
     except Exception:
         return False
+
+
+def detect_model() -> str:
+    """Auto-detect best available model from environment.
+
+    Order: OPENAI_API_KEY → gpt-4o-mini, ANTHROPIC_API_KEY → claude-3-haiku-20240307,
+    Ollama running → ollama/llama3.2, else raise LLMError.
+    """
+    import os
+
+    if os.environ.get("OPENAI_API_KEY"):
+        return "gpt-4o-mini"
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return "claude-3-haiku-20240307"
+    if _check_ollama_running():
+        return "ollama/llama3.2"
+    raise LLMError(
+        "No LLM provider found. Set OPENAI_API_KEY or ANTHROPIC_API_KEY, "
+        "or start Ollama locally."
+    )
