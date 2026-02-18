@@ -1,0 +1,20 @@
+# AEO Audit on Vercel/Netlify preview deployments
+# Triggers when a deployment succeeds and audits the preview URL.
+name: AEO Audit (Preview Deploy)
+
+on:
+  deployment_status:
+
+jobs:
+  aeo-audit:
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run AEO Audit on Preview
+        uses: hanselhansel/aeo-cli@main
+        with:
+          url: ${{ github.event.deployment_status.target_url }}
+          fail-under: '50'
+          single-page: 'true'
