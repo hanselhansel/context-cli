@@ -22,6 +22,9 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 - **Rich CLI output** — formatted tables and scores via Rich
 - **JSON output** — machine-readable results for pipelines
 - **MCP server** — expose the audit as a tool for AI agents via FastMCP
+- **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation
+- **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, GitHub Step Summary
+- **GitHub Action** — composite action for CI pipelines
 
 ## Installation
 
@@ -99,12 +102,36 @@ Show detailed per-pillar breakdown with scoring explanations:
 aeo-cli audit example.com --single --verbose
 ```
 
-### Quiet Mode (CI)
+### CI Mode
+
+Fail the build if the AEO score is below a threshold:
+
+```bash
+aeo-cli audit example.com --fail-under 60
+```
+
+Fail if any AI bot is blocked:
+
+```bash
+aeo-cli audit example.com --fail-on-blocked-bots
+```
+
+Exit codes: 0 = pass, 1 = score below threshold, 2 = bots blocked.
+
+When running in GitHub Actions, a markdown summary is automatically written to `$GITHUB_STEP_SUMMARY`.
+
+### Quiet Mode
 
 Suppress output, exit code 0 if score >= 50, 1 otherwise:
 
 ```bash
 aeo-cli audit example.com --quiet
+```
+
+Use `--fail-under` with `--quiet` to override the default threshold:
+
+```bash
+aeo-cli audit example.com --quiet --fail-under 70
 ```
 
 ### Start MCP server
@@ -131,6 +158,58 @@ To use AEO-CLI as a tool in Claude Desktop, add this to your Claude Desktop conf
 ```
 
 Once configured, Claude can call the `audit_url` tool directly to check any URL's AEO readiness.
+
+## AEO Compiler (Generate)
+
+Generate `llms.txt` and `schema.jsonld` files from any URL using LLM analysis:
+
+```bash
+pip install aeo-cli[generate]
+aeo-cli generate example.com
+```
+
+This crawls the URL, sends the content to an LLM, and writes optimized files to `./aeo-output/`.
+
+### BYOK (Bring Your Own Key)
+
+The generate command auto-detects your LLM provider from environment variables:
+
+| Priority | Env Variable | Model Used |
+|----------|-------------|------------|
+| 1 | `OPENAI_API_KEY` | gpt-4o-mini |
+| 2 | `ANTHROPIC_API_KEY` | claude-3-haiku-20240307 |
+| 3 | Ollama running locally | ollama/llama3.2 |
+
+Override with `--model`:
+
+```bash
+aeo-cli generate example.com --model gpt-4o
+```
+
+### Industry Profiles
+
+Tailor the output with `--profile`:
+
+```bash
+aeo-cli generate example.com --profile saas
+aeo-cli generate example.com --profile ecommerce
+```
+
+Available: `generic`, `cpg`, `saas`, `ecommerce`, `blog`.
+
+## GitHub Action
+
+Use AEO-CLI in your CI pipeline:
+
+```yaml
+- name: Run AEO Audit
+  uses: hanselhansel/aeo-cli@main
+  with:
+    url: 'https://your-site.com'
+    fail-under: '60'
+```
+
+The action sets up Python, installs aeo-cli, and runs the audit. Outputs `score` and `report-json` for downstream steps. See [docs/ci-integration.md](docs/ci-integration.md) for full documentation.
 
 ## Score Breakdown
 
