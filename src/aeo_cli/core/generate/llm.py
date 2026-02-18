@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class LLMError(Exception):
     """Raised when LLM call fails."""
@@ -49,7 +53,7 @@ def detect_model() -> str:
     )
 
 
-def _build_response_format(model_class: type) -> dict:
+def _build_response_format(model_class: type[BaseModel]) -> dict[str, Any]:
     """Build litellm response_format from a Pydantic model class."""
     return {
         "type": "json_schema",
@@ -77,8 +81,8 @@ def _is_format_error(error: Exception) -> bool:
 
 
 async def _fallback_json_mode(
-    messages: list[dict], model: str, model_class: type
-) -> dict:
+    messages: list[dict[str, str]], model: str, model_class: type[BaseModel]
+) -> dict[str, Any]:
     """Fallback: use json_mode instead of structured output, parse manually."""
     import json
 
@@ -100,14 +104,14 @@ async def _fallback_json_mode(
         response_format={"type": "json_object"},
     )
     raw = response.choices[0].message.content
-    return json.loads(raw)
+    return json.loads(raw)  # type: ignore[no-any-return]
 
 
 async def call_llm_structured(
     messages: list[dict[str, str]],
     model: str,
-    response_model: type,
-) -> dict:
+    response_model: type[BaseModel],
+) -> dict[str, Any]:
     """Call LLM with structured output. Falls back to json_mode on format errors.
 
     Uses litellm.acompletion(). Returns parsed dict matching response_model schema.
@@ -125,7 +129,7 @@ async def call_llm_structured(
             response_format=_build_response_format(response_model),
         )
         raw = response.choices[0].message.content
-        return json.loads(raw)
+        return json.loads(raw)  # type: ignore[no-any-return]
     except Exception as exc:
         if _is_format_error(exc):
             return await _fallback_json_mode(messages, model, response_model)
