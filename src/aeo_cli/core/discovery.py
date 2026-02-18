@@ -12,8 +12,8 @@ import httpx
 
 from aeo_cli.core.models import DiscoveryResult
 
-_SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
-_MAX_CHILD_SITEMAPS = 10
+_SITEMAP_NS: str = "http://www.sitemaps.org/schemas/sitemap/0.9"
+_MAX_CHILD_SITEMAPS: int = 10
 
 
 # ── URL normalisation ────────────────────────────────────────────────────────
