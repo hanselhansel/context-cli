@@ -92,5 +92,5 @@ check_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["crawl4ai.*", "bs4.*"]
+module = ["crawl4ai.*", "bs4.*", "litellm.*"]
 ignore_missing_imports = true
