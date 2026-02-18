@@ -25,6 +25,21 @@ class ProfileType(str, Enum):
     blog = "blog"
 
 
+class GenerateConfig(BaseModel):
+    """Configuration for the generate command."""
+
+    url: str = Field(description="URL to generate assets for")
+    profile: ProfileType = Field(
+        default=ProfileType.generic, description="Industry profile for prompt tuning"
+    )
+    model: str | None = Field(
+        default=None, description="LLM model to use (auto-detected if not set)"
+    )
+    output_dir: str = Field(
+        default="./aeo-output", description="Directory to write generated files"
+    )
+
+
 class RetryConfig(BaseModel):
     """Configuration for HTTP request retries with exponential backoff."""
 
