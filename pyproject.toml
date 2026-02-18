@@ -51,6 +51,7 @@ dev = [
     "pytest-cov>=5.0",
     "mypy>=1.10",
     "ruff>=0.4",
+    "litellm>=1.40",
 ]
 
 [project.scripts]
