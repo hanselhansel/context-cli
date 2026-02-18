@@ -30,5 +30,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Generated output
+aeo-output/
+
 # Claude Code local settings
 .claude/settings.local.json
