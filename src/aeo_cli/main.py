@@ -141,6 +141,9 @@ def audit(
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed per-pillar breakdown with explanations"
     ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q", help="Suppress output, exit code 0 if score >= 50, else 1"
+    ),
 ) -> None:
     """Run an AEO audit on a URL and display the results."""
     if not url.startswith("http"):
@@ -149,6 +152,10 @@ def audit(
     # --json flag is a shortcut for --format json
     if json_output and format is None:
         format = OutputFormat.json
+
+    if quiet:
+        _audit_quiet(url, single, max_pages)
+        return
 
     if single:
         _audit_single(url, format, verbose)
@@ -268,6 +275,18 @@ def _audit_site(url: str, format: OutputFormat | None, max_pages: int, verbose: 
         return
 
     _render_site_report(report)
+
+
+def _audit_quiet(url: str, single: bool, max_pages: int) -> None:
+    """Run audit silently — exit 0 if score >= 50, else exit 1."""
+    if single:
+        report = asyncio.run(audit_url(url))
+        score = report.overall_score
+    else:
+        report = asyncio.run(audit_site(url, max_pages=max_pages))
+        score = report.overall_score
+
+    raise SystemExit(0 if score >= 50 else 1)
 
 
 @app.command()
