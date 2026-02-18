@@ -54,19 +54,58 @@ This runs a full audit and prints a Rich-formatted report with your AEO score.
 
 ## CLI Usage
 
-### Audit a URL
+### Single Page Audit
+
+Audit only the specified URL (skip multi-page discovery):
 
 ```bash
-aeo-cli audit https://example.com
+aeo-cli audit example.com --single
 ```
 
-### JSON output
+### Multi-Page Site Audit (default)
+
+Discover pages via sitemap/spider and audit up to 10 pages:
 
 ```bash
-aeo-cli audit https://example.com --json
+aeo-cli audit example.com
 ```
 
-Returns structured JSON — useful for CI pipelines, dashboards, or further processing.
+### Limit Pages
+
+```bash
+aeo-cli audit example.com --max-pages 5
+```
+
+### JSON Output
+
+Get structured JSON for CI pipelines, dashboards, or scripting:
+
+```bash
+aeo-cli audit example.com --json
+```
+
+### CSV / Markdown Output
+
+```bash
+aeo-cli audit example.com --format csv
+aeo-cli audit example.com --format markdown
+```
+
+### Verbose Mode
+
+Show detailed per-pillar breakdown with scoring explanations:
+
+```bash
+aeo-cli audit example.com --single --verbose
+```
+
+### Quiet Mode (CI)
+
+Suppress output, exit code 0 if score >= 50, 1 otherwise:
+
+```bash
+aeo-cli audit example.com --quiet
+```
 
 ### Start MCP server
 
