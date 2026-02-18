@@ -185,3 +185,13 @@ class LlmsTxtSection(BaseModel):
     links: list[LlmsTxtLink] = Field(
         default_factory=list, description="Links in this section"
     )
+
+
+class LlmsTxtContent(BaseModel):
+    """Structured representation of a complete llms.txt file."""
+
+    title: str = Field(description="Site/product title (first line of llms.txt)")
+    description: str = Field(description="One-line description (> blockquote in llms.txt)")
+    sections: list[LlmsTxtSection] = Field(
+        default_factory=list, description="Sections with links"
+    )
