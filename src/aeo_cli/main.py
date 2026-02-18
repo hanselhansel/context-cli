@@ -199,8 +199,10 @@ def _audit_single(url: str, format: OutputFormat | None, verbose: bool = False) 
 
 
 def _render_verbose(report) -> None:
-    """Render a detailed verbose breakdown with scoring explanations."""
+    """Render a detailed verbose breakdown with scoring explanations in Rich panels."""
     console.print()
+    console.print("[bold]Scoring Methodology:[/bold] Content (40pts) + Robots (25pts) "
+                  "+ Schema (25pts) + llms.txt (10pts) = 100pts max")
 
     # Robots detail
     robots_lines = [f"[bold]Robots.txt AI Bot Access[/bold] — Score: {report.robots.score}/25"]
