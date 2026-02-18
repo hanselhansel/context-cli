@@ -137,7 +137,7 @@ def _mock_generate_result() -> GenerateResult:
 async def test_generate_tool_returns_dict():
     """MCP generate tool should return a plain dict."""
     with patch(
-        "aeo_cli.core.generate.compiler.generate_assets", new_callable=AsyncMock
+        "aeo_cli.core.generate.generate_assets", new_callable=AsyncMock
     ) as mock_gen:
         mock_gen.return_value = _mock_generate_result()
         result = await _generate_fn("https://example.com")
