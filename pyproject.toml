@@ -9,6 +9,28 @@ description = "Agentic Engine Optimization CLI — audit URLs for AI crawler rea
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
+authors = [
+    { name = "Hansel Wahjono" },
+]
+keywords = ["aeo", "seo", "ai", "llm", "crawler", "audit", "robots-txt", "schema-org"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/hanselhansel/aeo-cli"
+Repository = "https://github.com/hanselhansel/aeo-cli"
+Issues = "https://github.com/hanselhansel/aeo-cli/issues"
 dependencies = [
     "typer>=0.9",
     "rich>=13.0",
