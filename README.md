@@ -1,5 +1,6 @@
 # AEO-CLI
 
+[![Tests](https://github.com/hanselhansel/aeo-cli/actions/workflows/test.yml/badge.svg)](https://github.com/hanselhansel/aeo-cli/actions/workflows/test.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/aeo-cli.svg)](https://pypi.org/project/aeo-cli/)
