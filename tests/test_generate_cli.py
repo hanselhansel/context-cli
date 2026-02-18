@@ -19,6 +19,11 @@ from aeo_cli.main import app
 
 runner = CliRunner()
 
+# Patch target: generate_assets is lazily imported inside the generate command
+# via `from aeo_cli.core.generate import generate_assets`, so we patch
+# at the source module level.
+_PATCH_TARGET = "aeo_cli.core.generate.generate_assets"
+
 
 def _mock_generate_result() -> GenerateResult:
     """Build a known GenerateResult for CLI output assertions."""
@@ -44,7 +49,11 @@ def _mock_generate_result() -> GenerateResult:
         ),
         schema_jsonld=SchemaJsonLdOutput(
             schema_type="Organization",
-            json_ld={"@context": "https://schema.org", "@type": "Organization", "name": "Example"},
+            json_ld={
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Example",
+            },
         ),
         llms_txt_path="./aeo-output/llms.txt",
         schema_jsonld_path="./aeo-output/schema.jsonld",
@@ -58,7 +67,7 @@ async def _fake_generate_assets(config):
 
 def test_generate_basic_invocation():
     """generate command should produce Rich output with file paths."""
-    with patch("aeo_cli.main.generate_assets", side_effect=_fake_generate_assets):
+    with patch(_PATCH_TARGET, side_effect=_fake_generate_assets):
         result = runner.invoke(app, ["generate", "https://example.com"])
 
     assert result.exit_code == 0
@@ -70,7 +79,7 @@ def test_generate_basic_invocation():
 
 def test_generate_json_output():
     """generate --json should output valid JSON."""
-    with patch("aeo_cli.main.generate_assets", side_effect=_fake_generate_assets):
+    with patch(_PATCH_TARGET, side_effect=_fake_generate_assets):
         result = runner.invoke(app, ["generate", "https://example.com", "--json"])
 
     assert result.exit_code == 0
@@ -89,7 +98,7 @@ def test_generate_profile_option():
         configs.append(config)
         return _mock_generate_result()
 
-    with patch("aeo_cli.main.generate_assets", side_effect=_capture_config):
+    with patch(_PATCH_TARGET, side_effect=_capture_config):
         result = runner.invoke(
             app, ["generate", "https://example.com", "--profile", "saas", "--json"]
         )
@@ -107,9 +116,10 @@ def test_generate_model_option():
         configs.append(config)
         return _mock_generate_result()
 
-    with patch("aeo_cli.main.generate_assets", side_effect=_capture_config):
+    with patch(_PATCH_TARGET, side_effect=_capture_config):
         result = runner.invoke(
-            app, ["generate", "https://example.com", "--model", "claude-3-haiku-20240307", "--json"]
+            app,
+            ["generate", "https://example.com", "--model", "claude-3-haiku-20240307", "--json"],
         )
 
     assert result.exit_code == 0
@@ -119,7 +129,6 @@ def test_generate_model_option():
 
 def test_generate_missing_litellm():
     """generate should show install hint when litellm is not available."""
-    # Simulate the actual import failure path by patching at the import level
     import builtins
 
     original_import = builtins.__import__
@@ -144,7 +153,7 @@ def test_generate_url_auto_prefix():
         configs.append(config)
         return _mock_generate_result()
 
-    with patch("aeo_cli.main.generate_assets", side_effect=_capture_config):
+    with patch(_PATCH_TARGET, side_effect=_capture_config):
         result = runner.invoke(app, ["generate", "example.com", "--json"])
 
     assert result.exit_code == 0
