@@ -27,7 +27,7 @@ from aeo_cli.core.models import (
     SiteAuditReport,
 )
 
-AI_BOTS = [
+AI_BOTS: list[str] = [
     "GPTBot",
     "ChatGPT-User",
     "Google-Extended",
@@ -37,7 +37,7 @@ AI_BOTS = [
     "OAI-SearchBot",
 ]
 
-DEFAULT_TIMEOUT = 15
+DEFAULT_TIMEOUT: int = 15
 
 
 # ── Pillar 1: Robots.txt ──────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ async def check_llms_txt(url: str, client: httpx.AsyncClient) -> LlmsTxtReport:
 # ── Pillar 3: Schema.org JSON-LD ──────────────────────────────────────────────
 
 
-def check_schema_org(html: str) -> SchemaReport:
+def check_schema_org(html: str) -> SchemaReport:  # noqa: C901
     """Extract and analyze JSON-LD structured data from HTML."""
     if not html:
         return SchemaReport(detail="No HTML to analyze")
@@ -407,7 +407,7 @@ async def audit_url(url: str) -> AuditReport:
     )
 
 
-SITE_AUDIT_TIMEOUT = 90
+SITE_AUDIT_TIMEOUT: int = 90
 
 
 async def audit_site(
