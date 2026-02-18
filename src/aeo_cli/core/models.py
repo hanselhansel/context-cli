@@ -15,6 +15,16 @@ class OutputFormat(str, Enum):
     markdown = "markdown"
 
 
+class ProfileType(str, Enum):
+    """Industry profile for generate command prompt tuning."""
+
+    generic = "generic"
+    cpg = "cpg"
+    saas = "saas"
+    ecommerce = "ecommerce"
+    blog = "blog"
+
+
 class RetryConfig(BaseModel):
     """Configuration for HTTP request retries with exponential backoff."""
 
