@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from typing import Any
 from urllib.parse import urldefrag, urljoin, urlparse
 
 
@@ -47,7 +48,7 @@ def _extract_internal_links_bs4(html: str, base_url: str) -> list[str]:
     return links
 
 
-def _normalize_links(raw_links: list[dict], base_url: str) -> list[str]:
+def _normalize_links(raw_links: list[dict[str, Any]], base_url: str) -> list[str]:
     """Normalize crawl4ai internal link dicts to deduplicated absolute URLs."""
     parsed_base = urlparse(base_url)
     base_domain = parsed_base.netloc
