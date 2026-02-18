@@ -47,3 +47,30 @@ def detect_model() -> str:
         "No LLM provider found. Set OPENAI_API_KEY or ANTHROPIC_API_KEY, "
         "or start Ollama locally."
     )
+
+
+def _build_response_format(model_class: type) -> dict:
+    """Build litellm response_format from a Pydantic model class."""
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": model_class.__name__,
+            "schema": model_class.model_json_schema(),
+            "strict": False,
+        },
+    }
+
+
+def _is_format_error(error: Exception) -> bool:
+    """Check if an error is a structured output format error (for fallback)."""
+    msg = str(error).lower()
+    return any(
+        phrase in msg
+        for phrase in [
+            "response_format",
+            "json_schema",
+            "structured output",
+            "not supported",
+            "does not support",
+        ]
+    )
