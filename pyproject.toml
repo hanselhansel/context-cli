@@ -42,6 +42,9 @@ Repository = "https://github.com/hanselhansel/aeo-cli"
 Issues = "https://github.com/hanselhansel/aeo-cli/issues"
 
 [project.optional-dependencies]
+generate = [
+    "litellm>=1.40",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
