@@ -165,3 +165,14 @@ class SiteAuditReport(BaseModel):
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors encountered during audit"
     )
+
+
+# ── Generate command models ──────────────────────────────────────────────────
+
+
+class LlmsTxtLink(BaseModel):
+    """A single link entry in an llms.txt section."""
+
+    title: str = Field(description="Human-readable link title")
+    url: str = Field(description="Absolute URL for the link")
+    description: str = Field(default="", description="Brief description of the linked resource")
