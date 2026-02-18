@@ -15,6 +15,18 @@ class OutputFormat(str, Enum):
     markdown = "markdown"
 
 
+class RetryConfig(BaseModel):
+    """Configuration for HTTP request retries with exponential backoff."""
+
+    max_retries: int = Field(default=3, description="Maximum number of retry attempts")
+    backoff_base: float = Field(default=1.0, description="Base delay in seconds for exponential backoff")
+    backoff_max: float = Field(default=30.0, description="Maximum delay in seconds between retries")
+    retry_on_status: list[int] = Field(
+        default=[429, 500, 502, 503, 504],
+        description="HTTP status codes that trigger a retry",
+    )
+
+
 class BotAccessResult(BaseModel):
     """Result of checking a single AI bot's access in robots.txt."""
 
