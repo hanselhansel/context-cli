@@ -176,3 +176,12 @@ class LlmsTxtLink(BaseModel):
     title: str = Field(description="Human-readable link title")
     url: str = Field(description="Absolute URL for the link")
     description: str = Field(default="", description="Brief description of the linked resource")
+
+
+class LlmsTxtSection(BaseModel):
+    """A section within an llms.txt file (e.g., ## Docs, ## API)."""
+
+    heading: str = Field(description="Section heading (without ## prefix)")
+    links: list[LlmsTxtLink] = Field(
+        default_factory=list, description="Links in this section"
+    )
