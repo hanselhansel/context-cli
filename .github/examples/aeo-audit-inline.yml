@@ -1,0 +1,25 @@
+# Inline AEO Audit without using the composite action.
+# Useful when you want full control over each step or cannot
+# reference external actions (e.g. enterprise restrictions).
+name: AEO Audit (Inline)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  aeo-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install aeo-cli
+        run: pip install aeo-cli
+
+      - name: Install browser
+        run: crawl4ai-setup
+
+      - name: Run AEO Audit
+        run: aeo-cli audit https://your-site.com --fail-under 60
