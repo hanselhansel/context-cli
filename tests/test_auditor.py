@@ -1,0 +1,188 @@
+"""Tests for auditor pillar checks and scoring logic."""
+
+from aeo_cli.core.auditor import check_content, check_schema_org, compute_scores
+from aeo_cli.core.models import (
+    BotAccessResult,
+    ContentReport,
+    LlmsTxtReport,
+    RobotsReport,
+    SchemaOrgResult,
+    SchemaReport,
+)
+
+# -- check_schema_org ----------------------------------------------------------
+
+
+def test_check_schema_org_with_jsonld():
+    """HTML containing a JSON-LD script should yield one parsed block."""
+    html = """
+    <html><head>
+    <script type="application/ld+json">
+    {"@context": "https://schema.org", "@type": "Organization", "name": "Acme", "url": "https://acme.com"}
+    </script>
+    </head><body></body></html>
+    """
+    report = check_schema_org(html)
+
+    assert report.blocks_found == 1
+    assert len(report.schemas) == 1
+    assert report.schemas[0].schema_type == "Organization"
+    assert "name" in report.schemas[0].properties
+    assert "url" in report.schemas[0].properties
+
+
+def test_check_schema_org_empty_html():
+    """Empty HTML should return 0 blocks."""
+    report = check_schema_org("")
+    assert report.blocks_found == 0
+    assert report.schemas == []
+    assert report.detail == "No HTML to analyze"
+
+
+def test_check_schema_org_no_jsonld():
+    """HTML without JSON-LD scripts should return 0 blocks."""
+    html = "<html><head></head><body><p>Hello</p></body></html>"
+    report = check_schema_org(html)
+    assert report.blocks_found == 0
+    assert report.schemas == []
+
+
+def test_check_schema_org_multiple_blocks():
+    """HTML with two JSON-LD scripts should return 2 blocks."""
+    html = """
+    <html><head>
+    <script type="application/ld+json">
+    {"@type": "Organization", "name": "Acme"}
+    </script>
+    <script type="application/ld+json">
+    {"@type": "Article", "headline": "Test"}
+    </script>
+    </head><body></body></html>
+    """
+    report = check_schema_org(html)
+    assert report.blocks_found == 2
+    types = {s.schema_type for s in report.schemas}
+    assert types == {"Organization", "Article"}
+
+
+# -- check_content -------------------------------------------------------------
+
+
+def test_check_content_with_markdown():
+    """Sample markdown should detect word count, headings, and lists."""
+    md = "# Welcome\n\nThis is a sample paragraph with several words.\n\n- item one\n- item two\n"
+    report = check_content(md)
+
+    assert report.word_count > 0
+    assert report.char_count > 0
+    assert report.has_headings is True
+    assert report.has_lists is True
+    assert report.has_code_blocks is False
+
+
+def test_check_content_empty_string():
+    """Empty markdown should return zero counts and no structure flags."""
+    report = check_content("")
+    assert report.word_count == 0
+    assert report.char_count == 0
+    assert report.has_headings is False
+    assert report.has_lists is False
+    assert report.detail == "No content extracted"
+
+
+def test_check_content_with_code_blocks():
+    """Markdown with code fences should detect code blocks."""
+    md = "# Heading\n\n```python\nprint('hello')\n```\n"
+    report = check_content(md)
+    assert report.has_code_blocks is True
+    assert report.has_headings is True
+
+
+# -- compute_scores ------------------------------------------------------------
+
+
+def test_compute_scores_full_marks():
+    """All bots allowed + llms.txt + 2 schemas + 1500 words + headings + lists -> high score."""
+    bots = [BotAccessResult(bot=name, allowed=True, detail="Allowed") for name in [
+        "GPTBot", "ChatGPT-User", "Google-Extended", "ClaudeBot",
+        "PerplexityBot", "Amazonbot", "OAI-SearchBot",
+    ]]
+    robots = RobotsReport(found=True, bots=bots)
+    llms_txt = LlmsTxtReport(found=True, url="https://example.com/llms.txt")
+    schema_org = SchemaReport(
+        blocks_found=2,
+        schemas=[
+            SchemaOrgResult(schema_type="Organization", properties=["name"]),
+            SchemaOrgResult(schema_type="Article", properties=["headline"]),
+        ],
+    )
+    content = ContentReport(
+        word_count=1500,
+        has_headings=True,
+        has_lists=True,
+        has_code_blocks=False,
+    )
+
+    robots, llms_txt, schema_org, content, overall = compute_scores(
+        robots, llms_txt, schema_org, content
+    )
+
+    # Robots: 25 (all 7 bots allowed)
+    assert robots.score == 25
+
+    # llms.txt: 10 (revised weight)
+    assert llms_txt.score == 10
+
+    # Schema: 8 base + 5 * 2 unique types = 18
+    assert schema_org.score == 18
+
+    # Content: 25 (1500+ words) + 7 (headings) + 5 (lists) = 37
+    assert content.score == 37
+
+    # Overall: 25 + 10 + 18 + 37 = 90
+    assert overall == 90
+
+
+def test_compute_scores_nothing_found():
+    """No robots, no llms.txt, no schema, no content -> score 0."""
+    robots = RobotsReport(found=False)
+    llms_txt = LlmsTxtReport(found=False)
+    schema_org = SchemaReport()
+    content = ContentReport()
+
+    _, _, _, _, overall = compute_scores(robots, llms_txt, schema_org, content)
+    assert overall == 0
+
+
+def test_compute_scores_partial():
+    """Partial results should yield proportional scores."""
+    # 3 of 7 bots allowed
+    bots = [
+        BotAccessResult(bot="GPTBot", allowed=True, detail="Allowed"),
+        BotAccessResult(bot="ClaudeBot", allowed=True, detail="Allowed"),
+        BotAccessResult(bot="PerplexityBot", allowed=True, detail="Allowed"),
+        BotAccessResult(bot="Amazonbot", allowed=False, detail="Blocked"),
+        BotAccessResult(bot="OAI-SearchBot", allowed=False, detail="Blocked"),
+        BotAccessResult(bot="ChatGPT-User", allowed=False, detail="Blocked"),
+        BotAccessResult(bot="Google-Extended", allowed=False, detail="Blocked"),
+    ]
+    robots = RobotsReport(found=True, bots=bots)
+    llms_txt = LlmsTxtReport(found=False)
+    schema_org = SchemaReport(
+        blocks_found=1,
+        schemas=[SchemaOrgResult(schema_type="WebSite", properties=["name"])],
+    )
+    content = ContentReport(word_count=500, has_headings=True, has_lists=True)
+
+    robots, llms_txt, schema_org, content, overall = compute_scores(
+        robots, llms_txt, schema_org, content
+    )
+
+    # Robots: round(25 * 3/7, 1) = 10.7
+    assert robots.score == 10.7
+    assert llms_txt.score == 0
+    # Schema: 8 + 5*1 = 13
+    assert schema_org.score == 13
+    # Content: 15 (400+ words) + 7 (headings) + 5 (lists) = 27
+    assert content.score == 27
+    assert overall == 10.7 + 0 + 13 + 27
