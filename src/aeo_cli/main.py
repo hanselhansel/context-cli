@@ -12,7 +12,7 @@ from rich.table import Table
 from rich.text import Text
 
 from aeo_cli.core.auditor import audit_site, audit_url
-from aeo_cli.core.models import OutputFormat, SiteAuditReport
+from aeo_cli.core.models import AuditReport, OutputFormat, SiteAuditReport
 from aeo_cli.formatters.csv import format_single_report_csv, format_site_report_csv
 from aeo_cli.formatters.markdown import format_single_report_md, format_site_report_md
 
@@ -284,12 +284,12 @@ def _audit_site(
 
 def _audit_quiet(url: str, single: bool, max_pages: int) -> None:
     """Run audit silently — exit 0 if score >= 50, else exit 1."""
+    report: AuditReport | SiteAuditReport
     if single:
         report = asyncio.run(audit_url(url))
-        score = report.overall_score
     else:
         report = asyncio.run(audit_site(url, max_pages=max_pages))
-        score = report.overall_score
+    score = report.overall_score
 
     raise SystemExit(0 if score >= 50 else 1)
 

@@ -31,7 +31,7 @@ def _extract_internal_links_bs4(html: str, base_url: str) -> list[str]:
     links: list[str] = []
 
     for a_tag in soup.find_all("a", href=True):
-        href = a_tag["href"]
+        href = str(a_tag.get("href", ""))
         # Resolve relative URLs
         absolute = urljoin(base_url, href)
         # Strip fragment
