@@ -74,3 +74,59 @@ def _is_format_error(error: Exception) -> bool:
             "does not support",
         ]
     )
+
+
+async def _fallback_json_mode(
+    messages: list[dict], model: str, model_class: type
+) -> dict:
+    """Fallback: use json_mode instead of structured output, parse manually."""
+    import json
+
+    import litellm
+
+    json_messages = [
+        *messages,
+        {
+            "role": "user",
+            "content": (
+                f"Respond with valid JSON matching this schema:\n"
+                f"{json.dumps(model_class.model_json_schema(), indent=2)}"
+            ),
+        },
+    ]
+    response = await litellm.acompletion(
+        model=model,
+        messages=json_messages,
+        response_format={"type": "json_object"},
+    )
+    raw = response.choices[0].message.content
+    return json.loads(raw)
+
+
+async def call_llm_structured(
+    messages: list[dict[str, str]],
+    model: str,
+    response_model: type,
+) -> dict:
+    """Call LLM with structured output. Falls back to json_mode on format errors.
+
+    Uses litellm.acompletion(). Returns parsed dict matching response_model schema.
+    """
+    import json
+
+    import litellm
+
+    ensure_litellm()
+
+    try:
+        response = await litellm.acompletion(
+            model=model,
+            messages=messages,
+            response_format=_build_response_format(response_model),
+        )
+        raw = response.choices[0].message.content
+        return json.loads(raw)
+    except Exception as exc:
+        if _is_format_error(exc):
+            return await _fallback_json_mode(messages, model, response_model)
+        raise LLMError(f"LLM call failed: {exc}") from exc
