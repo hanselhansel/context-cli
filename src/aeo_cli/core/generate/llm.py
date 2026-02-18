@@ -16,3 +16,14 @@ def ensure_litellm() -> None:
             "litellm is required for the generate command. "
             "Install it with: pip install aeo-cli[generate]"
         )
+
+
+def _check_ollama_running() -> bool:
+    """Check if Ollama is running locally on port 11434."""
+    import httpx
+
+    try:
+        resp = httpx.get("http://localhost:11434/api/tags", timeout=2)
+        return resp.status_code == 200
+    except Exception:
+        return False
