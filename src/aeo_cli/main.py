@@ -12,7 +12,9 @@ from rich.table import Table
 from rich.text import Text
 
 from aeo_cli.core.auditor import audit_site, audit_url
-from aeo_cli.core.models import SiteAuditReport
+from aeo_cli.core.models import OutputFormat, SiteAuditReport
+from aeo_cli.formatters.csv import format_single_report_csv, format_site_report_csv
+from aeo_cli.formatters.markdown import format_single_report_md, format_site_report_md
 
 app = typer.Typer(help="AEO-CLI: Audit URLs for AI crawler readiness and get a 0-100 AEO score.")
 console = Console()
@@ -127,6 +129,9 @@ def _render_site_report(report: SiteAuditReport) -> None:
 def audit(
     url: str = typer.Argument(help="URL to audit for AI crawler readiness"),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON instead of Rich table"),
+    format: OutputFormat = typer.Option(
+        None, "--format", "-f", help="Output format: json, csv, or markdown"
+    ),
     single: bool = typer.Option(
         False, "--single", help="Single-page audit only (skip multi-page discovery)"
     ),
@@ -138,19 +143,29 @@ def audit(
     if not url.startswith("http"):
         url = f"https://{url}"
 
+    # --json flag is a shortcut for --format json
+    if json_output and format is None:
+        format = OutputFormat.json
+
     if single:
-        _audit_single(url, json_output)
+        _audit_single(url, format)
     else:
-        _audit_site(url, json_output, max_pages)
+        _audit_site(url, format, max_pages)
 
 
-def _audit_single(url: str, json_output: bool) -> None:
+def _audit_single(url: str, format: OutputFormat | None) -> None:
     """Run a single-page audit."""
     with console.status(f"Auditing {url}..."):
         report = asyncio.run(audit_url(url))
 
-    if json_output:
+    if format == OutputFormat.json:
         console.print(report.model_dump_json(indent=2))
+        return
+    if format == OutputFormat.csv:
+        console.print(format_single_report_csv(report), end="")
+        return
+    if format == OutputFormat.markdown:
+        console.print(format_single_report_md(report), end="")
         return
 
     # Build Rich table
@@ -177,7 +192,7 @@ def _audit_single(url: str, json_output: bool) -> None:
             console.print(f"  • {err}")
 
 
-def _audit_site(url: str, json_output: bool, max_pages: int) -> None:
+def _audit_site(url: str, format: OutputFormat | None, max_pages: int) -> None:
     """Run a multi-page site audit with progress display."""
     with Progress(
         SpinnerColumn(),
@@ -194,8 +209,14 @@ def _audit_site(url: str, json_output: bool, max_pages: int) -> None:
         report = asyncio.run(audit_site(url, max_pages=max_pages, progress_callback=on_progress))
         progress.update(task_id, description="Done", completed=max_pages)
 
-    if json_output:
+    if format == OutputFormat.json:
         console.print(report.model_dump_json(indent=2))
+        return
+    if format == OutputFormat.csv:
+        console.print(format_site_report_csv(report), end="")
+        return
+    if format == OutputFormat.markdown:
+        console.print(format_site_report_md(report), end="")
         return
 
     _render_site_report(report)
