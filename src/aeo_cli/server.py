@@ -167,3 +167,38 @@ async def radar(
     results = await query_models(config)
     report = build_radar_report(config, results)
     return report.model_dump()
+
+
+@mcp.tool
+async def benchmark_tool(
+    prompts: list[str],
+    brand: str,
+    competitors: list[str] | None = None,
+    models: list[str] | None = None,
+    runs_per_model: int = 3,
+) -> dict[str, Any]:
+    """Run a Share-of-Recommendation benchmark across AI models.
+
+    Args:
+        prompts: List of search prompts to benchmark.
+        brand: Target brand to track.
+        competitors: Competitor brand names.
+        models: LLM models to query (defaults to gpt-4o-mini).
+        runs_per_model: Number of runs per model per prompt (default 3).
+    """
+    from aeo_cli.core.benchmark.dispatcher import dispatch_queries
+    from aeo_cli.core.benchmark.judge import judge_all
+    from aeo_cli.core.benchmark.metrics import compute_report
+    from aeo_cli.core.models import BenchmarkConfig
+
+    config = BenchmarkConfig(
+        prompts=prompts,
+        brand=brand,
+        competitors=competitors or [],
+        models=models or ["gpt-4o-mini"],
+        runs_per_model=runs_per_model,
+    )
+    results = await dispatch_queries(config)
+    judged = await judge_all(results, config.brand, config.competitors)
+    report = compute_report(config, judged)
+    return report.model_dump()

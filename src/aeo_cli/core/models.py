@@ -612,3 +612,99 @@ class RadarReport(BaseModel):
     total_citations: int = Field(
         default=0, description="Total number of citations across all models"
     )
+
+
+# ── Benchmark models ──────────────────────────────────────────────────────
+
+
+class BenchmarkConfig(BaseModel):
+    """Configuration for a Share-of-Recommendation benchmark run."""
+
+    prompts: list[str] = Field(description="List of search prompts to benchmark")
+    brand: str = Field(description="Target brand to track")
+    competitors: list[str] = Field(
+        default_factory=list, description="Competitor brand names"
+    )
+    models: list[str] = Field(
+        default_factory=lambda: ["gpt-4o-mini"],
+        description="LLM models to query",
+    )
+    runs_per_model: int = Field(
+        default=3, description="Number of runs per model per prompt"
+    )
+
+
+class PromptEntry(BaseModel):
+    """A single prompt loaded from a prompts file."""
+
+    text: str = Field(description="The prompt text")
+    category: str = Field(default="general", description="Prompt category or tag")
+
+
+class JudgeResult(BaseModel):
+    """Result of judging a single LLM response for brand mentions and recommendations."""
+
+    brand_mentioned: bool = Field(
+        description="Whether the target brand was mentioned"
+    )
+    brand_recommended: bool = Field(
+        description="Whether the target brand was recommended"
+    )
+    competitor_mentions: dict[str, bool] = Field(
+        default_factory=dict,
+        description="Which competitors were mentioned (name -> bool)",
+    )
+    competitor_recommendations: dict[str, bool] = Field(
+        default_factory=dict,
+        description="Which competitors were recommended (name -> bool)",
+    )
+    reasoning: str = Field(default="", description="Judge's reasoning for its verdict")
+
+
+class PromptBenchmarkResult(BaseModel):
+    """Aggregated benchmark results for a single prompt across all models."""
+
+    prompt: str = Field(description="The prompt text")
+    mention_rate: float = Field(
+        description="Fraction of runs where brand was mentioned (0.0-1.0)"
+    )
+    recommendation_rate: float = Field(
+        description="Fraction of runs where brand was recommended (0.0-1.0)"
+    )
+    total_runs: int = Field(description="Total number of runs for this prompt")
+
+
+class ModelBenchmarkSummary(BaseModel):
+    """Benchmark summary for a single model."""
+
+    model: str = Field(description="Model identifier")
+    mention_rate: float = Field(
+        description="Overall brand mention rate across all prompts (0.0-1.0)"
+    )
+    recommendation_rate: float = Field(
+        description="Overall brand recommendation rate across all prompts (0.0-1.0)"
+    )
+    total_runs: int = Field(description="Total number of runs for this model")
+
+
+class BenchmarkReport(BaseModel):
+    """Full benchmark report with per-prompt and per-model breakdowns."""
+
+    brand: str = Field(description="Target brand")
+    competitors: list[str] = Field(description="Competitor brands tracked")
+    overall_mention_rate: float = Field(
+        description="Overall brand mention rate (0.0-1.0)"
+    )
+    overall_recommendation_rate: float = Field(
+        description="Overall brand recommendation rate (0.0-1.0)"
+    )
+    per_prompt: list[PromptBenchmarkResult] = Field(
+        description="Per-prompt benchmark results"
+    )
+    per_model: list[ModelBenchmarkSummary] = Field(
+        description="Per-model benchmark summaries"
+    )
+    estimated_cost: float = Field(
+        default=0.0, description="Estimated total cost in USD"
+    )
+    total_runs: int = Field(description="Total number of runs across all prompts and models")
