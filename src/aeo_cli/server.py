@@ -9,7 +9,12 @@ from fastmcp import FastMCP
 from aeo_cli.core.auditor import audit_site, audit_url
 from aeo_cli.core.compare import compare_urls
 from aeo_cli.core.history import HistoryDB
-from aeo_cli.core.models import AuditReport, GenerateConfig, ProfileType, SiteAuditReport
+from aeo_cli.core.models import (
+    AuditReport,
+    GenerateConfig,
+    ProfileType,
+    SiteAuditReport,
+)
 from aeo_cli.core.recommend import generate_recommendations
 
 mcp = FastMCP(
@@ -62,6 +67,37 @@ async def generate(
         output_dir=output_dir,
     )
     result = await generate_assets(config)
+    return result.model_dump()
+
+
+@mcp.tool
+async def generate_batch_tool(
+    urls: list[str],
+    profile: str = "generic",
+    model: str | None = None,
+    output_dir: str = "./aeo-output",
+    concurrency: int = 3,
+) -> dict[str, Any]:
+    """Batch generate llms.txt and schema.jsonld for multiple URLs.
+
+    Args:
+        urls: List of URLs to generate assets for.
+        profile: Industry profile (generic, cpg, saas, ecommerce, blog).
+        model: LLM model to use (auto-detected from env if not set).
+        output_dir: Directory to write generated files.
+        concurrency: Max concurrent generations (default 3).
+    """
+    from aeo_cli.core.generate.batch import generate_batch as _generate_batch
+    from aeo_cli.core.models import BatchGenerateConfig
+
+    config = BatchGenerateConfig(
+        urls=urls,
+        profile=ProfileType(profile),
+        model=model,
+        output_dir=output_dir,
+        concurrency=concurrency,
+    )
+    result = await _generate_batch(config)
     return result.model_dump()
 
 
