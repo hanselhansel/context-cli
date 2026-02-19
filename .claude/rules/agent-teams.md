@@ -12,10 +12,10 @@ No two agents ever touch the same filesystem. Merge happens under leader control
 
 ### Worktree Setup (Leader does this BEFORE spawning agents)
 1. Create a worktree per agent:
-   `git worktree add ../aeo-cli-{agent-name} -b {agent-name}/{feature} main`
+   `git worktree add ../context-cli-{agent-name} -b {agent-name}/{feature} main`
 2. Install deps in each worktree:
-   `cd ../aeo-cli-{agent-name} && pip install -e ".[dev]"`
-3. Verify each worktree: `cd ../aeo-cli-{agent-name} && make ci`
+   `cd ../context-cli-{agent-name} && pip install -e ".[dev]"`
+3. Verify each worktree: `cd ../context-cli-{agent-name} && make ci`
 
 ### Agent Spawn Protocol
 - Each agent is a separate Claude Code session launched in its worktree dir
@@ -24,13 +24,13 @@ No two agents ever touch the same filesystem. Merge happens under leader control
 - Agent runs ruff + pytest locally; leader runs mypy after merge
 
 ### Merge Protocol (Leader does this AFTER all agents complete)
-1. Return to main repo: `cd /path/to/aeo-cli`
+1. Return to main repo: `cd /path/to/context-cli`
 2. For each agent branch:
    `git merge {agent-name}/{feature} --no-ff`
 3. If conflicts: resolve manually or let Claude resolve
 4. Run full CI: `make ci`
 5. Cleanup worktrees:
-   `git worktree remove ../aeo-cli-{agent-name}`
+   `git worktree remove ../context-cli-{agent-name}`
    `git worktree prune`
 
 ### Worktree Cleanup
@@ -48,13 +48,13 @@ Even with worktree isolation, assign file ownership to minimize merge pain:
 ## Task Description Format
 Every agent task MUST include:
 ```
-WORKTREE: ../aeo-cli-{agent-name}
+WORKTREE: ../context-cli-{agent-name}
 BRANCH: {agent-name}/{feature}
 OWNED FILES (primary responsibility):
-- src/aeo_cli/core/checks/robots.py
+- src/context_cli/core/checks/robots.py
 - tests/test_robots.py
 SHARED FILES (may also touch — merge handled by leader):
-- src/aeo_cli/core/models.py
+- src/context_cli/core/models.py
 ```
 
 ## Task Decomposition Strategy
@@ -78,9 +78,9 @@ If a session is interrupted while agents are running in worktrees:
 1. Check worktrees: `git worktree list`
 2. For each worktree, check if agent committed: `git log {branch} --not main --oneline`
 3. If committed: merge to main (`git merge {branch} --no-ff`), clean up worktree
-4. If not committed: check for uncommitted changes in worktree (`git -C ../aeo-cli-{name} status`), complete manually
+4. If not committed: check for uncommitted changes in worktree (`git -C ../context-cli-{name} status`), complete manually
 5. Run `make ci` after all merges
-6. Clean up: `git worktree remove ../aeo-cli-{name}` + `git worktree prune`
+6. Clean up: `git worktree remove ../context-cli-{name}` + `git worktree prune`
 
 **Key insight**: Agents in worktrees are independent — their work persists even if the leader session dies. The stop hook skips CI when worktrees are active (main hasn't changed).
 

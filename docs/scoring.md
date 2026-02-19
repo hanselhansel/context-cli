@@ -1,6 +1,6 @@
-# AEO Scoring Methodology
+# Context CLI Scoring Methodology
 
-AEO-CLI scores URLs on a 0-100 scale across four pillars. Each pillar measures a distinct aspect of AI crawler readiness.
+Context CLI scores URLs on a 0-100 scale across four pillars. Each pillar measures a distinct aspect of LLM readiness -- how well a page is structured for token-efficient extraction by AI crawlers and RAG pipelines.
 
 ## Score Overview
 
@@ -11,11 +11,11 @@ AEO-CLI scores URLs on a 0-100 scale across four pillars. Each pillar measures a
 | Schema.org JSON-LD | 25 | High | Structured data markup for entity understanding |
 | llms.txt Presence | 10 | Low | Emerging standard for LLM-specific instructions |
 
-**Overall AEO Score** = Content + Robots + Schema + llms.txt (max 100)
+**Overall Score** = Content + Robots + Schema + llms.txt (max 100)
 
 ## Pillar 1: Content Density (max 40 points)
 
-Content density is weighted highest because it's what LLMs actually extract and cite when answering questions. AEO-CLI converts the page to markdown using a headless browser (crawl4ai), then scores based on word count and structural elements.
+Content density is weighted highest because it's what LLMs actually extract and cite when answering questions. Context CLI converts the page to markdown using a headless browser (crawl4ai), then scores based on word count and structural elements.
 
 ### Word Count Tiers
 
@@ -41,7 +41,7 @@ The total content score is capped at 40. For example, a page with 1,500+ words, 
 
 ### Content Sub-Signals (Informational)
 
-In addition to scoring, AEO-CLI analyzes content quality signals reported in verbose output:
+In addition to scoring, Context CLI analyzes content quality signals reported in verbose output:
 
 | Signal | What it checks | Research basis |
 |---|---|---|
@@ -97,7 +97,7 @@ robots_score = 25 * (allowed_bots / total_bots)
 
 ## Pillar 3: Schema.org JSON-LD (max 25 points)
 
-Structured data provides "cheat sheets" that help AI understand page entities (products, articles, organizations, FAQs). AEO-CLI extracts all `<script type="application/ld+json">` blocks from the HTML.
+Structured data provides "cheat sheets" that help AI understand page entities (products, articles, organizations, FAQs). Context CLI extracts all `<script type="application/ld+json">` blocks from the HTML.
 
 ### Formula (with type weighting)
 
@@ -134,7 +134,7 @@ All other types (Organization, WebSite, BreadcrumbList, etc.) are worth +3 point
 
 ## Pillar 4: llms.txt Presence (max 10 points)
 
-[llms.txt](https://llmstxt.org/) is an emerging standard for providing LLM-specific instructions about a site. AEO-CLI checks three locations:
+[llms.txt](https://llmstxt.org/) is an emerging standard for providing LLM-specific instructions about a site. Context CLI checks three locations:
 
 1. `/llms.txt`
 2. `/.well-known/llms.txt`
@@ -149,7 +149,7 @@ This pillar is weighted lowest because no major AI search engine heavily weights
 
 ## Informational Signals (not scored)
 
-AEO-CLI detects additional quality signals reported in verbose mode but not included in the 0-100 score:
+Context CLI detects additional quality signals reported in verbose mode but not included in the 0-100 score:
 
 ### E-E-A-T Signals
 
@@ -169,9 +169,9 @@ Detects `/license.xml` for AI crawl licensing and royalty terms per the RSL 1.0 
 
 Checks for the `Content-Usage` HTTP header from the IETF aipref Working Group.
 
-## Multi-Page Site Audits
+## Multi-Page Site Lints
 
-When auditing multiple pages across a site, AEO-CLI uses **depth-weighted score aggregation**. Not all pages are created equal -- the homepage and top-level sections are more representative of a site's AEO readiness than deep nested pages.
+When linting multiple pages across a site, Context CLI uses **depth-weighted score aggregation**. Not all pages are created equal -- the homepage and top-level sections are more representative of a site's LLM readiness than deep nested pages.
 
 ### Depth Weights
 
@@ -193,7 +193,7 @@ weighted_avg = sum(score_i * weight_i) / sum(weight_i)
 
 ### Page Discovery
 
-AEO-CLI discovers pages using a two-tier strategy:
+Context CLI discovers pages using a two-tier strategy:
 
 1. **Sitemap-first**: Fetches `/sitemap.xml` (and sitemap indexes), collecting up to 500 URLs
 2. **Spider fallback**: If no sitemap is found, uses internal links extracted from the seed page crawl
@@ -204,4 +204,4 @@ Discovered URLs are:
 - Sampled diversely across path segments (round-robin across `/blog/*`, `/products/*`, etc.)
 - Capped at `--max-pages` (default 10)
 
-The seed URL is always included in the audit.
+The seed URL is always included in the lint.

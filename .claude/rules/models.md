@@ -5,7 +5,7 @@ Every Pydantic field MUST have `Field(description=...)`:
 ```python
 class AuditReport(BaseModel):
     url: str = Field(description="The audited URL")
-    score: float = Field(description="Overall AEO score (0-100)")
+    score: float = Field(description="Overall LLM readiness score (0-100)")
 ```
 This propagates descriptions to MCP tool schemas automatically.
 
