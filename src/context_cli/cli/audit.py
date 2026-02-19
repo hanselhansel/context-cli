@@ -170,6 +170,18 @@ def register(app: typer.Typer) -> None:
             None, "--baseline",
             help="Compare audit against a saved baseline file (exit 1 on regression)",
         ),
+        max_context_waste: float = typer.Option(
+            None, "--max-context-waste",
+            help="Maximum acceptable context waste %% (exit 1 if exceeded)",
+        ),
+        require_llms_txt: bool = typer.Option(
+            False, "--require-llms-txt",
+            help="Fail if llms.txt is not present",
+        ),
+        require_bot_access: bool = typer.Option(
+            False, "--require-bot-access",
+            help="Fail if any AI bot is blocked",
+        ),
     ) -> None:
         """Run a Context Lint on a URL and display the results."""
         # Load config file defaults
@@ -261,6 +273,9 @@ def register(app: typer.Typer) -> None:
         # Per-pillar threshold checking
         _check_pillar_thresholds(
             report, robots_min, schema_min, content_min, llms_min, overall_min,
+            max_context_waste=max_context_waste,
+            require_llms_txt=require_llms_txt,
+            require_bot_access=require_bot_access,
         )
 
         if fail_under is not None or fail_on_blocked_bots:
@@ -438,11 +453,16 @@ def _check_pillar_thresholds(
     content_min: float | None,
     llms_min: float | None,
     overall_min: float | None,
+    *,
+    max_context_waste: float | None = None,
+    require_llms_txt: bool = False,
+    require_bot_access: bool = False,
 ) -> None:
     """Check per-pillar thresholds and exit 1 if any fail."""
     has_any = any(
-        v is not None for v in (robots_min, schema_min, content_min, llms_min, overall_min)
-    )
+        v is not None
+        for v in (robots_min, schema_min, content_min, llms_min, overall_min, max_context_waste)
+    ) or require_llms_txt or require_bot_access
     if not has_any:
         return
 
@@ -455,6 +475,9 @@ def _check_pillar_thresholds(
         content_min=content_min,
         llms_min=llms_min,
         overall_min=overall_min,
+        max_context_waste=max_context_waste,
+        require_llms_txt=require_llms_txt,
+        require_bot_access=require_bot_access,
     )
     result = check_thresholds(report, thresholds)
     if not result.passed:

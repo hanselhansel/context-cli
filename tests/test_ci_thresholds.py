@@ -423,3 +423,260 @@ def test_cli_thresholds_with_json_output():
     assert result.exit_code == 1
     # JSON output should still be present
     assert '"url"' in result.output
+
+
+# -- New threshold fields: max_context_waste, require_llms_txt, require_bot_access
+
+
+def test_pillar_thresholds_new_fields_defaults():
+    """New PillarThresholds fields should have proper defaults."""
+    pt = PillarThresholds()
+    assert pt.max_context_waste is None
+    assert pt.require_llms_txt is False
+    assert pt.require_bot_access is False
+
+
+def test_check_thresholds_max_context_waste_exceeds():
+    """max_context_waste fires when waste exceeds the threshold."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _make_report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=80.0,
+        raw_tokens=1000,
+        clean_tokens=200,
+    )
+    thresholds = PillarThresholds(max_context_waste=50.0)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is False
+    assert len(result.failures) == 1
+    assert result.failures[0].pillar == "context_waste"
+    assert result.failures[0].actual == 80.0
+    assert result.failures[0].minimum == 50.0
+
+
+def test_check_thresholds_max_context_waste_passes():
+    """max_context_waste passes when waste is below the threshold."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _make_report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=30.0,
+        raw_tokens=1000,
+        clean_tokens=700,
+    )
+    thresholds = PillarThresholds(max_context_waste=50.0)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is True
+    assert result.failures == []
+
+
+def test_check_thresholds_max_context_waste_equal_passes():
+    """max_context_waste passes when waste is exactly at the threshold."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _make_report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=50.0,
+        raw_tokens=1000,
+        clean_tokens=500,
+    )
+    thresholds = PillarThresholds(max_context_waste=50.0)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is True
+    assert result.failures == []
+
+
+def test_check_thresholds_max_context_waste_no_lint_result():
+    """max_context_waste is skipped when lint_result is None."""
+    report = _make_report()
+    assert report.lint_result is None
+    thresholds = PillarThresholds(max_context_waste=50.0)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is True
+    assert result.failures == []
+
+
+def test_check_thresholds_require_llms_txt_fails():
+    """require_llms_txt fires when llms.txt is not found."""
+    report = _make_report()
+    report.llms_txt = LlmsTxtReport(found=False, score=0, detail="Not found")
+    thresholds = PillarThresholds(require_llms_txt=True)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is False
+    assert len(result.failures) == 1
+    assert result.failures[0].pillar == "llms_txt_required"
+
+
+def test_check_thresholds_require_llms_txt_passes():
+    """require_llms_txt passes when llms.txt is found."""
+    report = _make_report()
+    thresholds = PillarThresholds(require_llms_txt=True)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is True
+
+
+def test_check_thresholds_require_bot_access_fails():
+    """require_bot_access fires when any AI bot is blocked."""
+    from context_cli.core.models import BotAccessResult
+    bots = [
+        BotAccessResult(bot="GPTBot", allowed=True, detail="Allowed"),
+        BotAccessResult(bot="ClaudeBot", allowed=False, detail="Blocked"),
+    ]
+    report = _make_report()
+    report.robots = RobotsReport(found=True, bots=bots, score=15, detail="5/7")
+    thresholds = PillarThresholds(require_bot_access=True)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is False
+    assert len(result.failures) == 1
+    assert result.failures[0].pillar == "bot_access_required"
+
+
+def test_check_thresholds_require_bot_access_passes():
+    """require_bot_access passes when all bots are allowed."""
+    from context_cli.core.models import BotAccessResult
+    bots = [
+        BotAccessResult(bot="GPTBot", allowed=True, detail="Allowed"),
+        BotAccessResult(bot="ClaudeBot", allowed=True, detail="Allowed"),
+    ]
+    report = _make_report()
+    report.robots = RobotsReport(found=True, bots=bots, score=25, detail="7/7")
+    thresholds = PillarThresholds(require_bot_access=True)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is True
+
+
+def test_check_thresholds_require_bot_access_robots_not_found():
+    """require_bot_access is skipped when robots.txt is not found."""
+    report = _make_report()
+    report.robots = RobotsReport(found=False, score=0, detail="not found")
+    thresholds = PillarThresholds(require_bot_access=True)
+    result = check_thresholds(report, thresholds)
+    assert result.passed is True
+
+
+def test_check_thresholds_combined_new_fields():
+    """Multiple new threshold fields can fire together."""
+    from context_cli.core.models import BotAccessResult, LintCheck, LintResult
+    bots = [BotAccessResult(bot="GPTBot", allowed=False, detail="Blocked")]
+    report = _make_report()
+    report.robots = RobotsReport(found=True, bots=bots, score=0, detail="blocked")
+    report.llms_txt = LlmsTxtReport(found=False, score=0, detail="Not found")
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=False, detail="fail")],
+        context_waste_pct=90.0,
+        raw_tokens=1000,
+        clean_tokens=100,
+        passed=False,
+    )
+    thresholds = PillarThresholds(
+        max_context_waste=50.0,
+        require_llms_txt=True,
+        require_bot_access=True,
+    )
+    result = check_thresholds(report, thresholds)
+    assert result.passed is False
+    assert len(result.failures) == 3
+    pillar_names = {f.pillar for f in result.failures}
+    assert pillar_names == {"context_waste", "llms_txt_required", "bot_access_required"}
+
+
+# -- CLI integration tests for new threshold options ----------------------------
+
+
+def _make_report_with_lint(waste_pct: float = 80.0) -> AuditReport:
+    """Build a report with lint_result for waste threshold testing."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _make_report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=waste_pct,
+        raw_tokens=1000,
+        clean_tokens=int(1000 * (1 - waste_pct / 100)),
+    )
+    return report
+
+
+async def _fake_audit_url_with_lint(url: str, **kwargs) -> AuditReport:
+    return _make_report_with_lint(waste_pct=80.0)
+
+
+async def _fake_audit_url_low_waste(url: str, **kwargs) -> AuditReport:
+    return _make_report_with_lint(waste_pct=20.0)
+
+
+async def _fake_audit_url_llms_missing(url: str, **kwargs) -> AuditReport:
+    report = _make_report()
+    report.llms_txt = LlmsTxtReport(found=False, score=0, detail="Not found")
+    return report
+
+
+async def _fake_audit_url_bots_blocked(url: str, **kwargs) -> AuditReport:
+    from context_cli.core.models import BotAccessResult
+    bots = [BotAccessResult(bot="GPTBot", allowed=False, detail="Blocked")]
+    report = _make_report()
+    report.robots = RobotsReport(found=True, bots=bots, score=0, detail="blocked")
+    return report
+
+
+def test_cli_max_context_waste_fails():
+    """--max-context-waste triggers exit 1 when waste exceeds threshold."""
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_with_lint):
+        result = runner.invoke(
+            app,
+            ["lint", "https://example.com", "--single", "--max-context-waste", "50"],
+        )
+    assert result.exit_code == 1
+    assert "context_waste" in result.output.lower()
+
+
+def test_cli_max_context_waste_passes():
+    """--max-context-waste passes when waste is below threshold."""
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_low_waste):
+        result = runner.invoke(
+            app,
+            ["lint", "https://example.com", "--single", "--max-context-waste", "50"],
+        )
+    assert result.exit_code == 0
+
+
+def test_cli_require_llms_txt_fails():
+    """--require-llms-txt triggers exit 1 when llms.txt is not found."""
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_llms_missing):
+        result = runner.invoke(
+            app,
+            ["lint", "https://example.com", "--single", "--require-llms-txt"],
+        )
+    assert result.exit_code == 1
+    assert "llms_txt_required" in result.output.lower()
+
+
+def test_cli_require_llms_txt_passes():
+    """--require-llms-txt passes when llms.txt is found."""
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
+        result = runner.invoke(
+            app,
+            ["lint", "https://example.com", "--single", "--require-llms-txt"],
+        )
+    assert result.exit_code == 0
+
+
+def test_cli_require_bot_access_fails():
+    """--require-bot-access triggers exit 1 when bots are blocked."""
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_bots_blocked):
+        result = runner.invoke(
+            app,
+            ["lint", "https://example.com", "--single", "--require-bot-access"],
+        )
+    assert result.exit_code == 1
+    assert "bot_access_required" in result.output.lower()
+
+
+def test_cli_require_bot_access_passes():
+    """--require-bot-access passes when all bots are allowed."""
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
+        result = runner.invoke(
+            app,
+            ["lint", "https://example.com", "--single", "--require-bot-access"],
+        )
+    assert result.exit_code == 0

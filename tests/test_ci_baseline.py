@@ -602,3 +602,155 @@ def test_cli_save_baseline_error_handling(tmp_path: Path):
     # Should still exit 0 (save error is non-fatal)
     assert result.exit_code == 0
     assert "error" in result.output.lower()
+
+
+# ── context_waste_pct in baseline ────────────────────────────────────────────
+
+
+def test_save_baseline_includes_context_waste_pct(tmp_path: Path):
+    """save_baseline should include context_waste_pct from lint_result."""
+    from context_cli.core.models import LintCheck, LintResult
+    path = tmp_path / "baseline.json"
+    report = _report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=45.0,
+        raw_tokens=1000,
+        clean_tokens=550,
+    )
+    save_baseline(report, path)
+    data = json.loads(path.read_text())
+    assert data["context_waste_pct"] == 45.0
+
+
+def test_save_baseline_zero_waste_without_lint(tmp_path: Path):
+    """save_baseline should set context_waste_pct=0 when lint_result is None."""
+    path = tmp_path / "baseline.json"
+    report = _report()
+    assert report.lint_result is None
+    save_baseline(report, path)
+    data = json.loads(path.read_text())
+    assert data["context_waste_pct"] == 0.0
+
+
+def test_load_baseline_with_context_waste_pct(tmp_path: Path):
+    """load_baseline should read back context_waste_pct."""
+    from context_cli.core.models import LintCheck, LintResult
+    path = tmp_path / "baseline.json"
+    report = _report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=60.0,
+        raw_tokens=1000,
+        clean_tokens=400,
+    )
+    save_baseline(report, path)
+    baseline = load_baseline(path)
+    assert baseline.context_waste_pct == 60.0
+
+
+def test_load_baseline_defaults_context_waste_pct(tmp_path: Path):
+    """load_baseline should default context_waste_pct=0 for old baselines."""
+    path = tmp_path / "baseline.json"
+    # Simulate an old baseline without context_waste_pct
+    old_data = {
+        "url": _URL,
+        "overall": 65.0,
+        "robots": 20.0,
+        "schema_org": 17.0,
+        "content": 20.0,
+        "llms_txt": 8.0,
+        "timestamp": "2025-01-01T00:00:00",
+    }
+    path.write_text(json.dumps(old_data))
+    baseline = load_baseline(path)
+    assert baseline.context_waste_pct == 0.0
+
+
+def test_compare_baseline_waste_regression(tmp_path: Path):
+    """compare_baseline should detect waste regression (increase in waste)."""
+    from context_cli.core.models import BaselineScores, LintCheck, LintResult
+    baseline = BaselineScores(
+        url=_URL, overall=65.0, robots=20.0, schema_org=17.0,
+        content=20.0, llms_txt=8.0, context_waste_pct=30.0,
+        timestamp="2025-01-01T00:00:00",
+    )
+    report = _report()
+    # Waste increased from 30% to 50% = +20, exceeds default threshold (5)
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=50.0,
+        raw_tokens=1000,
+        clean_tokens=500,
+    )
+    result = compare_baseline(report, baseline)
+    assert not result.passed
+    waste_regs = [r for r in result.regressions if r.pillar == "context_waste"]
+    assert len(waste_regs) == 1
+    assert waste_regs[0].delta == 20.0
+    assert waste_regs[0].previous_score == 30.0
+    assert waste_regs[0].current_score == 50.0
+
+
+def test_compare_baseline_waste_no_regression():
+    """compare_baseline should pass when waste stays the same."""
+    from context_cli.core.models import BaselineScores, LintCheck, LintResult
+    baseline = BaselineScores(
+        url=_URL, overall=65.0, robots=20.0, schema_org=17.0,
+        content=20.0, llms_txt=8.0, context_waste_pct=30.0,
+        timestamp="2025-01-01T00:00:00",
+    )
+    report = _report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=30.0,
+        raw_tokens=1000,
+        clean_tokens=700,
+    )
+    result = compare_baseline(report, baseline)
+    assert result.passed
+    waste_regs = [r for r in result.regressions if r.pillar == "context_waste"]
+    assert len(waste_regs) == 0
+
+
+def test_compare_baseline_waste_improvement():
+    """compare_baseline should pass when waste decreases."""
+    from context_cli.core.models import BaselineScores, LintCheck, LintResult
+    baseline = BaselineScores(
+        url=_URL, overall=65.0, robots=20.0, schema_org=17.0,
+        content=20.0, llms_txt=8.0, context_waste_pct=80.0,
+        timestamp="2025-01-01T00:00:00",
+    )
+    report = _report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=40.0,
+        raw_tokens=1000,
+        clean_tokens=600,
+    )
+    result = compare_baseline(report, baseline)
+    assert result.passed
+    waste_regs = [r for r in result.regressions if r.pillar == "context_waste"]
+    assert len(waste_regs) == 0
+
+
+def test_compare_baseline_waste_within_threshold():
+    """compare_baseline should pass when waste increase is within threshold."""
+    from context_cli.core.models import BaselineScores, LintCheck, LintResult
+    baseline = BaselineScores(
+        url=_URL, overall=65.0, robots=20.0, schema_org=17.0,
+        content=20.0, llms_txt=8.0, context_waste_pct=30.0,
+        timestamp="2025-01-01T00:00:00",
+    )
+    report = _report()
+    # Waste increased by 4 (30 -> 34), within default threshold (5)
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=34.0,
+        raw_tokens=1000,
+        clean_tokens=660,
+    )
+    result = compare_baseline(report, baseline)
+    assert result.passed
+    waste_regs = [r for r in result.regressions if r.pillar == "context_waste"]
+    assert len(waste_regs) == 0

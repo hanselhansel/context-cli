@@ -505,6 +505,15 @@ class PillarThresholds(BaseModel):
     overall_min: float | None = Field(
         default=None, description="Minimum overall Readiness Score (0-100)"
     )
+    max_context_waste: float | None = Field(
+        default=None, description="Maximum context waste percentage (0-100, fail if exceeded)"
+    )
+    require_llms_txt: bool = Field(
+        default=False, description="Fail if llms.txt is not present"
+    )
+    require_bot_access: bool = Field(
+        default=False, description="Fail if any AI bot is blocked"
+    )
 
 
 # ── CI Baseline models ──────────────────────────────────────────────────────
@@ -519,6 +528,9 @@ class BaselineScores(BaseModel):
     schema_org: float = Field(description="Schema.org pillar score (0-25)")
     content: float = Field(description="Content pillar score (0-40)")
     llms_txt: float = Field(description="llms.txt pillar score (0-10)")
+    context_waste_pct: float = Field(
+        default=0.0, description="Context waste percentage from lint result"
+    )
     timestamp: str = Field(description="ISO 8601 timestamp when baseline was saved")
 
 

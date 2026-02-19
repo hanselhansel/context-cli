@@ -45,4 +45,29 @@ def check_thresholds(
                 ThresholdFailure(pillar=pillar, actual=actual, minimum=minimum)
             )
 
+    # Context waste threshold: fail if waste EXCEEDS max_context_waste
+    if thresholds.max_context_waste is not None and report.lint_result is not None:
+        waste_pct = report.lint_result.context_waste_pct
+        if waste_pct > thresholds.max_context_waste:
+            failures.append(
+                ThresholdFailure(
+                    pillar="context_waste",
+                    actual=waste_pct,
+                    minimum=thresholds.max_context_waste,
+                )
+            )
+
+    # Require llms.txt: fail if llms.txt is not found
+    if thresholds.require_llms_txt and not report.llms_txt.found:
+        failures.append(
+            ThresholdFailure(pillar="llms_txt_required", actual=0, minimum=1)
+        )
+
+    # Require bot access: fail if any AI bot is blocked
+    if thresholds.require_bot_access and report.robots.found:
+        if any(not b.allowed for b in report.robots.bots):
+            failures.append(
+                ThresholdFailure(pillar="bot_access_required", actual=0, minimum=1)
+            )
+
     return ThresholdResult(passed=len(failures) == 0, failures=failures)

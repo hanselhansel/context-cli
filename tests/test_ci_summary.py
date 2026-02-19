@@ -229,3 +229,76 @@ def test_ci_summary_diagnostics_empty_string_when_no_diagnostics():
     report = _mock_report()
     report.lint_result = _lint_result()
     assert _format_diagnostics(report) == ""
+
+
+# -- Token Waste Hero Metric in Header tests -----------------------------------
+
+
+def test_ci_summary_header_shows_token_waste_hero_metric():
+    """Header should show Token Waste hero metric when lint_result is available."""
+    report = _mock_report()
+    report.lint_result = _lint_result()
+    md = format_ci_summary(report)
+    # Token Waste hero metric should appear before the score line
+    assert "**Token Waste: 85%** — FAIL" in md
+    assert "**Score: 55.0/100**" in md
+
+
+def test_ci_summary_header_no_waste_without_lint_result():
+    """Header should NOT show Token Waste line when lint_result is None."""
+    report = _mock_report()
+    md = format_ci_summary(report)
+    lines = md.split("\n")
+    header_lines = [line for line in lines if "Token Waste" in line and "**Token Waste" in line]
+    # The header should NOT contain a Token Waste hero metric line
+    assert len(header_lines) == 0
+
+
+def test_ci_summary_waste_status_pass():
+    """_waste_status should return PASS for <= 30%."""
+    from context_cli.formatters.ci_summary import _waste_status
+    assert "PASS" in _waste_status(0)
+    assert "PASS" in _waste_status(30)
+
+
+def test_ci_summary_waste_status_warn():
+    """_waste_status should return WARN for 31-70%."""
+    from context_cli.formatters.ci_summary import _waste_status
+    assert "WARN" in _waste_status(31)
+    assert "WARN" in _waste_status(50)
+    assert "WARN" in _waste_status(70)
+
+
+def test_ci_summary_waste_status_fail():
+    """_waste_status should return FAIL for > 70%."""
+    from context_cli.formatters.ci_summary import _waste_status
+    assert "FAIL" in _waste_status(71)
+    assert "FAIL" in _waste_status(100)
+
+
+def test_ci_summary_header_waste_warn():
+    """Header should show WARN for waste between 31-70%."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _mock_report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=50.0,
+        raw_tokens=1000,
+        clean_tokens=500,
+    )
+    md = format_ci_summary(report)
+    assert "**Token Waste: 50%** — WARN" in md
+
+
+def test_ci_summary_header_waste_pass():
+    """Header should show PASS for waste <= 30%."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _mock_report()
+    report.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=20.0,
+        raw_tokens=100,
+        clean_tokens=80,
+    )
+    md = format_ci_summary(report)
+    assert "**Token Waste: 20%** — PASS" in md

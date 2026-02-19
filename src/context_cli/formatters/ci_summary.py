@@ -5,6 +5,15 @@ from __future__ import annotations
 from context_cli.core.models import AuditReport, SiteAuditReport
 
 
+def _waste_status(waste_pct: float) -> str:
+    """Return PASS/WARN/FAIL status for token waste percentage."""
+    if waste_pct <= 30:
+        return "PASS ✅"
+    if waste_pct <= 70:
+        return "WARN ⚠️"
+    return "FAIL ❌"
+
+
 def _format_header(report: AuditReport | SiteAuditReport, fail_under: float | None) -> str:
     """Format the summary header with PASS/FAIL badge."""
     score = report.overall_score
@@ -13,7 +22,15 @@ def _format_header(report: AuditReport | SiteAuditReport, fail_under: float | No
     else:
         status = "PASS ✅" if score >= 50 else "FAIL ❌"
     url = report.url
-    return f"## Context Lint: {url}\n\n**Score: {score}/100** — {status}\n"
+    lines = [f"## Context Lint: {url}", ""]
+    # Token Waste hero metric (when lint_result is available)
+    if hasattr(report, "lint_result") and report.lint_result is not None:
+        waste_pct = report.lint_result.context_waste_pct
+        waste_stat = _waste_status(waste_pct)
+        lines.append(f"**Token Waste: {waste_pct:.0f}%** — {waste_stat}")
+    lines.append(f"**Score: {score}/100** — {status}")
+    lines.append("")
+    return "\n".join(lines)
 
 
 def _format_pillar_table(report: AuditReport | SiteAuditReport) -> str:
