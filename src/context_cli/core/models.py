@@ -1,4 +1,4 @@
-"""Pydantic models defining all AEO audit data contracts."""
+"""Pydantic models defining all Context Lint data contracts."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ class GenerateConfig(BaseModel):
         default=None, description="LLM model to use (auto-detected if not set)"
     )
     output_dir: str = Field(
-        default="./aeo-output", description="Directory to write generated files"
+        default="./context-output", description="Directory to write generated files"
     )
 
 
@@ -204,10 +204,10 @@ class EeatReport(BaseModel):
 
 
 class AuditReport(BaseModel):
-    """Top-level AEO audit report composing all pillar results."""
+    """Top-level lint report composing all pillar results."""
 
     url: str = Field(description="The audited URL")
-    overall_score: float = Field(default=0, description="Overall AEO score (0-100)")
+    overall_score: float = Field(default=0, description="Overall Readiness Score (0-100)")
     robots: RobotsReport = Field(description="Robots.txt AI bot access analysis")
     llms_txt: LlmsTxtReport = Field(description="llms.txt presence check")
     schema_org: SchemaReport = Field(description="Schema.org JSON-LD analysis")
@@ -249,11 +249,11 @@ class DiscoveryResult(BaseModel):
 
 
 class SiteAuditReport(BaseModel):
-    """Site-level AEO audit with aggregate scores and per-page breakdown."""
+    """Site-level lint report with aggregate scores and per-page breakdown."""
 
     url: str = Field(description="Seed URL for the audit")
     domain: str = Field(description="Domain of the audited site")
-    overall_score: float = Field(default=0, description="Aggregate AEO score (0-100)")
+    overall_score: float = Field(default=0, description="Aggregate Readiness Score (0-100)")
     robots: RobotsReport = Field(description="Robots.txt AI bot access (site-wide)")
     llms_txt: LlmsTxtReport = Field(description="llms.txt presence (site-wide)")
     schema_org: SchemaReport = Field(description="Aggregated Schema.org analysis across pages")
@@ -302,7 +302,7 @@ class PillarDelta(BaseModel):
 
 
 class CompareReport(BaseModel):
-    """Side-by-side comparison of two AEO audit reports."""
+    """Side-by-side comparison of two lint reports."""
 
     url_a: str = Field(description="First URL audited")
     url_b: str = Field(description="Second URL audited")
@@ -374,7 +374,7 @@ class GenerateResult(BaseModel):
 
 
 class Recommendation(BaseModel):
-    """A single actionable recommendation to improve AEO score."""
+    """A single actionable recommendation to improve Readiness Score."""
 
     pillar: str = Field(description="Which pillar this recommendation targets")
     action: str = Field(description="What to do")
@@ -390,7 +390,7 @@ class WebhookPayload(BaseModel):
     """Payload sent to webhook URLs after an audit completes."""
 
     url: str = Field(description="Audited URL")
-    overall_score: float = Field(description="Overall AEO score")
+    overall_score: float = Field(description="Overall Readiness Score")
     robots_score: float = Field(description="Robots pillar score")
     llms_txt_score: float = Field(description="llms.txt pillar score")
     schema_score: float = Field(description="Schema.org pillar score")
@@ -450,7 +450,7 @@ class PillarThresholds(BaseModel):
         default=None, description="Minimum llms.txt pillar score (0-10)"
     )
     overall_min: float | None = Field(
-        default=None, description="Minimum overall AEO score (0-100)"
+        default=None, description="Minimum overall Readiness Score (0-100)"
     )
 
 
@@ -461,7 +461,7 @@ class BaselineScores(BaseModel):
     """Saved baseline scores for CI regression comparison."""
 
     url: str = Field(description="The audited URL")
-    overall: float = Field(description="Overall AEO score (0-100)")
+    overall: float = Field(description="Overall Readiness Score (0-100)")
     robots: float = Field(description="Robots pillar score (0-25)")
     schema_org: float = Field(description="Schema.org pillar score (0-25)")
     content: float = Field(description="Content pillar score (0-40)")
@@ -499,7 +499,7 @@ class BatchGenerateConfig(BaseModel):
     urls: list[str] = Field(description="URLs to generate assets for")
     profile: ProfileType = Field(default=ProfileType.generic, description="Industry profile")
     model: str | None = Field(default=None, description="LLM model (auto-detected if not set)")
-    output_dir: str = Field(default="./aeo-output", description="Output directory")
+    output_dir: str = Field(default="./context-output", description="Output directory")
     concurrency: int = Field(default=3, description="Max concurrent generations")
 
 

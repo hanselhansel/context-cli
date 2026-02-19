@@ -1,4 +1,4 @@
-"""Audit command — single-page, multi-page, batch, and CI modes."""
+"""Lint command — single-page, multi-page, batch, and CI modes."""
 
 from __future__ import annotations
 
@@ -85,11 +85,11 @@ def _send_webhook(
 
 
 def register(app: typer.Typer) -> None:
-    """Register the audit command onto the Typer app."""
+    """Register the lint command onto the Typer app."""
 
-    @app.command()
+    @app.command("lint")
     def audit(
-        url: str = typer.Argument(None, help="URL to audit for AI crawler readiness"),
+        url: str = typer.Argument(None, help="URL to lint for LLM readiness"),
         json_output: bool = typer.Option(
             False, "--json", help="Output raw JSON instead of Rich table"
         ),
@@ -132,7 +132,7 @@ def register(app: typer.Typer) -> None:
             None, "--bots", help="Comma-separated custom AI bot list (overrides defaults)"
         ),
         save: bool = typer.Option(
-            False, "--save", help="Save audit results to local history (~/.aeo-cli/history.db)"
+            False, "--save", help="Save audit results to local history (~/.context-cli/history.db)"
         ),
         regression_threshold: float = typer.Option(
             5.0, "--regression-threshold",
@@ -160,7 +160,7 @@ def register(app: typer.Typer) -> None:
         ),
         overall_min: float = typer.Option(
             None, "--overall-min",
-            help="Minimum overall AEO score (exit 1 if below)",
+            help="Minimum overall Readiness Score (exit 1 if below)",
         ),
         save_baseline: str = typer.Option(
             None, "--save-baseline",
@@ -171,7 +171,7 @@ def register(app: typer.Typer) -> None:
             help="Compare audit against a saved baseline file (exit 1 on regression)",
         ),
     ) -> None:
-        """Run an AEO audit on a URL and display the results."""
+        """Run a Context Lint on a URL and display the results."""
         # Load config file defaults
         cfg = load_config()
 
@@ -379,7 +379,7 @@ def _render_output(
         else:
             html_str = format_single_report_html(report)
         slug = report.url.replace("https://", "").replace("http://", "").replace("/", "_")
-        filename = f"aeo-report-{slug}.html"
+        filename = f"context-report-{slug}.html"
         Path(filename).write_text(html_str)
         console.print(f"[green]HTML report saved to:[/green] {filename}")
         return
@@ -394,7 +394,7 @@ def _render_output(
         return
 
     # Single-page Rich table
-    table = Table(title=f"AEO Audit: {report.url}")
+    table = Table(title=f"Context Lint: {report.url}")
     table.add_column("Pillar", style="bold")
     table.add_column("Score", justify="right")
     table.add_column("Detail")
@@ -409,7 +409,9 @@ def _render_output(
         table.add_row(label, _score_color(score, pillar), detail)
 
     console.print(table)
-    console.print(f"\n[bold]Overall AEO Score:[/bold] [cyan]{report.overall_score}/100[/cyan]")
+    console.print(
+        f"\n[bold]Overall Readiness Score:[/bold] [cyan]{report.overall_score}/100[/cyan]"
+    )
 
     if verbose:
         render_verbose_single(report, console)

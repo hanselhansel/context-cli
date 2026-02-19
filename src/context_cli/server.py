@@ -1,4 +1,4 @@
-"""FastMCP server exposing AEO audit and generate as MCP tools."""
+"""FastMCP server exposing Context CLI lint and generate as MCP tools."""
 
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ from context_cli.core.models import (
 from context_cli.core.recommend import generate_recommendations
 
 mcp = FastMCP(
-    name="aeo-cli",
+    name="context-cli",
     instructions=(
-        "AEO-CLI audits URLs for AI crawler readiness, checking robots.txt, "
+        "Context CLI lints URLs for LLM readiness, checking robots.txt, "
         "llms.txt, Schema.org structured data, and content density. "
-        "By default it discovers and audits multiple pages across the site. "
+        "By default it discovers and lints multiple pages across the site. "
         "It can also generate llms.txt and schema.jsonld files using LLM analysis."
     ),
 )
@@ -30,10 +30,10 @@ mcp = FastMCP(
 
 @mcp.tool
 async def audit(url: str, single_page: bool = False, max_pages: int = 10) -> dict[str, Any]:
-    """Audit a URL for AI engine optimization readiness.
+    """Lint a URL for LLM readiness.
 
-    By default discovers and audits up to max_pages pages across the site.
-    Set single_page=True to audit only the given URL.
+    By default discovers and lints up to max_pages pages across the site.
+    Set single_page=True to lint only the given URL.
     """
     report: AuditReport | SiteAuditReport
     if single_page:
@@ -48,7 +48,7 @@ async def generate(
     url: str,
     profile: str = "generic",
     model: str | None = None,
-    output_dir: str = "./aeo-output",
+    output_dir: str = "./context-output",
 ) -> dict[str, Any]:
     """Generate llms.txt and schema.jsonld for a URL using LLM analysis.
 
@@ -75,7 +75,7 @@ async def generate_batch_tool(
     urls: list[str],
     profile: str = "generic",
     model: str | None = None,
-    output_dir: str = "./aeo-output",
+    output_dir: str = "./context-output",
     concurrency: int = 3,
 ) -> dict[str, Any]:
     """Batch generate llms.txt and schema.jsonld for multiple URLs.
@@ -103,7 +103,7 @@ async def generate_batch_tool(
 
 @mcp.tool
 async def compare(url1: str, url2: str) -> dict[str, Any]:
-    """Compare two URLs side-by-side for AI engine optimization readiness.
+    """Compare two URLs side-by-side for LLM readiness.
 
     Audits both URLs concurrently and returns a comparison report with
     per-pillar score deltas.
@@ -129,7 +129,7 @@ async def history(url: str, limit: int = 10) -> list[dict[str, Any]]:
 
 @mcp.tool
 async def recommend(url: str) -> list[dict[str, Any]]:
-    """Audit a URL and return actionable recommendations to improve AEO score.
+    """Lint a URL and return actionable recommendations to improve Readiness Score.
 
     Runs a single-page audit, then analyzes the results to suggest specific
     improvements sorted by estimated impact.

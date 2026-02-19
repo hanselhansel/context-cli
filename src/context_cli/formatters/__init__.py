@@ -1,1 +1,1 @@
-"""Output formatters for AEO audit reports."""
+"""Output formatters for Context Lint reports."""

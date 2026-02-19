@@ -1,4 +1,4 @@
-"""Compare two AEO audits side-by-side."""
+"""Compare two readiness lints side-by-side."""
 
 from __future__ import annotations
 

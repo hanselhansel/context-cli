@@ -2,7 +2,7 @@
 
 Save audit scores as a JSON baseline file and compare future audits against it.
 Regressions exceeding the threshold are flagged, enabling CI pipelines to fail
-on AEO score drops.
+on Readiness Score drops.
 """
 
 from __future__ import annotations

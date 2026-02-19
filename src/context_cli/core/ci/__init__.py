@@ -1,1 +1,1 @@
-"""CI/CD integration utilities for AEO audits."""
+"""CI/CD integration utilities for readiness lints."""

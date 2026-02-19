@@ -19,7 +19,7 @@ def ensure_litellm() -> None:
     except ImportError:
         raise ImportError(
             "litellm is required for the generate command. "
-            "Install it with: pip install aeo-cli[generate]"
+            "Install it with: pip install context-cli[generate]"
         )
 
 

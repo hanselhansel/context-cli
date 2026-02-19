@@ -1,4 +1,4 @@
-"""Compare command — side-by-side AEO audit comparison of two URLs."""
+"""Compare command — side-by-side readiness comparison of two URLs."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def compare_command(
     timeout: int = typer.Option(15, "--timeout", "-t", help="HTTP timeout in seconds"),
     bots: str | None = typer.Option(None, "--bots", help="Comma-separated bot names"),
 ) -> None:
-    """Compare AEO scores of two URLs side-by-side."""
+    """Compare Readiness Scores of two URLs side-by-side."""
     bots_list = [b.strip() for b in bots.split(",")] if bots else None
     report = asyncio.run(compare_urls(url_a, url_b, timeout=timeout, bots=bots_list))
 

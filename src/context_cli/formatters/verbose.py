@@ -1,4 +1,4 @@
-"""Verbose output compositor for AEO audit reports.
+"""Verbose output compositor for Context Lint reports.
 
 Orchestrates per-pillar panels, recommendations, and aggregation
 explanations into the full --verbose CLI output.

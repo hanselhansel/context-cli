@@ -27,7 +27,7 @@ def _delta_text(delta: float) -> str:
 
 def render_compare(report: CompareReport, console: Console) -> None:
     """Render a compare report as a Rich table."""
-    table = Table(title="AEO Score Comparison", show_header=True, header_style="bold")
+    table = Table(title="Readiness Score Comparison", show_header=True, header_style="bold")
     table.add_column("Pillar", style="bold")
     table.add_column(report.url_a, justify="right")
     table.add_column(report.url_b, justify="right")

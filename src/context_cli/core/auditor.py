@@ -1,4 +1,4 @@
-"""Core audit orchestration — runs all pillar checks and computes AEO score."""
+"""Core audit orchestration — runs all pillar checks and computes Readiness Score."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def _page_weight(url: str) -> int:
     """Return a weight for a page based on URL depth.
 
     Shallower pages (homepage, top-level sections) are more representative of a
-    site's AEO readiness and therefore receive higher weight in aggregation.
+    site's LLM readiness and therefore receive higher weight in aggregation.
 
     Returns:
         3 for depth 0-1 (homepage or single path segment)
@@ -137,7 +137,7 @@ def aggregate_page_scores(
 async def audit_url(
     url: str, *, timeout: int = DEFAULT_TIMEOUT, bots: list[str] | None = None
 ) -> AuditReport:
-    """Run a full AEO audit on a single URL. Returns AuditReport with all pillar scores."""
+    """Run a full readiness lint on a single URL. Returns AuditReport with all pillar scores."""
     errors: list[str] = []
     raw_robots: str | None = None
     content_usage_result = None
@@ -222,7 +222,7 @@ async def audit_site(
     timeout: int = DEFAULT_TIMEOUT,
     bots: list[str] | None = None,
 ) -> SiteAuditReport:
-    """Run a multi-page AEO audit. Discovers pages via sitemap/spider and aggregates scores."""
+    """Run a multi-page readiness lint. Discovers pages via sitemap/spider and aggregates scores."""
     errors: list[str] = []
     domain = urlparse(url).netloc
 

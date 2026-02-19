@@ -1,4 +1,4 @@
-"""Recommendation engine for AEO audit reports.
+"""Recommendation engine for Context Lint reports.
 
 Generates actionable suggestions based on pillar scores and renders
 them as a Rich Panel for verbose CLI output.
@@ -95,7 +95,7 @@ def render_recommendations(report: AuditReport | SiteAuditReport) -> Panel | Non
     if not recs:
         return None
 
-    lines = ["[bold]How to improve your AEO score:[/bold]", ""]
+    lines = ["[bold]How to improve your Readiness Score:[/bold]", ""]
     for i, rec in enumerate(recs, 1):
         lines.append(f"  {i}. {rec}")
 

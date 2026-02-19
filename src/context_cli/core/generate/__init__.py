@@ -1,4 +1,4 @@
-"""AEO asset generation — LLM-powered llms.txt and schema.jsonld compiler."""
+"""Asset generation — LLM-powered llms.txt and schema.jsonld compiler."""
 
 from .batch import generate_batch
 from .compiler import generate_assets, render_llms_txt, render_schema_jsonld
