@@ -8,11 +8,12 @@ CURRENT PHASE: Pre-A1 (workflow infrastructure complete, ready for feature devel
 ## Session Workflow (MANDATORY — enforced by hooks)
 1. **TEST** — Write comprehensive tests FIRST (TDD, 100% coverage)
 2. **CODE** — Implement minimum to pass tests
-3. **LINT** — Auto-lint via PostToolUse hook on every file change
-4. **VERIFY** — `pytest --cov=aeo_cli --cov-fail-under=100` (100% mandatory)
-5. **COMMIT** — `git add` + `git commit` + `git push origin main` (every green feature)
-6. **VERSION** — Patch bump + tag + push when feature is significant
-7. **CONTEXT** — Check /context; if >70% → `/compact`
+3. **REFACTOR** — Clean up: split large files (>300 LOC), extract modules, simplify
+4. **LINT** — Auto-lint via PostToolUse hook on every file change
+5. **VERIFY** — `pytest --cov=aeo_cli --cov-fail-under=100` (100% mandatory)
+6. **COMMIT** — `git add` + `git commit` + `git push origin main` (every green feature)
+7. **VERSION** — Patch bump + tag + push when feature is significant
+8. **CONTEXT** — Check /context; if >70% → `/compact`
 
 ## Versioning
 Minor bump per phase: 0.3.0(A1) → 0.4.0(A2) → 0.5.0(A3) → 0.6.0(A4) → 0.7.0(B0) → 0.8.0(B1) → 0.9.0(B2) → 0.10.0(B3) → 0.11.0(B4) → 0.12.0(B5) → 1.0.0

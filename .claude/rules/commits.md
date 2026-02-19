@@ -45,3 +45,9 @@ refactor: extract retry logic into core/retry.py
 - `__pycache__/` or `.pyc` files
 - `.coverage` or `htmlcov/`
 - `node_modules/` or `venv/`
+
+## Refactoring in Commits
+- Refactoring is part of the feature, not a separate commit
+- If refactoring is substantial (splitting a 500-line file), it MAY be a separate commit BEFORE the feature commit
+- Format: `refactor: split auditor.py into per-pillar check modules`
+- Never commit unrefactored code that violates the 300-line guideline

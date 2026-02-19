@@ -58,5 +58,13 @@ if [[ -n $(git log origin/main..HEAD --oneline 2>/dev/null) ]]; then
     exit 2
 fi
 
+# 6. File size advisory (non-blocking)
+LARGE_FILES=$(find src/ -name "*.py" -exec wc -l {} + 2>/dev/null | \
+    awk '$1 > 400 && !/total$/ {print "  " $1 " lines: " $2}' | sort -rn)
+if [[ -n "$LARGE_FILES" ]]; then
+    echo "WARNING: Source files over 400 lines (consider splitting):"
+    echo "$LARGE_FILES"
+fi
+
 echo "--- Stop gate: all checks passed ---"
 exit 0
