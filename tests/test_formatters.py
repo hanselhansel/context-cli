@@ -113,7 +113,7 @@ def test_markdown_site_report_structure():
     """Site markdown should contain site-wide and per-page sections."""
     md = format_site_report_md(_site_report())
 
-    assert "# Context Site Lint:" in md
+    assert "# Context Lint Report:" in md
     assert "## Site-Wide Scores" in md
     assert "## Per-Page Breakdown" in md
     assert "**Overall Readiness Score: 68.0/100**" in md

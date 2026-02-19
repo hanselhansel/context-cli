@@ -23,8 +23,14 @@ from context_cli.server import retail_audit_tool as _retail_tool_obj
 
 # Build a test-local app with the retail command registered
 # (retail is hidden from the main app but the module still exists)
+# A second dummy command is needed so Typer uses group/subcommand mode
 app = typer.Typer()
 _retail_mod.register(app)
+
+
+@app.command()
+def _noop() -> None:
+    """Placeholder so Typer uses subcommand routing."""
 
 runner = CliRunner()
 

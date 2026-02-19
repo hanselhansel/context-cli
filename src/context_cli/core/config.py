@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 _CONFIG_FILENAME = ".contextrc.yml"
 
 
-class AeoConfig(BaseModel):
+class ContextConfig(BaseModel):
     """Context CLI configuration loaded from .contextrc.yml."""
 
     timeout: int = Field(default=15, description="HTTP timeout in seconds")
@@ -31,7 +31,7 @@ class AeoConfig(BaseModel):
 
 def load_config(
     search_dirs: list[Path] | None = None,
-) -> AeoConfig:
+) -> ContextConfig:
     """Load config from .contextrc.yml, searching CWD then home directory.
 
     Args:
@@ -39,7 +39,7 @@ def load_config(
             Defaults to [CWD, HOME]. First match wins.
 
     Returns:
-        AeoConfig with values from the file, or defaults if no file found.
+        ContextConfig with values from the file, or defaults if no file found.
     """
     if search_dirs is None:
         search_dirs = [Path.cwd(), Path.home()]
@@ -50,9 +50,9 @@ def load_config(
             try:
                 raw = yaml.safe_load(config_path.read_text())
             except Exception:
-                return AeoConfig()
+                return ContextConfig()
             if not isinstance(raw, dict):
-                return AeoConfig()
-            return AeoConfig(**raw)
+                return ContextConfig()
+            return ContextConfig(**raw)
 
-    return AeoConfig()
+    return ContextConfig()
