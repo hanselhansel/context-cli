@@ -73,4 +73,6 @@ async def request_with_retry(
 
     if last_exception:
         raise last_exception
-    raise httpx.HTTPError(f"All {config.max_retries} retries exhausted for {url}")
+    raise httpx.HTTPError(  # pragma: no cover
+        f"All {config.max_retries} retries exhausted for {url}"
+    )

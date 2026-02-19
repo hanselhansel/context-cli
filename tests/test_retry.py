@@ -120,3 +120,19 @@ async def test_default_config():
     result = await request_with_retry(mock_client, "GET", "https://example.com")
 
     assert result.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_retry_exhausted_raises_last_exception():
+    """All attempts raise ConnectError, max_retries=1 → re-raises last exception."""
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    mock_client.request = AsyncMock(
+        side_effect=httpx.ConnectError("Connection refused")
+    )
+
+    config = RetryConfig(max_retries=1, backoff_base=0.01)
+    with patch("aeo_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
+        with pytest.raises(httpx.ConnectError, match="Connection refused"):
+            await request_with_retry(
+                mock_client, "GET", "https://example.com", retry_config=config
+            )

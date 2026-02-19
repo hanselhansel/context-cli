@@ -172,7 +172,7 @@ def audit(
         # Backwards compat: --quiet uses threshold 50 unless --fail-under overrides
         threshold = fail_under if fail_under is not None else 50
         _audit_quiet(url, single, max_pages, threshold, fail_on_blocked_bots)
-        return
+        return  # pragma: no cover — _audit_quiet always raises SystemExit
 
     # Normal flow
     report = _run_audit(url, single, max_pages)

@@ -136,3 +136,22 @@ def test_markdown_single_report_with_errors():
 
     assert "## Errors" in md
     assert "Connection timeout" in md
+
+
+def test_markdown_site_report_with_errors():
+    """Site markdown should include an Errors section when errors exist."""
+    report = SiteAuditReport(
+        url="https://example.com",
+        domain="example.com",
+        overall_score=50.0,
+        robots=RobotsReport(found=True, score=25, detail="OK"),
+        llms_txt=LlmsTxtReport(found=False, score=0, detail="Not found"),
+        schema_org=SchemaReport(blocks_found=0, score=0, detail="None"),
+        content=ContentReport(word_count=100, score=5, detail="100 words"),
+        discovery=DiscoveryResult(method="spider", urls_found=1, detail="1 found"),
+        pages_audited=1,
+        errors=["Connection timeout on page 2"],
+    )
+    md = format_site_report_md(report)
+    assert "## Errors" in md
+    assert "Connection timeout on page 2" in md
