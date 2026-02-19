@@ -203,3 +203,17 @@ async def benchmark_tool(
     judged = await judge_all(results, config.brand, config.competitors)
     report = compute_report(config, judged)
     return report.model_dump()
+
+
+@mcp.tool
+async def retail_audit_tool(url: str) -> dict[str, Any]:
+    """Audit a product URL for retail AI-readiness.
+
+    Analyzes product listings on marketplaces (Amazon, Shopee, Lazada, etc.)
+    for schema.org markup, content quality, visual assets, social proof,
+    and feed compliance.
+    """
+    from aeo_cli.core.retail.auditor import retail_audit
+
+    report = await retail_audit(url)
+    return report.model_dump()
