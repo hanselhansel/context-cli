@@ -48,7 +48,7 @@ class BlibliParser(BaseParser):
             alt_texts=alt_texts,
         )
 
-    def _extract_schema_org(self, soup: BeautifulSoup) -> dict:
+    def _extract_schema_org(self, soup: BeautifulSoup) -> dict:  # type: ignore[override]
         """Extract Schema.org Product JSON-LD from script tags."""
         for script in soup.find_all("script", type="application/ld+json"):
             try:

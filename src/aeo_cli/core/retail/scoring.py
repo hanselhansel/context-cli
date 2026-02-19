@@ -27,7 +27,7 @@ def _has_product_type(schema: dict) -> bool:
     schema_type = schema.get("@type", "")
     if isinstance(schema_type, list):
         return "Product" in schema_type
-    return schema_type == "Product"
+    return bool(schema_type == "Product")
 
 
 def score_product_schema(data: ProductData) -> ProductSchemaReport:

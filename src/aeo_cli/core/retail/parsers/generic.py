@@ -107,8 +107,8 @@ class GenericParser(BaseParser):
         """Extract OpenGraph and product meta tags."""
         og: dict[str, str] = {}
         for meta in soup.find_all("meta"):
-            prop = meta.get("property", "")
-            content = meta.get("content", "")
+            prop = str(meta.get("property", ""))
+            content = str(meta.get("content", ""))
             if prop and content and (
                 prop.startswith("og:") or prop.startswith("product:")
             ):
