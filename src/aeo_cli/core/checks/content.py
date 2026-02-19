@@ -28,6 +28,27 @@ def _readability_grade(text: str) -> float | None:
     return round(grade, 1)
 
 
+def _analyze_headings(markdown: str) -> tuple[int, bool]:
+    """Count headings and validate hierarchy.
+
+    Returns (heading_count, heading_hierarchy_valid).
+    Hierarchy rule: each heading can go at most one level deeper than the previous.
+    Going back up (e.g., H3 → H2) is always valid.
+    """
+    heading_pattern = re.compile(r"^(#{1,6})\s", re.MULTILINE)
+    levels = [len(m.group(1)) for m in heading_pattern.finditer(markdown)]
+    if not levels:
+        return 0, True
+    valid = True
+    max_seen = levels[0]
+    for level in levels[1:]:
+        if level > max_seen + 1:
+            valid = False
+            break
+        max_seen = level
+    return len(levels), valid
+
+
 def _analyze_chunks(markdown: str) -> tuple[int, int, int]:
     """Split markdown by headings and analyze chunk sizes.
 
@@ -57,6 +78,7 @@ def check_content(markdown: str) -> ContentReport:
     has_code_blocks = "```" in markdown
     chunk_count, avg_chunk_words, chunks_in_sweet_spot = _analyze_chunks(markdown)
     readability_grade = _readability_grade(markdown)
+    heading_count, heading_hierarchy_valid = _analyze_headings(markdown)
 
     detail = f"{word_count} words"
     if has_headings:
@@ -76,5 +98,7 @@ def check_content(markdown: str) -> ContentReport:
         avg_chunk_words=avg_chunk_words,
         chunks_in_sweet_spot=chunks_in_sweet_spot,
         readability_grade=readability_grade,
+        heading_count=heading_count,
+        heading_hierarchy_valid=heading_hierarchy_valid,
         detail=detail,
     )

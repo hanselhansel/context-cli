@@ -122,6 +122,10 @@ class ContentReport(BaseModel):
     readability_grade: float | None = Field(
         default=None, description="Flesch-Kincaid Grade Level (None if <30 words)"
     )
+    heading_count: int = Field(default=0, description="Total number of headings (H1-H6)")
+    heading_hierarchy_valid: bool = Field(
+        default=True, description="Whether heading levels follow proper hierarchy"
+    )
     score: float = Field(default=0, description="Content pillar score (0-40)")
     detail: str = Field(default="", description="Summary of content density findings")
 
