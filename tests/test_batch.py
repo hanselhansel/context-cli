@@ -437,3 +437,29 @@ def test_cli_file_flag_passes_timeout(tmp_path):
 
     assert result.exit_code == 0
     assert captured[0]["timeout"] == 30
+
+
+def test_cli_file_empty_urls(tmp_path):
+    """--file with a file containing only comments/blanks should warn and exit 0."""
+    url_file = tmp_path / "urls.txt"
+    url_file.write_text("# just a comment\n\n   \n")
+
+    result = runner.invoke(app, ["audit", "--file", str(url_file)])
+
+    assert result.exit_code == 0
+    assert "No URLs found" in result.output
+
+
+def test_batch_markdown_with_errors():
+    """format_batch_report_md should include error section when errors exist."""
+    from aeo_cli.formatters.markdown import format_batch_report_md
+
+    batch = BatchAuditReport(
+        urls=["https://a.com", "https://bad.com"],
+        reports=[_report("https://a.com")],
+        errors={"https://bad.com": "Connection refused"},
+    )
+    md = format_batch_report_md(batch)
+    assert "## Errors" in md
+    assert "**https://bad.com**" in md
+    assert "Connection refused" in md
