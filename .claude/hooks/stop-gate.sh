@@ -47,14 +47,14 @@ fi
 # 2. Type check (with cache cleanup to prevent corruption)
 echo "--- Stop gate: checking types ---"
 python3 -c "import shutil; shutil.rmtree('.mypy_cache', True)" 2>/dev/null
-if ! mypy src/ 2>&1; then
+if ! python3 -m mypy src/ 2>&1; then
     echo "BLOCKED: Type errors found. Fix before stopping." >&2
     exit 2
 fi
 
 # 3. Tests + 100% coverage
 echo "--- Stop gate: running tests ---"
-if ! pytest tests/ -q --tb=short --cov=aeo_cli --cov-fail-under=100 2>&1; then
+if ! python3 -m pytest tests/ -q --tb=short --cov=aeo_cli --cov-fail-under=100 2>&1; then
     echo "BLOCKED: Tests failing or coverage below 100%. Fix before stopping." >&2
     exit 2
 fi
