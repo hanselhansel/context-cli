@@ -1,9 +1,9 @@
-# AEO-CLI v0.5.0 — CRITICAL CONTEXT
+# AEO-CLI v0.6.0 — CRITICAL CONTEXT
 
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: A4 (Polish — docs, CHANGELOG, benchmarks, Docker)
+CURRENT PHASE: B0 (Shared Infrastructure — core/llm.py, core/cost.py)
 
 ## Session Workflow (MANDATORY — enforced by hooks)
 1. **TEST** — Write comprehensive tests FIRST (TDD, 100% coverage)
@@ -141,7 +141,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 | A1 | 0.3.0 | DONE | Strengthen core: new bots, llms-full.txt, schema weighting, readability, batch |
 | A2 | 0.4.0 | DONE | Intelligence: RSL, IETF, E-E-A-T, compare, SQLite history, regression |
 | A3 | 0.5.0 | DONE | Ecosystem: config file, MCP expansion, plugin arch, webhooks, HTML report, watch |
-| A4 | 0.6.0 | NEXT | Polish: docs, CHANGELOG, benchmarks |
+| A4 | 0.6.0 | DONE | Polish: docs, CHANGELOG, benchmarks, Docker |
 | B0 | 0.7.0 | — | Shared infra: core/llm.py, core/cost.py |
 | B1 | 0.8.0 | — | CI/CD: per-pillar thresholds, baselines, webhooks |
 | B2 | 0.9.0 | — | Batch generate: llms.txt + JSON-LD generation |

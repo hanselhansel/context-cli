@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-19
+
+### Added
+
+- **Dockerfile**: Python 3.12-slim Docker image with crawl4ai browser setup
+
+### Changed
+
+- **scoring.md**: Updated to reflect 13 AI bots, schema type weighting, content sub-signals (readability, headings, answer-first, chunks), and informational signals (RSL, IETF, E-E-A-T)
+- **mcp-integration.md**: Updated for 5 MCP tools (audit, generate, compare, history, recommend) with usage examples
+- **ci-integration.md**: Documented all new CLI flags (--timeout, --bots, --save, --webhook, --regression-threshold), config file support, watch command, and HTML reports
+
 ## [0.5.0] - 2026-02-19
 
 ### Added
