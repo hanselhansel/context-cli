@@ -543,3 +543,34 @@ def test_quiet_single_fail():
             app, ["lint", "https://example.com", "--single", "--quiet"]
         )
     assert result.exit_code == 1
+
+
+# ── Token Waste in rich_output.py — lines 73-85 ─────────────────────────────
+
+
+def test_site_report_with_lint_result():
+    """Site report with lint_result should display Token Waste in Rich output."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _site_report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(name="AI Primitives", passed=True, detail="llms.txt found"),
+                LintCheck(name="Token Efficiency", passed=False, detail="85% waste"),
+            ],
+            context_waste_pct=85.0,
+            raw_tokens=18402,
+            clean_tokens=2760,
+            passed=False,
+        ),
+    )
+
+    async def _fake(*a, **kw):
+        return report
+
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
+        result = runner.invoke(app, ["lint", "https://example.com"])
+    assert result.exit_code == 0
+    assert "Token Waste" in result.output
+    assert "85%" in result.output
+    assert "PASS" in result.output
+    assert "FAIL" in result.output

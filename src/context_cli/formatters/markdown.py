@@ -5,6 +5,27 @@ from __future__ import annotations
 from context_cli.core.models import AuditReport, BatchAuditReport, SiteAuditReport
 
 
+def _format_token_waste_md(report: AuditReport | SiteAuditReport) -> list[str]:
+    """Format token waste section for markdown output."""
+    if not hasattr(report, "lint_result") or report.lint_result is None:
+        return []
+    lr = report.lint_result
+    lines = [
+        "",
+        "## Token Waste",
+        "",
+        f"**Context Waste: {lr.context_waste_pct:.0f}%**"
+        f" ({lr.raw_tokens:,} raw → {lr.clean_tokens:,} clean tokens)",
+        "",
+        "| Check | Status | Detail |",
+        "|-------|--------|--------|",
+    ]
+    for check in lr.checks:
+        status = "PASS" if check.passed else "FAIL"
+        lines.append(f"| {check.name} | {status} | {check.detail} |")
+    return lines
+
+
 def format_single_report_md(report: AuditReport) -> str:
     """Format a single-page AuditReport as a Markdown table."""
     lines = [
@@ -16,9 +37,14 @@ def format_single_report_md(report: AuditReport) -> str:
         f"| llms.txt Presence | {report.llms_txt.score} | {report.llms_txt.detail} |",
         f"| Schema.org JSON-LD | {report.schema_org.score} | {report.schema_org.detail} |",
         f"| Content Density | {report.content.score} | {report.content.detail} |",
+    ]
+
+    lines.extend(_format_token_waste_md(report))
+
+    lines.extend([
         "",
         f"**Overall Readiness Score: {report.overall_score}/100**",
-    ]
+    ])
 
     if report.errors:
         lines.append("")
@@ -66,6 +92,8 @@ def format_site_report_md(report: SiteAuditReport) -> str:
             lines.append(
                 f"| {page.url} | {page.schema_org.score} | {page.content.score} | {total} |"
             )
+
+    lines.extend(_format_token_waste_md(report))
 
     lines.extend([
         "",

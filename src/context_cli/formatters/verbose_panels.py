@@ -250,6 +250,47 @@ def render_content_verbose(report: AuditReport | SiteAuditReport) -> Panel:
     )
 
 
+# ── Token Analysis Panel ───────────────────────────────────────────────────
+
+
+def render_token_analysis_verbose(
+    report: AuditReport | SiteAuditReport,
+) -> Panel | None:
+    """Render token analysis panel with waste metrics and lint checks."""
+    if report.lint_result is None:
+        return None
+
+    lr = report.lint_result
+    waste_color = (
+        "green" if lr.context_waste_pct < 30
+        else ("yellow" if lr.context_waste_pct < 70 else "red")
+    )
+
+    lines: list[str] = [
+        "[bold]Token Analysis[/bold] [dim](context efficiency metrics)[/dim]",
+        "",
+        f"  Raw HTML tokens:     {lr.raw_tokens:>10,}",
+        f"  Clean MD tokens:     {lr.clean_tokens:>10,}",
+        f"  Context Waste:       [{waste_color}]{lr.context_waste_pct:>9.1f}%[/{waste_color}]",
+    ]
+    if lr.raw_tokens > 0:
+        wasted = lr.raw_tokens - lr.clean_tokens
+        lines[-1] += f"  ({wasted:,} wasted tokens)"
+
+    if lr.checks:
+        lines.append("")
+        lines.append("  [bold]Lint Checks:[/bold]")
+        for check in lr.checks:
+            status = "[green]PASS[/green]" if check.passed else "[red]FAIL[/red]"
+            lines.append(f"    {status} {check.name}: {check.detail}")
+
+    return Panel(
+        "\n".join(lines),
+        title="Token Analysis",
+        border_style=waste_color,
+    )
+
+
 # ── Informational Signal Panels (not scored) ──────────────────────────────
 
 

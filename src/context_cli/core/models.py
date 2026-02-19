@@ -310,6 +310,9 @@ class SiteAuditReport(BaseModel):
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors encountered during audit"
     )
+    lint_result: LintResult | None = Field(
+        default=None, description="Pass/fail lint check results (site-wide)"
+    )
 
 
 class BatchAuditReport(BaseModel):

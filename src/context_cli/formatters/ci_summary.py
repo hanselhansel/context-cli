@@ -63,6 +63,23 @@ def _format_page_breakdown(report: SiteAuditReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _format_lint_results(report: AuditReport | SiteAuditReport) -> str:
+    """Format token waste lint results as a markdown section."""
+    if not hasattr(report, "lint_result") or report.lint_result is None:
+        return ""
+    lr = report.lint_result
+    lines = [
+        f"\n**Token Waste: {lr.context_waste_pct:.0f}%**"
+        f" ({lr.raw_tokens:,} raw → {lr.clean_tokens:,} clean tokens)\n",
+        "| Check | Status | Detail |",
+        "|-------|--------|--------|",
+    ]
+    for check in lr.checks:
+        status = "PASS" if check.passed else "FAIL"
+        lines.append(f"| {check.name} | {status} | {check.detail} |")
+    return "\n".join(lines) + "\n"
+
+
 def format_ci_summary(
     report: AuditReport | SiteAuditReport,
     *,
@@ -72,6 +89,7 @@ def format_ci_summary(
     parts = [
         _format_header(report, fail_under),
         _format_pillar_table(report),
+        _format_lint_results(report),
         _format_bot_table(report),
     ]
     if isinstance(report, SiteAuditReport):
