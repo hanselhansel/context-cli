@@ -119,6 +119,9 @@ class ContentReport(BaseModel):
     chunks_in_sweet_spot: int = Field(
         default=0, description="Chunks with 50-150 words (citation sweet spot)"
     )
+    readability_grade: float | None = Field(
+        default=None, description="Flesch-Kincaid Grade Level (None if <30 words)"
+    )
     score: float = Field(default=0, description="Content pillar score (0-40)")
     detail: str = Field(default="", description="Summary of content density findings")
 
