@@ -6,6 +6,27 @@ import re
 
 from aeo_cli.core.models import ContentReport
 
+_VOWELS = re.compile(r"[aeiou]+", re.IGNORECASE)
+
+
+def _count_syllables(word: str) -> int:
+    """Count syllables by counting vowel groups. Minimum 1 per word."""
+    groups = _VOWELS.findall(word)
+    return max(1, len(groups))
+
+
+def _readability_grade(text: str) -> float | None:
+    """Compute Flesch-Kincaid Grade Level. Returns None if <30 words."""
+    words = text.split()
+    if len(words) < 30:
+        return None
+    sentences = [s for s in re.split(r"[.!?]+", text) if s.strip()]
+    if not sentences:
+        sentences = [text]  # treat entire text as one sentence
+    total_syllables = sum(_count_syllables(w) for w in words)
+    grade = 0.39 * (len(words) / len(sentences)) + 11.8 * (total_syllables / len(words)) - 15.59
+    return round(grade, 1)
+
 
 def _analyze_chunks(markdown: str) -> tuple[int, int, int]:
     """Split markdown by headings and analyze chunk sizes.
@@ -35,6 +56,7 @@ def check_content(markdown: str) -> ContentReport:
     has_lists = bool(re.search(r"^[\s]*[-*+]\s", markdown, re.MULTILINE))
     has_code_blocks = "```" in markdown
     chunk_count, avg_chunk_words, chunks_in_sweet_spot = _analyze_chunks(markdown)
+    readability_grade = _readability_grade(markdown)
 
     detail = f"{word_count} words"
     if has_headings:
@@ -53,5 +75,6 @@ def check_content(markdown: str) -> ContentReport:
         chunk_count=chunk_count,
         avg_chunk_words=avg_chunk_words,
         chunks_in_sweet_spot=chunks_in_sweet_spot,
+        readability_grade=readability_grade,
         detail=detail,
     )
