@@ -31,6 +31,7 @@ from context_cli.formatters.verbose_panels import (
     render_robots_verbose,
     render_rsl_verbose,
     render_schema_verbose,
+    render_token_analysis_verbose,
     score_color,
 )
 
@@ -47,6 +48,7 @@ __all__ = [
     "render_robots_verbose",
     "render_rsl_verbose",
     "render_schema_verbose",
+    "render_token_analysis_verbose",
     "render_verbose_single",
     "render_verbose_site",
     "score_color",
@@ -60,6 +62,11 @@ def _render_informational_panels(
     report: AuditReport | SiteAuditReport, console: Console,
 ) -> None:
     """Render informational signal panels (RSL, Content-Usage, E-E-A-T) if present."""
+    # Token analysis panel (shown first among informational panels)
+    token_panel = render_token_analysis_verbose(report)
+    if token_panel:
+        console.print(token_panel)
+
     rsl_panel = render_rsl_verbose(report)
     if rsl_panel:
         console.print(rsl_panel)

@@ -69,6 +69,21 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
             )
         console.print(page_table)
 
+    # Token Waste display if lint result available
+    if report.lint_result:
+        lr = report.lint_result
+        waste_color = (
+            "green" if lr.context_waste_pct < 30
+            else ("yellow" if lr.context_waste_pct < 70 else "red")
+        )
+        console.print(
+            f"\n  [{waste_color}]Token Waste: {lr.context_waste_pct:.0f}%[/{waste_color}]"
+            f"  ({lr.raw_tokens:,} raw → {lr.clean_tokens:,} clean tokens)"
+        )
+        for check in lr.checks:
+            status = "[green]PASS[/green]" if check.passed else "[red]FAIL[/red]"
+            console.print(f"  {status} {check.name:20s} {check.detail}")
+
     color = overall_color(report.overall_score)
     console.print(
         f"\n[bold]Overall Readiness Score:[/bold] [{color}]{report.overall_score}/100[/{color}]"

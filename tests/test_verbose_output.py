@@ -1102,3 +1102,140 @@ def test_verbose_site_renders_informational_panels():
     assert "RSL" in output
     assert "Content-Usage" in output
     assert "E-E-A-T" in output
+
+
+# ── Token Analysis Panel Tests ─────────────────────────────────────────────
+
+
+def _lint_result():
+    from context_cli.core.models import LintCheck, LintResult
+    return LintResult(
+        checks=[
+            LintCheck(name="AI Primitives", passed=True, detail="llms.txt found"),
+            LintCheck(name="Bot Access", passed=True, detail="13/13 AI bots allowed"),
+            LintCheck(name="Data Structuring", passed=True, detail="3 JSON-LD blocks"),
+            LintCheck(name="Token Efficiency", passed=False, detail="85% Context Waste"),
+        ],
+        context_waste_pct=85.0,
+        raw_tokens=18402,
+        clean_tokens=2760,
+        passed=False,
+    )
+
+
+def test_token_analysis_panel_shows_metrics():
+    """Token analysis panel should display raw/clean tokens and waste percentage."""
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = _lint_result()
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "18,402" in text
+    assert "2,760" in text
+    assert "85.0%" in text
+    assert "wasted tokens" in text
+
+
+def test_token_analysis_panel_shows_checks():
+    """Token analysis panel should display lint check results."""
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = _lint_result()
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "AI Primitives" in text
+    assert "Token Efficiency" in text
+    assert "PASS" in text
+    assert "FAIL" in text
+
+
+def test_token_analysis_panel_none_when_no_lint_result():
+    """Token analysis panel should return None when lint_result is None."""
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    result = render_token_analysis_verbose(report)
+    assert result is None
+
+
+def test_token_analysis_panel_border_color_red_high_waste():
+    """Token analysis panel border should be red when waste >= 70%."""
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = _lint_result()  # 85% waste
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    assert panel.border_style == "red"
+
+
+def test_token_analysis_panel_border_color_green_low_waste():
+    """Token analysis panel border should be green when waste < 30%."""
+    from context_cli.core.models import LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        context_waste_pct=20.0, raw_tokens=1000, clean_tokens=800,
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    assert panel.border_style == "green"
+
+
+def test_token_analysis_panel_border_color_yellow_medium_waste():
+    """Token analysis panel border should be yellow when waste 30-70%."""
+    from context_cli.core.models import LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        context_waste_pct=50.0, raw_tokens=1000, clean_tokens=500,
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    assert panel.border_style == "yellow"
+
+
+def test_token_analysis_zero_raw_tokens():
+    """Token analysis panel should handle zero raw tokens gracefully."""
+    from context_cli.core.models import LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        context_waste_pct=0.0, raw_tokens=0, clean_tokens=0,
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "0" in text
+    # Should NOT say "wasted tokens" when raw_tokens is 0
+    assert "wasted tokens" not in text
+
+
+def test_verbose_single_renders_token_analysis():
+    """render_verbose_single should render token analysis panel when present."""
+    report = _verbose_report()
+    report.lint_result = _lint_result()
+    output = _capture(render_verbose_single, report)
+    assert "Token Analysis" in output
+    assert "18,402" in output
+
+
+def test_verbose_single_skips_token_analysis_when_none():
+    """render_verbose_single should skip token analysis panel when lint_result is None."""
+    report = _verbose_report()
+    output = _capture(render_verbose_single, report)
+    assert "Token Analysis" not in output
+
+
+def test_verbose_site_renders_token_analysis():
+    """render_verbose_site should render token analysis panel when present."""
+    report = _site_report()
+    report.lint_result = _lint_result()
+    output = _capture(render_verbose_site, report)
+    assert "Token Analysis" in output
+
+
+def test_render_token_analysis_verbose_re_exported():
+    """render_token_analysis_verbose should be re-exported from verbose module."""
+    from context_cli.formatters.verbose import render_token_analysis_verbose
+    assert callable(render_token_analysis_verbose)

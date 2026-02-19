@@ -54,6 +54,38 @@ def _pillar_detail(label: str, detail: str) -> str:
 </div>"""
 
 
+def _token_waste_section(report: AuditReport | SiteAuditReport) -> str:
+    """Generate an HTML token waste section."""
+    if not hasattr(report, "lint_result") or report.lint_result is None:
+        return ""
+    lr = report.lint_result
+    waste_color = _score_color(max(0, 100 - lr.context_waste_pct))
+    checks_html = ""
+    for check in lr.checks:
+        status_color = "#0cce6b" if check.passed else "#ff4e42"
+        status_text = "PASS" if check.passed else "FAIL"
+        checks_html += (
+            f'<tr><td>{html_lib.escape(check.name)}</td>'
+            f'<td style="color:{status_color};font-weight:600">{status_text}</td>'
+            f'<td>{html_lib.escape(check.detail)}</td></tr>\n'
+        )
+    pct = f"{lr.context_waste_pct:.0f}%"
+    return f"""<div class="details">
+  <h2>Token Waste</h2>
+  <div style="text-align:center;margin:16px 0">
+    <span style="font-size:28px;font-weight:bold;color:{waste_color}">{pct}</span>
+    <span style="font-size:14px;color:#666"> Context Waste</span>
+  </div>
+  <p style="text-align:center;font-size:13px;color:#666">
+    {lr.raw_tokens:,} raw tokens &rarr; {lr.clean_tokens:,} clean tokens
+  </p>
+  <table class="pages-table">
+    <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>{checks_html}</tbody>
+  </table>
+</div>"""
+
+
 def _errors_section(errors: list[str]) -> str:
     """Generate an HTML errors section."""
     if not errors:
@@ -128,6 +160,7 @@ def format_single_report_html(report: AuditReport) -> str:
         _pillar_detail("Schema.org JSON-LD", report.schema_org.detail),
         _pillar_detail("Content Density", report.content.detail),
     ])
+    token_waste = _token_waste_section(report)
     errors = _errors_section(report.errors)
     url_escaped = html_lib.escape(report.url)
 
@@ -150,6 +183,7 @@ def format_single_report_html(report: AuditReport) -> str:
     <h2>Pillar Scores</h2>
     {pillars}
   </div>
+  {token_waste}
   <div class="details">
     <h2>Details</h2>
     {details}
@@ -197,6 +231,7 @@ def format_site_report_html(report: SiteAuditReport) -> str:
     </table>
   </div>"""
 
+    token_waste = _token_waste_section(report)
     errors = _errors_section(report.errors)
     url_escaped = html_lib.escape(report.url)
     domain_escaped = html_lib.escape(report.domain)
@@ -225,6 +260,7 @@ def format_site_report_html(report: SiteAuditReport) -> str:
     <h2>Pillar Scores</h2>
     {pillars}
   </div>
+  {token_waste}
   <div class="details">
     <h2>Details</h2>
     {details}

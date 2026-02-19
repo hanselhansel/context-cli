@@ -131,8 +131,46 @@ class ContentReport(BaseModel):
     answer_first_ratio: float = Field(
         default=0.0, description="Fraction of sections starting with a direct statement (0.0-1.0)"
     )
+    raw_html_chars: int = Field(default=0, description="Raw HTML character count before cleaning")
+    clean_markdown_chars: int = Field(
+        default=0, description="Clean markdown character count after extraction"
+    )
+    estimated_raw_tokens: int = Field(
+        default=0, description="Estimated token count for raw HTML"
+    )
+    estimated_clean_tokens: int = Field(
+        default=0, description="Estimated token count for clean markdown"
+    )
+    context_waste_pct: float = Field(
+        default=0.0, description="Percentage of tokens wasted by HTML bloat (0-100)"
+    )
     score: float = Field(default=0, description="Content pillar score (0-40)")
     detail: str = Field(default="", description="Summary of content density findings")
+
+
+# ── Lint result models (token waste / context quality) ────────────────────
+
+
+class LintCheck(BaseModel):
+    """A single lint check result (pass/fail with detail)."""
+
+    name: str = Field(description="Name of the lint check")
+    passed: bool = Field(description="Whether the check passed")
+    detail: str = Field(default="", description="Human-readable detail for the check")
+
+
+class LintResult(BaseModel):
+    """Aggregated lint result with token waste metrics."""
+
+    checks: list[LintCheck] = Field(
+        default_factory=list, description="Individual lint check results"
+    )
+    context_waste_pct: float = Field(
+        default=0.0, description="Percentage of tokens wasted by HTML bloat (0-100)"
+    )
+    raw_tokens: int = Field(default=0, description="Estimated raw HTML token count")
+    clean_tokens: int = Field(default=0, description="Estimated clean markdown token count")
+    passed: bool = Field(default=True, description="Whether all lint checks passed")
 
 
 # ── Informational signal models (not scored, verbose output only) ─────────
@@ -221,6 +259,9 @@ class AuditReport(BaseModel):
     eeat: EeatReport | None = Field(
         default=None, description="E-E-A-T signals (informational, not scored)"
     )
+    lint_result: LintResult | None = Field(
+        default=None, description="Token waste lint result (None if not computed)"
+    )
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors encountered during audit"
     )
@@ -266,6 +307,9 @@ class SiteAuditReport(BaseModel):
     )
     eeat: EeatReport | None = Field(
         default=None, description="E-E-A-T signals (informational, not scored)"
+    )
+    lint_result: LintResult | None = Field(
+        default=None, description="Token waste lint result (None if not computed)"
     )
     discovery: DiscoveryResult = Field(description="Page discovery details")
     pages: list[PageAudit] = Field(default_factory=list, description="Per-page audit results")

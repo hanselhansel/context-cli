@@ -322,3 +322,70 @@ def test_cli_format_html_site(tmp_path, monkeypatch):
 
     assert result.exit_code == 0
     assert "HTML report saved" in result.output or ".html" in result.output
+
+
+# -- Token Waste in HTML tests ------------------------------------------------
+
+
+def _lint_result():
+    from context_cli.core.models import LintCheck, LintResult
+    return LintResult(
+        checks=[
+            LintCheck(name="AI Primitives", passed=True, detail="llms.txt found"),
+            LintCheck(name="Bot Access", passed=True, detail="13/13 AI bots allowed"),
+            LintCheck(name="Token Efficiency", passed=False, detail="85% Context Waste"),
+        ],
+        context_waste_pct=85.0,
+        raw_tokens=18402,
+        clean_tokens=2760,
+        passed=False,
+    )
+
+
+def test_single_html_with_token_waste():
+    """HTML should include token waste section when lint_result is set."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    html = format_single_report_html(report)
+    assert "Token Waste" in html
+    assert "85%" in html
+    assert "18,402" in html
+    assert "2,760" in html
+    assert "AI Primitives" in html
+    assert "PASS" in html
+    assert "FAIL" in html
+
+
+def test_single_html_no_token_waste():
+    """HTML without lint_result should NOT include token waste section."""
+    report = _single_report()
+    html = format_single_report_html(report)
+    assert "Token Waste" not in html
+
+
+def test_site_html_with_token_waste():
+    """Site HTML should include token waste section when lint_result is set."""
+    report = _site_report()
+    report.lint_result = _lint_result()
+    html = format_site_report_html(report)
+    assert "Token Waste" in html
+    assert "85%" in html
+    assert "Context Waste" in html
+
+
+def test_site_html_no_token_waste():
+    """Site HTML without lint_result should NOT include token waste section."""
+    report = _site_report()
+    html = format_site_report_html(report)
+    assert "Token Waste" not in html
+
+
+def test_html_token_waste_check_status_colors():
+    """Token waste checks should use appropriate colors for pass/fail."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    html = format_single_report_html(report)
+    # PASS checks should use green
+    assert "#0cce6b" in html
+    # FAIL checks should use red
+    assert "#ff4e42" in html

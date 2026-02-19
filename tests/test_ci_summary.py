@@ -134,3 +134,48 @@ def test_page_breakdown_empty_pages():
     )
     result = _format_page_breakdown(report)
     assert result == ""
+
+
+# -- Token Waste in CI Summary tests ------------------------------------------
+
+
+def _lint_result():  # noqa: ANN202
+    from context_cli.core.models import LintCheck, LintResult
+    return LintResult(
+        checks=[
+            LintCheck(name="AI Primitives", passed=True, detail="llms.txt found"),
+            LintCheck(name="Bot Access", passed=True, detail="13/13 AI bots allowed"),
+            LintCheck(name="Token Efficiency", passed=False, detail="85% Context Waste"),
+        ],
+        context_waste_pct=85.0,
+        raw_tokens=18402,
+        clean_tokens=2760,
+        passed=False,
+    )
+
+
+def test_ci_summary_includes_token_waste():
+    """CI summary should include token waste section when lint_result is set."""
+    report = _mock_report()
+    report.lint_result = _lint_result()
+    md = format_ci_summary(report)
+
+    assert "Token Waste: 85%" in md
+    assert "18,402 raw" in md
+    assert "2,760 clean" in md
+    assert "| AI Primitives | PASS |" in md
+    assert "| Token Efficiency | FAIL |" in md
+
+
+def test_ci_summary_no_token_waste_without_lint_result():
+    """CI summary should NOT include token waste when lint_result is None."""
+    report = _mock_report()
+    md = format_ci_summary(report)
+    assert "Token Waste" not in md
+
+
+def test_ci_summary_lint_results_empty_string_when_none():
+    """_format_lint_results returns empty string when lint_result is None."""
+    from context_cli.formatters.ci_summary import _format_lint_results
+    report = _mock_report()
+    assert _format_lint_results(report) == ""

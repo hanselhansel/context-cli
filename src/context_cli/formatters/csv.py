@@ -8,13 +8,25 @@ import io
 from context_cli.core.models import AuditReport, BatchAuditReport, SiteAuditReport
 
 
+def _lint_columns(report: AuditReport) -> tuple[list[str], list[object]]:
+    """Return lint result column headers and values for CSV output."""
+    headers = ["raw_tokens", "clean_tokens", "context_waste_pct"]
+    if report.lint_result is not None:
+        lr = report.lint_result
+        values: list[object] = [lr.raw_tokens, lr.clean_tokens, lr.context_waste_pct]
+    else:
+        values = ["", "", ""]
+    return headers, values
+
+
 def format_single_report_csv(report: AuditReport) -> str:
     """Format a single-page AuditReport as CSV."""
     output = io.StringIO()
     writer = csv.writer(output)
 
+    lint_headers, lint_values = _lint_columns(report)
     writer.writerow(["url", "overall_score", "robots_score", "llms_txt_score",
-                      "schema_score", "content_score", "content_words"])
+                      "schema_score", "content_score", "content_words"] + lint_headers)
     writer.writerow([
         report.url,
         report.overall_score,
@@ -23,7 +35,7 @@ def format_single_report_csv(report: AuditReport) -> str:
         report.schema_org.score,
         report.content.score,
         report.content.word_count,
-    ])
+    ] + lint_values)
 
     return output.getvalue()
 

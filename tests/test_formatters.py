@@ -6,6 +6,8 @@ from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
+    LintCheck,
+    LintResult,
     LlmsTxtReport,
     PageAudit,
     RobotsReport,
@@ -14,6 +16,21 @@ from context_cli.core.models import (
 )
 from context_cli.formatters.csv import format_single_report_csv, format_site_report_csv
 from context_cli.formatters.markdown import format_single_report_md, format_site_report_md
+
+
+def _lint_result() -> LintResult:
+    return LintResult(
+        checks=[
+            LintCheck(name="AI Primitives", passed=True, detail="llms.txt found"),
+            LintCheck(name="Bot Access", passed=True, detail="13/13 AI bots allowed"),
+            LintCheck(name="Data Structuring", passed=True, detail="3 JSON-LD blocks"),
+            LintCheck(name="Token Efficiency", passed=False, detail="85% Context Waste"),
+        ],
+        context_waste_pct=85.0,
+        raw_tokens=18402,
+        clean_tokens=2760,
+        passed=False,
+    )
 
 
 def _single_report() -> AuditReport:
@@ -155,3 +172,68 @@ def test_markdown_site_report_with_errors():
     md = format_site_report_md(report)
     assert "## Errors" in md
     assert "Connection timeout on page 2" in md
+
+
+# -- Token Waste in CSV tests ------------------------------------------------
+
+
+def test_csv_single_report_has_token_waste_columns():
+    """CSV with lint_result should include token waste columns."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    csv_output = format_single_report_csv(report)
+    lines = csv_output.strip().split("\n")
+
+    assert "raw_tokens" in lines[0]
+    assert "clean_tokens" in lines[0]
+    assert "context_waste_pct" in lines[0]
+    assert "18402" in lines[1]
+    assert "2760" in lines[1]
+    assert "85.0" in lines[1]
+
+
+def test_csv_single_report_no_lint_result_has_empty_columns():
+    """CSV without lint_result should have empty token waste columns."""
+    report = _single_report()
+    csv_output = format_single_report_csv(report)
+    lines = csv_output.strip().split("\n")
+
+    assert "raw_tokens" in lines[0]
+    # Data row should still have the column but with empty values
+    assert len(lines) == 2
+
+
+# -- Token Waste in Markdown tests -------------------------------------------
+
+
+def test_markdown_single_report_with_lint_result():
+    """Markdown output should include Token Waste section when lint_result set."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    md = format_single_report_md(report)
+
+    assert "## Token Waste" in md
+    assert "Context Waste: 85%" in md
+    assert "18,402 raw" in md
+    assert "2,760 clean" in md
+    assert "AI Primitives" in md
+    assert "PASS" in md
+    assert "FAIL" in md
+
+
+def test_markdown_single_report_no_lint_result():
+    """Markdown output should NOT include Token Waste section when lint_result is None."""
+    report = _single_report()
+    md = format_single_report_md(report)
+    assert "## Token Waste" not in md
+
+
+def test_markdown_site_report_with_lint_result():
+    """Site markdown should include Token Waste section when lint_result set."""
+    report = _site_report()
+    report.lint_result = _lint_result()
+    md = format_site_report_md(report)
+
+    assert "## Token Waste" in md
+    assert "Context Waste: 85%" in md
+    assert "Token Efficiency" in md
