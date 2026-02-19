@@ -29,6 +29,7 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 - **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
 - **GitHub Action** — composite action for CI pipelines with baseline support
 - **Citation Radar** — query AI models to see what they cite and recommend, with brand tracking and domain classification
+- **Share-of-Recommendation Benchmark** — track how often AI models mention and recommend your brand vs competitors, with LLM-as-judge analysis
 
 ## Installation
 
@@ -277,6 +278,24 @@ Options:
 - `--brand/-b`: Brand name to track (repeatable)
 - `--model/-m`: LLM model to query (repeatable, default: gpt-4o-mini)
 - `--runs/-r`: Runs per model for statistical significance
+- `--json`: Output as JSON
+
+## Share-of-Recommendation Benchmark
+
+Track how AI models mention and recommend your brand across multiple prompts:
+
+```bash
+pip install aeo-cli[generate]
+aeo-cli benchmark prompts.txt -b "YourBrand" -c "Competitor1" -c "Competitor2"
+```
+
+Options:
+- `prompts.txt`: CSV (with `prompt,category,intent` columns) or plain text (one prompt per line)
+- `--brand/-b`: Target brand to track (required)
+- `--competitor/-c`: Competitor brand (repeatable)
+- `--model/-m`: LLM model to query (repeatable, default: gpt-4o-mini)
+- `--runs/-r`: Runs per model per prompt (default: 3)
+- `--yes/-y`: Skip cost confirmation prompt
 - `--json`: Output as JSON
 
 ## GitHub Action

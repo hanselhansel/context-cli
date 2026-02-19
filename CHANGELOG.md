@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-02-19
+
+### Added
+
+- **Share-of-Recommendation Benchmark** (`aeo-cli benchmark prompts.txt -b BrandName`): Run multi-model benchmarks to track how often AI models mention and recommend your brand
+- **Benchmark prompt loader**: Load prompts from CSV (with category/intent columns) or plain text files
+- **Benchmark dispatcher**: Async multi-model query execution with concurrency control (Semaphore(5))
+- **LLM-as-judge**: Structured JSON classification of benchmark responses — brands mentioned, recommended brand, target position, sentiment
+- **Benchmark metrics**: Statistical aggregation for mention rates, recommendation rates, average position, and sentiment breakdown per model
+- **Benchmark cost estimator**: Pre-run cost estimation with per-model token pricing and user confirmation prompt
+- **Benchmark MCP tool** (`benchmark_tool`): Expose Share-of-Recommendation benchmarking to AI agents via FastMCP
+- **Benchmark models**: `PromptEntry`, `BenchmarkConfig`, `JudgeResult`, `PromptBenchmarkResult`, `ModelBenchmarkSummary`, `BenchmarkReport` in `core/models.py`
+
+### Changed
+
+- Test suite expanded from 1040 to 1145 tests, maintaining **100% code coverage**
+- New `core/benchmark/` package with `loader.py`, `dispatcher.py`, `judge.py`, `metrics.py`, `cost.py` modules
+
 ## [0.10.0] - 2026-02-19
 
 ### Added
