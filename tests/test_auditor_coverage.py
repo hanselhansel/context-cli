@@ -156,6 +156,98 @@ async def test_audit_url_happy_path(mock_robots, mock_llms, mock_crawl):
     assert report.content.score > 0
 
 
+# ── Token metrics in audit_url() ────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
+async def test_audit_url_token_metrics(mock_robots, mock_llms, mock_crawl):
+    """Token waste metrics should be computed from HTML and markdown lengths."""
+    mock_robots.return_value = _make_robots()
+    mock_llms.return_value = _make_llms()
+    mock_crawl.return_value = _make_crawl()
+
+    report = await audit_url(_SEED)
+
+    # The crawl has known HTML and markdown lengths
+    crawl = _make_crawl()
+    expected_html_chars = len(crawl.html)
+    expected_md_chars = len(crawl.markdown)
+
+    assert report.content.raw_html_chars == expected_html_chars
+    assert report.content.clean_markdown_chars == expected_md_chars
+    assert report.content.estimated_raw_tokens == expected_html_chars // 4
+    assert report.content.estimated_clean_tokens == expected_md_chars // 4
+    assert report.content.context_waste_pct > 0
+
+
+@pytest.mark.asyncio
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
+async def test_audit_url_token_metrics_empty_crawl(mock_robots, mock_llms, mock_crawl):
+    """When crawl fails, token metrics should be zero."""
+    mock_robots.return_value = _make_robots()
+    mock_llms.return_value = _make_llms()
+    mock_crawl.return_value = _make_crawl(success=False, error="timeout")
+
+    report = await audit_url(_SEED)
+
+    assert report.content.raw_html_chars == 0
+    assert report.content.clean_markdown_chars == 0
+    assert report.content.estimated_raw_tokens == 0
+    assert report.content.estimated_clean_tokens == 0
+    assert report.content.context_waste_pct == 0.0
+
+
+# ── LintResult in audit_url() ──────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
+async def test_audit_url_lint_result_present(mock_robots, mock_llms, mock_crawl):
+    """audit_url() should populate lint_result on the report."""
+    mock_robots.return_value = _make_robots()
+    mock_llms.return_value = _make_llms()
+    mock_crawl.return_value = _make_crawl()
+
+    report = await audit_url(_SEED)
+
+    assert report.lint_result is not None
+    assert len(report.lint_result.checks) == 4
+    check_names = {c.name for c in report.lint_result.checks}
+    assert check_names == {"AI Primitives", "Bot Access", "Data Structuring", "Token Efficiency"}
+
+
+@pytest.mark.asyncio
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
+async def test_audit_url_lint_result_all_pass(mock_robots, mock_llms, mock_crawl):
+    """When all pillars are present, lint_result.passed should be True."""
+    mock_robots.return_value = _make_robots()
+    mock_llms.return_value = _make_llms()
+    mock_crawl.return_value = _make_crawl()
+
+    report = await audit_url(_SEED)
+
+    assert report.lint_result is not None
+    # AI Primitives: llms.txt found → pass
+    # Bot Access: 1/1 allowed → pass
+    # Data Structuring: has Organization schema → pass
+    # Token Efficiency: HTML is small in test data → likely pass
+    ai_check = next(c for c in report.lint_result.checks if c.name == "AI Primitives")
+    assert ai_check.passed is True
+    bot_check = next(c for c in report.lint_result.checks if c.name == "Bot Access")
+    assert bot_check.passed is True
+    schema_check = next(c for c in report.lint_result.checks if c.name == "Data Structuring")
+    assert schema_check.passed is True
+
+
 # ── audit_site() timeout ─────────────────────────────────────────────────────
 
 

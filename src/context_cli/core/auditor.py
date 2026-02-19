@@ -28,7 +28,7 @@ from context_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from context_cli.core.scoring import compute_scores
+from context_cli.core.scoring import compute_lint_results, compute_scores
 
 # ── Orchestrator ──────────────────────────────────────────────────────────────
 
@@ -186,6 +186,18 @@ async def audit_url(
     schema_org = check_schema_org(html)
     content = check_content(markdown)
 
+    # Token waste metrics
+    raw_html_chars = len(html) if html else 0
+    clean_md_chars = len(markdown) if markdown else 0
+    raw_tokens = raw_html_chars // 4
+    clean_tokens = clean_md_chars // 4
+    waste_pct = ((raw_tokens - clean_tokens) / raw_tokens * 100) if raw_tokens > 0 else 0.0
+    content.raw_html_chars = raw_html_chars
+    content.clean_markdown_chars = clean_md_chars
+    content.estimated_raw_tokens = raw_tokens
+    content.estimated_clean_tokens = clean_tokens
+    content.context_waste_pct = round(waste_pct, 1)
+
     # Informational signals (not scored)
     rsl_report = check_rsl(raw_robots)
     domain = urlparse(url).netloc
@@ -196,6 +208,9 @@ async def audit_url(
         robots, llms_txt, schema_org, content
     )
 
+    # Compute lint results
+    lint_result = compute_lint_results(robots, llms_txt, schema_org, content)
+
     return AuditReport(
         url=url,
         overall_score=overall,
@@ -203,6 +218,7 @@ async def audit_url(
         llms_txt=llms_txt,
         schema_org=schema_org,
         content=content,
+        lint_result=lint_result,
         rsl=rsl_report,
         content_usage=content_usage_result,
         eeat=eeat_report,

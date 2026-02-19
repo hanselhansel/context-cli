@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from context_cli.core.models import ContentReport, LlmsTxtReport, RobotsReport, SchemaReport
+from context_cli.core.models import (
+    ContentReport,
+    LintCheck,
+    LintResult,
+    LlmsTxtReport,
+    RobotsReport,
+    SchemaReport,
+)
 
 # ── Scoring Constants ────────────────────────────────────────────────────────
 # Exported so verbose output can display the actual thresholds used.
@@ -90,3 +97,61 @@ def compute_scores(
 
     overall = robots.score + llms_txt.score + schema_org.score + content.score
     return robots, llms_txt, schema_org, content, overall
+
+
+def compute_lint_results(
+    robots: RobotsReport,
+    llms_txt: LlmsTxtReport,
+    schema_org: SchemaReport,
+    content: ContentReport,
+) -> LintResult:
+    """Compute pass/fail checks and token waste metrics."""
+    checks: list[LintCheck] = []
+
+    # AI Primitives check
+    ai_prim_pass = llms_txt.found or llms_txt.llms_full_found
+    checks.append(LintCheck(
+        name="AI Primitives",
+        passed=ai_prim_pass,
+        detail="llms.txt found" if ai_prim_pass else "No llms.txt found",
+    ))
+
+    # Bot Access check
+    bot_pass = True
+    bot_detail = "No robots.txt found"
+    if robots.found and robots.bots:
+        blocked = [b.bot for b in robots.bots if not b.allowed]
+        bot_pass = len(blocked) == 0
+        total = len(robots.bots)
+        allowed = total - len(blocked)
+        bot_detail = f"{allowed}/{total} AI bots allowed"
+        if blocked:
+            bot_detail += f" ({', '.join(blocked[:3])} blocked)"
+    checks.append(LintCheck(name="Bot Access", passed=bot_pass, detail=bot_detail))
+
+    # Data Structuring check
+    schema_pass = schema_org.blocks_found > 0
+    schema_detail = f"{schema_org.blocks_found} JSON-LD blocks"
+    if schema_org.schemas:
+        types_found = [s.schema_type for s in schema_org.schemas]
+        schema_detail += f" ({', '.join(types_found[:3])})"
+    checks.append(LintCheck(name="Data Structuring", passed=schema_pass, detail=schema_detail))
+
+    # Token Efficiency check
+    waste = content.context_waste_pct
+    eff_pass = waste < 70
+    eff_detail = f"{waste:.0f}% Context Waste"
+    if content.estimated_raw_tokens > 0:
+        eff_detail += (
+            f" ({content.estimated_raw_tokens:,} raw"
+            f" -> {content.estimated_clean_tokens:,} clean tokens)"
+        )
+    checks.append(LintCheck(name="Token Efficiency", passed=eff_pass, detail=eff_detail))
+
+    return LintResult(
+        checks=checks,
+        context_waste_pct=waste,
+        raw_tokens=content.estimated_raw_tokens,
+        clean_tokens=content.estimated_clean_tokens,
+        passed=all(c.passed for c in checks),
+    )
