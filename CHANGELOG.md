@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-02-19
+
+### Added
+
+- **RSL (Really Simple Licensing) detection**: Analyzes robots.txt for Crawl-delay, Sitemap directives, and AI-bot-specific User-agent blocks (informational, not scored)
+- **IETF Content-Usage header detection**: Checks for the emerging `Content-Usage` HTTP header from IETF aipref Working Group (informational, not scored)
+- **E-E-A-T signal detection**: Detects authorship, publication dates, about/contact links, external citations, and trust signals in HTML (informational, not scored)
+- **Compare command (`aeo-cli compare url1 url2`)**: Side-by-side AEO audit comparison of two URLs with per-pillar deltas and winner summary
+- **SQLite audit history (`aeo-cli history <url>`)**: Persistent audit results stored in `~/.aeo-cli/history.db` with list, show, and delete operations
+- **Regression detection**: Automatic score drop monitoring with configurable threshold when using `--save` flag
+- **`--save` flag**: Save audit results to local SQLite history for tracking over time
+- **`--regression-threshold` flag**: Configure minimum score drop to flag as regression (default: 5 points)
+- **Verbose informational panels**: RSL, Content-Usage, and E-E-A-T panels in verbose output with blue borders and "(not scored)" labels
+- **New Pydantic models**: `RslReport`, `ContentUsageReport`, `EeatReport`, `CompareReport`, `PillarDelta`, `PillarRegression`, `RegressionReport`
+
+### Changed
+
+- Refactored verbose output into separate `verbose_panels.py` and `verbose.py` compositor modules
+- Refactored `main.py` into `cli/` subpackage with per-command modules
+- Test suite expanded from 493 to 651 tests, maintaining **100% code coverage**
+
 ## [0.3.0] - 2026-02-19
 
 ### Added
