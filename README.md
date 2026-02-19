@@ -25,7 +25,7 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 - **Rich CLI output** — formatted tables and scores via Rich
 - **JSON / CSV / Markdown output** — machine-readable results for pipelines
 - **MCP server** — expose the audit as a tool for AI agents via FastMCP
-- **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation
+- **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation, with batch mode for multiple URLs
 - **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
 - **GitHub Action** — composite action for CI pipelines with baseline support
 
@@ -223,6 +223,18 @@ aeo-cli generate example.com
 ```
 
 This crawls the URL, sends the content to an LLM, and writes optimized files to `./aeo-output/`.
+
+### Batch Generate
+
+Generate assets for multiple URLs from a file:
+
+```bash
+aeo-cli generate-batch urls.txt
+aeo-cli generate-batch urls.txt --concurrency 5 --profile ecommerce
+aeo-cli generate-batch urls.txt --json
+```
+
+Each URL's output goes to a subdirectory under `--output-dir`.
 
 ### BYOK (Bring Your Own Key)
 

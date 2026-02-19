@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-02-19
+
+### Added
+
+- **Batch generate command** (`aeo-cli generate-batch urls.txt`): Generate llms.txt + schema.jsonld for multiple URLs from a file, with configurable `--concurrency` and `--profile`
+- **Batch generate MCP tool** (`generate_batch`): Expose batch generation to AI agents via FastMCP
+- **Batch generate models**: `BatchGenerateConfig`, `BatchPageResult`, `BatchGenerateResult` in `core/models.py`
+- **URL-to-directory sanitization**: Each URL's output goes to a safe subdirectory under `--output-dir`
+
+### Changed
+
+- Test suite expanded from 857 to 898 tests, maintaining **100% code coverage**
+- New `core/generate/batch.py` module with `generate_batch()` orchestrator using `asyncio.Semaphore` for concurrency control
+
 ## [0.8.0] - 2026-02-19
 
 ### Added
