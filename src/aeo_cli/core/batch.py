@@ -69,6 +69,7 @@ async def run_batch_audit(
     timeout: int = 15,
     concurrency: int = 3,
     progress_callback: Callable[[str], None] | None = None,
+    bots: list[str] | None = None,
 ) -> BatchAuditReport:
     """Run audits for multiple URLs with concurrency limiting.
 
@@ -91,9 +92,11 @@ async def run_batch_audit(
             try:
                 report: AuditReport | SiteAuditReport
                 if single:
-                    report = await audit_url(url, timeout=timeout)
+                    report = await audit_url(url, timeout=timeout, bots=bots)
                 else:
-                    report = await audit_site(url, max_pages=max_pages, timeout=timeout)
+                    report = await audit_site(
+                        url, max_pages=max_pages, timeout=timeout, bots=bots
+                    )
                 reports.append(report)
             except Exception as e:
                 errors[url] = str(e)

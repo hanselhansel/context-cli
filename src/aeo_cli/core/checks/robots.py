@@ -29,7 +29,7 @@ DEFAULT_TIMEOUT: int = 15
 
 
 async def check_robots(
-    url: str, client: httpx.AsyncClient
+    url: str, client: httpx.AsyncClient, *, bots: list[str] | None = None
 ) -> tuple[RobotsReport, str | None]:
     """Fetch robots.txt and check AI bot access.
 
@@ -53,21 +53,22 @@ async def check_robots(
         rp = RobotFileParser()
         rp.parse(raw_text.splitlines())
 
-        bots = []
-        for bot in AI_BOTS:
-            allowed = rp.can_fetch(bot, "/")
-            bots.append(BotAccessResult(
-                bot=bot,
+        bots_to_check = bots or AI_BOTS
+        bot_results = []
+        for bot_name in bots_to_check:
+            allowed = rp.can_fetch(bot_name, "/")
+            bot_results.append(BotAccessResult(
+                bot=bot_name,
                 allowed=allowed,
                 detail="Allowed" if allowed else "Blocked by robots.txt",
             ))
 
-        allowed_count = sum(1 for b in bots if b.allowed)
+        allowed_count = sum(1 for b in bot_results if b.allowed)
         return (
             RobotsReport(
                 found=True,
-                bots=bots,
-                detail=f"{allowed_count}/{len(AI_BOTS)} AI bots allowed",
+                bots=bot_results,
+                detail=f"{allowed_count}/{len(bots_to_check)} AI bots allowed",
             ),
             raw_text,
         )

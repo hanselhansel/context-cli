@@ -86,15 +86,21 @@ def audit(
     concurrency: int = typer.Option(
         3, "--concurrency", help="Max concurrent audits in batch mode (default: 3)"
     ),
+    bots: str = typer.Option(
+        None, "--bots", help="Comma-separated custom AI bot list (overrides defaults)"
+    ),
 ) -> None:
     """Run an AEO audit on a URL and display the results."""
     # --json flag is a shortcut for --format json
     if json_output and format is None:
         format = OutputFormat.json
 
+    # Parse --bots into a list
+    bots_list = [b.strip() for b in bots.split(",")] if bots else None
+
     # Batch mode: --file flag
     if file:
-        _run_batch_mode(file, format, single, max_pages, timeout, concurrency)
+        _run_batch_mode(file, format, single, max_pages, timeout, concurrency, bots=bots_list)
         return
 
     if not url:
@@ -107,11 +113,13 @@ def audit(
     if quiet:
         # Backwards compat: --quiet uses threshold 50 unless --fail-under overrides
         threshold = fail_under if fail_under is not None else 50
-        _audit_quiet(url, single, max_pages, threshold, fail_on_blocked_bots, timeout)
+        _audit_quiet(
+            url, single, max_pages, threshold, fail_on_blocked_bots, timeout, bots=bots_list
+        )
         return  # pragma: no cover — _audit_quiet always raises SystemExit
 
     # Normal flow
-    report = _run_audit(url, single, max_pages, timeout)
+    report = _run_audit(url, single, max_pages, timeout, bots=bots_list)
     _render_output(report, format, verbose, single)
     _write_github_step_summary(report, fail_under)
 
@@ -120,12 +128,17 @@ def audit(
 
 
 def _run_audit(
-    url: str, single: bool, max_pages: int, timeout: int = 15,
+    url: str,
+    single: bool,
+    max_pages: int,
+    timeout: int = 15,
+    *,
+    bots: list[str] | None = None,
 ) -> AuditReport | SiteAuditReport:
     """Execute the audit and return the report."""
     if single:
         with console.status(f"Auditing {url}..."):
-            return asyncio.run(audit_url(url, timeout=timeout))
+            return asyncio.run(audit_url(url, timeout=timeout, bots=bots))
 
     with Progress(
         SpinnerColumn(),
@@ -141,7 +154,7 @@ def _run_audit(
 
         report = asyncio.run(
             audit_site(url, max_pages=max_pages, timeout=timeout,
-                       progress_callback=on_progress)
+                       progress_callback=on_progress, bots=bots)
         )
         progress.update(task_id, description="Done", completed=max_pages)
     return report
@@ -239,13 +252,15 @@ def _audit_quiet(
     threshold: float = 50,
     fail_on_blocked_bots: bool = False,
     timeout: int = 15,
+    *,
+    bots: list[str] | None = None,
 ) -> None:
     """Run audit silently — exit based on threshold and bot access."""
     report: AuditReport | SiteAuditReport
     if single:
-        report = asyncio.run(audit_url(url, timeout=timeout))
+        report = asyncio.run(audit_url(url, timeout=timeout, bots=bots))
     else:
-        report = asyncio.run(audit_site(url, max_pages=max_pages, timeout=timeout))
+        report = asyncio.run(audit_site(url, max_pages=max_pages, timeout=timeout, bots=bots))
 
     if fail_on_blocked_bots and report.robots.found:
         if any(not b.allowed for b in report.robots.bots):
@@ -260,6 +275,8 @@ def _run_batch_mode(
     max_pages: int,
     timeout: int,
     concurrency: int,
+    *,
+    bots: list[str] | None = None,
 ) -> None:
     """Execute batch audit from a URL file and render results."""
     from aeo_cli.core.batch import parse_url_file, run_batch_audit
@@ -278,7 +295,7 @@ def _run_batch_mode(
         batch_report = asyncio.run(
             run_batch_audit(
                 urls, single=single, max_pages=max_pages,
-                timeout=timeout, concurrency=concurrency,
+                timeout=timeout, concurrency=concurrency, bots=bots,
             )
         )
 
