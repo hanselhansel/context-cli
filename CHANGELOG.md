@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-02-19
+
+### Highlights
+
+AEO-CLI reaches 1.0.0 with all planned features complete across 10 development phases.
+
+### Added
+
+- **Parser registry completeness**: All 8 marketplace parsers (Amazon, Shopee, Lazada, Tokopedia, TikTok Shop, Blibli, Zalora, Generic) now fully registered in the dispatch map
+- **GitHub Action completeness**: Per-pillar threshold inputs (`robots-min`, `schema-min`, `content-min`, `llms-min`, `overall-min`) and `webhook-url` now exposed in `action.yml`
+
+### Summary of All Features (v0.3.0 through v1.0.0)
+
+- **Core Audit Engine**: 4-pillar scoring (Content 40, Robots 25, Schema 25, llms.txt 10), 13 AI bot checks, multi-page discovery
+- **Intelligence Layer**: RSL/IETF/E-E-A-T signals, compare command, SQLite history, regression detection
+- **Ecosystem**: Config file (.aeorc.yml), plugin architecture, webhooks, HTML reports, watch mode
+- **CI/CD**: Per-pillar thresholds, baseline comparison, GitHub Action
+- **AEO Compiler**: LLM-powered llms.txt and schema.jsonld generation with batch mode
+- **Citation Radar**: Multi-model citation extraction with brand tracking and domain classification
+- **Share-of-Recommendation Benchmark**: LLM-as-judge brand mention/recommendation tracking
+- **Retail AI-Readiness Auditor**: 8 marketplace parsers, 5-pillar retail scoring, OpenAI Feed Spec compliance
+- **MCP Server**: 9 tools for AI agent integration
+- **1,452 tests at 100% code coverage** across 83 source files
+
 ## [0.12.0] - 2026-02-19
 
 ### Added
