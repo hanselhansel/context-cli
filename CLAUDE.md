@@ -161,11 +161,12 @@ Details: `docs/long-running-session-plan.md`
 | B5 | 4 | 2 parsers each, scoring+auditor, CLI+MCP |
 | B0, B1, B2, A4 | Solo | Too small or needs coherent voice |
 
-## Agent Team File Ownership Protocol
-When spawning agent teams, ALWAYS:
-1. Map every task to its exact file modifications BEFORE spawning
-2. Assign exclusive file ownership — no file shared between agents
-3. Keep shared files (models.py, main.py, auditor.py) for the leader or one designated agent
-4. Have agents skip mypy (leader runs it after merge)
-5. Agents `git pull --rebase` before editing, commit+push immediately after
+## Agent Team Worktree Protocol
+When spawning agent teams, ALWAYS use git worktrees for isolation:
+1. Create a worktree per agent: `git worktree add ../aeo-cli-{name} -b {name}/{feature} main`
+2. Install deps: `cd ../aeo-cli-{name} && pip install -e ".[dev]"`
+3. Spawn each agent as a separate session in its worktree directory
+4. Agents commit+push to their own branches only
+5. Leader merges branches to main after all agents complete
+6. Cleanup: `git worktree remove` + `git worktree prune`
 See `.claude/rules/agent-teams.md` for full protocol.

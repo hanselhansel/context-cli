@@ -53,7 +53,9 @@ refactor: extract retry logic into core/retry.py
 - Never commit unrefactored code that violates the 300-line guideline
 
 ## Agent Team Commits
-- Each agent commits ONLY files in its ownership set
+- Each agent commits ONLY to its own worktree branch
 - `git add` specific files by name (never `git add .` or `git add -A`)
-- Always `git pull --rebase` before committing to avoid conflicts
-- If rebase conflicts, STOP and notify the leader — do not force-push
+- Push to remote: `git push origin {agent-name}/{feature}`
+- Leader merges agent branches to main after all complete
+- If merge conflicts: leader resolves on main (or delegates to Claude)
+- NEVER force-push agent branches — leader needs the history
