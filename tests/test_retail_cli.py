@@ -114,8 +114,9 @@ class TestRetailCLIRegistration:
         result = runner.invoke(app, ["retail", "--help"])
         assert result.exit_code == 0
         assert "url" in result.output.lower()
-        assert "--json" in result.output
-        assert "--verbose" in result.output
+        # Rich wraps option dashes in ANSI codes, so check keywords only
+        assert "json" in result.output.lower()
+        assert "verbose" in result.output.lower()
 
 
 # ── CLI JSON Output Tests ────────────────────────────────────────────────────
