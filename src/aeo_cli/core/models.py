@@ -612,3 +612,107 @@ class RadarReport(BaseModel):
     total_citations: int = Field(
         default=0, description="Total number of citations across all models"
     )
+
+
+# ── Benchmark models ─────────────────────────────────────────────────────
+
+
+class PromptEntry(BaseModel):
+    """A single prompt entry for benchmark evaluation."""
+
+    text: str = Field(description="The prompt text to send to models")
+    category: str = Field(
+        default="general", description="Category of the prompt (e.g., comparison)"
+    )
+
+
+class BenchmarkConfig(BaseModel):
+    """Configuration for Share-of-Recommendation benchmark runs."""
+
+    brand: str = Field(description="Target brand to track")
+    competitors: list[str] = Field(default_factory=list, description="Competitor brand names")
+    models: list[str] = Field(
+        default_factory=lambda: ["gpt-4o-mini"],
+        description="LLM models to benchmark against",
+    )
+    prompts: list[PromptEntry] = Field(
+        default_factory=list, description="Prompts to evaluate"
+    )
+    runs_per_prompt: int = Field(
+        default=1, description="Number of runs per prompt per model for statistical significance"
+    )
+    judge_model: str = Field(
+        default="gpt-4o-mini", description="Model used for LLM-as-judge classification"
+    )
+
+
+class JudgeResult(BaseModel):
+    """Structured result from LLM-as-judge classification of a response."""
+
+    brands_mentioned: list[str] = Field(
+        default_factory=list, description="Brand names found in the response"
+    )
+    recommended_brand: str | None = Field(
+        default=None, description="Brand recommended by the response (null if none)"
+    )
+    target_brand_position: int | None = Field(
+        default=None, description="Position of target brand in ranking (1-based, null if unranked)"
+    )
+    sentiment: str = Field(
+        default="neutral",
+        description="Sentiment toward target brand: positive, neutral, or negative",
+    )
+
+
+class PromptBenchmarkResult(BaseModel):
+    """Result of benchmarking a single prompt against a single model."""
+
+    prompt: str = Field(description="The prompt text that was sent")
+    model: str = Field(description="Model that generated the response")
+    response_text: str = Field(default="", description="Raw response from the model")
+    judge_result: JudgeResult | None = Field(
+        default=None, description="LLM-as-judge classification (null if not yet judged)"
+    )
+    error: str | None = Field(default=None, description="Error message if query failed")
+
+
+class ModelBenchmarkSummary(BaseModel):
+    """Aggregated benchmark metrics for a single model."""
+
+    model: str = Field(description="Model identifier")
+    total_responses: int = Field(default=0, description="Total number of responses analyzed")
+    mention_rate: float = Field(
+        default=0.0, description="Fraction of responses mentioning the target brand (0.0-1.0)"
+    )
+    recommendation_rate: float = Field(
+        default=0.0,
+        description="Fraction of responses recommending the target brand (0.0-1.0)",
+    )
+    avg_position: float | None = Field(
+        default=None, description="Average ranking position of target brand (null if never ranked)"
+    )
+    sentiment_breakdown: dict[str, int] = Field(
+        default_factory=lambda: {"positive": 0, "neutral": 0, "negative": 0},
+        description="Count of responses by sentiment toward target brand",
+    )
+
+
+class BenchmarkReport(BaseModel):
+    """Complete benchmark report with per-model summaries and overall metrics."""
+
+    brand: str = Field(description="Target brand being benchmarked")
+    competitors: list[str] = Field(default_factory=list, description="Competitor brands tracked")
+    model_summaries: list[ModelBenchmarkSummary] = Field(
+        default_factory=list, description="Per-model benchmark summaries"
+    )
+    overall_mention_rate: float = Field(
+        default=0.0, description="Weighted average mention rate across all models"
+    )
+    overall_recommendation_rate: float = Field(
+        default=0.0, description="Weighted average recommendation rate across all models"
+    )
+    total_prompts: int = Field(default=0, description="Total number of prompts evaluated")
+    total_responses: int = Field(default=0, description="Total responses across all models")
+    results: list[PromptBenchmarkResult] = Field(
+        default_factory=list, description="All individual prompt-level results"
+    )
