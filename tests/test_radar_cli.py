@@ -475,19 +475,15 @@ def test_radar_package_importable():
     import aeo_cli.core.radar  # noqa: F401
 
 
-def test_radar_query_stub_raises():
-    """query_models stub should raise NotImplementedError."""
+def test_radar_query_importable():
+    """query_models should be importable from the radar query module."""
     from aeo_cli.core.radar.query import query_models
 
-    with pytest.raises(NotImplementedError):
-        import asyncio
-
-        asyncio.run(query_models(RadarConfig(prompt="test")))
+    assert callable(query_models)
 
 
-def test_radar_analyzer_stub_raises():
-    """build_radar_report stub should raise NotImplementedError."""
+def test_radar_analyzer_importable():
+    """build_radar_report should be importable from the radar analyzer module."""
     from aeo_cli.core.radar.analyzer import build_radar_report
 
-    with pytest.raises(NotImplementedError):
-        build_radar_report(RadarConfig(prompt="test"), [])
+    assert callable(build_radar_report)

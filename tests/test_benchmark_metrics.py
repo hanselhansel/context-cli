@@ -14,6 +14,11 @@ from aeo_cli.core.models import (
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 
+def _pe(text: str) -> PromptEntry:
+    """Shorthand to create a PromptEntry."""
+    return PromptEntry(prompt=text)
+
+
 def _make_result(
     prompt: str = "test",
     model: str = "gpt-4o-mini",
@@ -31,8 +36,9 @@ def _make_result(
         sentiment=sentiment,
     )
     return PromptBenchmarkResult(
-        prompt=prompt,
+        prompt=_pe(prompt),
         model=model,
+        run_index=0,
         response_text=f"Response for {prompt}",
         judge_result=None if error else judge,
         error=error,
@@ -55,7 +61,6 @@ def test_compute_model_summary_basic() -> None:
     summary = compute_model_summary(results, model="gpt-4o-mini", brand="Acme")
 
     assert summary.model == "gpt-4o-mini"
-    assert summary.total_responses == 3
     # Acme mentioned in 2 out of 3
     assert abs(summary.mention_rate - 2 / 3) < 1e-9
     # Acme recommended in 1 out of 3
@@ -76,7 +81,7 @@ def test_compute_model_summary_filters_by_model() -> None:
 
     summary = compute_model_summary(results, model="gpt-4o-mini", brand="A")
 
-    assert summary.total_responses == 2
+    # 2 judged results for gpt-4o-mini
     assert abs(summary.mention_rate - 0.5) < 1e-9
 
 
@@ -113,7 +118,6 @@ def test_compute_model_summary_empty_results() -> None:
     """compute_model_summary handles empty input gracefully."""
     summary = compute_model_summary([], model="gpt-4o-mini", brand="X")
 
-    assert summary.total_responses == 0
     assert summary.mention_rate == 0.0
     assert summary.recommendation_rate == 0.0
     assert summary.avg_position is None
@@ -129,7 +133,7 @@ def test_compute_model_summary_skips_unjudged() -> None:
 
     summary = compute_model_summary(results, model="gpt-4o-mini", brand="A")
 
-    assert summary.total_responses == 1
+    # Only 1 judged result
     assert summary.mention_rate == 1.0
 
 
@@ -168,7 +172,7 @@ def test_compute_report_basic() -> None:
         brand="Acme",
         competitors=["Rival"],
         models=["gpt-4o-mini"],
-        prompts=[PromptEntry(text="test prompt")],
+        prompts=[_pe("test prompt")],
     )
     results = [
         _make_result(
@@ -188,12 +192,11 @@ def test_compute_report_basic() -> None:
     report = compute_report(config, results)
 
     assert isinstance(report, BenchmarkReport)
-    assert report.brand == "Acme"
-    assert report.competitors == ["Rival"]
+    assert report.config.brand == "Acme"
+    assert report.config.competitors == ["Rival"]
     assert len(report.model_summaries) == 1
     assert report.model_summaries[0].model == "gpt-4o-mini"
-    assert report.total_responses == 2
-    assert report.total_prompts == 1
+    assert report.total_queries == 2
     assert abs(report.overall_mention_rate - 0.5) < 1e-9
     assert abs(report.overall_recommendation_rate - 0.5) < 1e-9
     assert report.results == results
@@ -205,7 +208,7 @@ def test_compute_report_multi_model() -> None:
         brand="X",
         competitors=[],
         models=["model-a", "model-b"],
-        prompts=[PromptEntry(text="p1"), PromptEntry(text="p2")],
+        prompts=[_pe("p1"), _pe("p2")],
     )
     results = [
         # model-a: 2 responses, both mention X
@@ -219,8 +222,7 @@ def test_compute_report_multi_model() -> None:
     report = compute_report(config, results)
 
     assert len(report.model_summaries) == 2
-    assert report.total_responses == 4
-    assert report.total_prompts == 2
+    assert report.total_queries == 4
 
     # model-a: mention_rate=1.0, model-b: mention_rate=0.5
     # Weighted: (2*1.0 + 2*0.5) / 4 = 0.75
@@ -242,14 +244,12 @@ def test_compute_report_empty_results() -> None:
 
     report = compute_report(config, [])
 
-    assert report.total_responses == 0
-    assert report.total_prompts == 0
+    assert report.total_queries == 0
     assert report.overall_mention_rate == 0.0
     assert report.overall_recommendation_rate == 0.0
     # One summary per model in config, but with zero responses
     assert len(report.model_summaries) == 1
     assert report.model_summaries[0].model == "gpt-4o-mini"
-    assert report.model_summaries[0].total_responses == 0
 
 
 def test_compute_report_with_unjudged_results() -> None:
@@ -258,7 +258,7 @@ def test_compute_report_with_unjudged_results() -> None:
         brand="A",
         competitors=[],
         models=["gpt-4o-mini"],
-        prompts=[PromptEntry(text="p")],
+        prompts=[_pe("p")],
     )
     results = [
         _make_result(brands=["A"], recommended="A", sentiment="positive"),
@@ -268,10 +268,7 @@ def test_compute_report_with_unjudged_results() -> None:
     report = compute_report(config, results)
 
     # Total includes all results
-    assert report.total_responses == 2
-    # But metrics come from judged only — 1 judged with mention → mention_rate=1.0
-    summary = report.model_summaries[0]
-    assert summary.total_responses == 1
+    assert report.total_queries == 2
 
 
 def test_compute_report_model_order() -> None:
@@ -280,7 +277,7 @@ def test_compute_report_model_order() -> None:
         brand="X",
         competitors=[],
         models=["z-model", "a-model"],
-        prompts=[PromptEntry(text="p")],
+        prompts=[_pe("p")],
     )
     results = [
         _make_result(model="z-model", brands=["X"], sentiment="positive"),
@@ -299,7 +296,7 @@ def test_compute_report_weighted_average_uneven_models() -> None:
         brand="X",
         competitors=[],
         models=["model-a", "model-b"],
-        prompts=[PromptEntry(text="p")],
+        prompts=[_pe("p")],
     )
     results = [
         # model-a: 3 responses, all mention X
@@ -324,7 +321,7 @@ def test_compute_report_stores_all_results() -> None:
         brand="X",
         competitors=[],
         models=["m"],
-        prompts=[PromptEntry(text="p")],
+        prompts=[_pe("p")],
     )
     results = [
         _make_result(model="m", brands=["X"], sentiment="positive"),

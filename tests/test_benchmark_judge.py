@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from aeo_cli.core.benchmark.judge import judge_all, judge_response
-from aeo_cli.core.models import JudgeResult, PromptBenchmarkResult
+from aeo_cli.core.models import JudgeResult, PromptBenchmarkResult, PromptEntry
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -37,6 +37,11 @@ def _judge_json(
             "sentiment": sentiment,
         }
     )
+
+
+def _pe(text: str) -> PromptEntry:
+    """Shorthand to create a PromptEntry."""
+    return PromptEntry(prompt=text)
 
 
 # ── judge_response tests ──────────────────────────────────────────────────
@@ -198,7 +203,7 @@ async def test_judge_response_partial_json() -> None:
         )
 
     assert result.brands_mentioned == ["A"]
-    assert result.recommended_brand is None  # missing → default
+    assert result.recommended_brand is None  # missing -> default
     assert result.sentiment == "positive"
 
 
@@ -227,13 +232,15 @@ async def test_judge_all_basic() -> None:
     """judge_all sets judge_result on each result."""
     results = [
         PromptBenchmarkResult(
-            prompt="test1",
+            prompt=_pe("test1"),
             model="gpt-4o-mini",
+            run_index=0,
             response_text="BrandA is great",
         ),
         PromptBenchmarkResult(
-            prompt="test2",
+            prompt=_pe("test2"),
             model="gpt-4o-mini",
+            run_index=0,
             response_text="BrandB is better",
         ),
     ]
@@ -264,13 +271,15 @@ async def test_judge_all_skips_errors() -> None:
     """judge_all skips results that have errors."""
     results = [
         PromptBenchmarkResult(
-            prompt="test1",
+            prompt=_pe("test1"),
             model="gpt-4o-mini",
+            run_index=0,
             response_text="BrandA rocks",
         ),
         PromptBenchmarkResult(
-            prompt="test2",
+            prompt=_pe("test2"),
             model="gpt-4o-mini",
+            run_index=0,
             response_text="",
             error="API timeout",
         ),
@@ -305,8 +314,9 @@ async def test_judge_all_custom_model() -> None:
     """judge_all passes judge_model to judge_response."""
     results = [
         PromptBenchmarkResult(
-            prompt="test",
+            prompt=_pe("test"),
             model="gpt-4o-mini",
+            run_index=0,
             response_text="Some text",
         ),
     ]
@@ -332,8 +342,9 @@ async def test_judge_all_rate_limiting() -> None:
     # Create 10 results to exceed concurrency limit
     results = [
         PromptBenchmarkResult(
-            prompt=f"test{i}",
+            prompt=_pe(f"test{i}"),
             model="gpt-4o-mini",
+            run_index=0,
             response_text=f"Response {i}",
         )
         for i in range(10)
@@ -368,10 +379,12 @@ async def test_judge_all_rate_limiting() -> None:
 @pytest.mark.asyncio
 async def test_judge_all_preserves_original_fields() -> None:
     """judge_all preserves prompt, model, response_text, error fields."""
+    original_prompt = _pe("original prompt")
     results = [
         PromptBenchmarkResult(
-            prompt="original prompt",
+            prompt=original_prompt,
             model="gpt-4o",
+            run_index=0,
             response_text="original response",
         ),
     ]
@@ -382,7 +395,7 @@ async def test_judge_all_preserves_original_fields() -> None:
     with patch("litellm.acompletion", mock_acompletion):
         updated = await judge_all(results, brand="X", competitors=[])
 
-    assert updated[0].prompt == "original prompt"
+    assert updated[0].prompt == original_prompt
     assert updated[0].model == "gpt-4o"
     assert updated[0].response_text == "original response"
     assert updated[0].error is None

@@ -24,13 +24,19 @@ def compute_model_summary(
     total = len(model_results)
 
     if total == 0:
-        return ModelBenchmarkSummary(model=model)
+        return ModelBenchmarkSummary(
+            model=model,
+            mention_rate=0.0,
+            recommendation_rate=0.0,
+            avg_position=None,
+            sentiment_breakdown={"positive": 0, "neutral": 0, "negative": 0},
+        )
 
     mentions = sum(
-        1 for r in model_results if brand in r.judge_result.brands_mentioned  # type: ignore[union-attr]
+        1 for r in model_results if brand in r.judge_result.brands_mentioned  # type: ignore[union-attr, misc]
     )
     recommendations = sum(
-        1 for r in model_results if r.judge_result.recommended_brand == brand  # type: ignore[union-attr]
+        1 for r in model_results if r.judge_result.recommended_brand == brand  # type: ignore[union-attr, misc]
     )
 
     positions = [
@@ -48,7 +54,6 @@ def compute_model_summary(
 
     return ModelBenchmarkSummary(
         model=model,
-        total_responses=total,
         mention_rate=mentions / total,
         recommendation_rate=recommendations / total,
         avg_position=avg_pos,
@@ -68,28 +73,31 @@ def compute_report(
         compute_model_summary(results, model=m, brand=config.brand) for m in config.models
     ]
 
-    # Filter to only models with actual responses
-    active_summaries = [s for s in summaries if s.total_responses > 0]
-    total_judged = sum(s.total_responses for s in active_summaries)
+    # Count judged results per model for weighting
+    judged_counts: dict[str, int] = {}
+    for m in config.models:
+        judged_counts[m] = len(
+            [r for r in results if r.model == m and r.judge_result is not None]
+        )
+
+    total_judged = sum(judged_counts.values())
 
     if total_judged > 0:
         overall_mention = sum(
-            s.mention_rate * s.total_responses for s in active_summaries
+            s.mention_rate * judged_counts[s.model] for s in summaries
         ) / total_judged
         overall_rec = sum(
-            s.recommendation_rate * s.total_responses for s in active_summaries
+            s.recommendation_rate * judged_counts[s.model] for s in summaries
         ) / total_judged
     else:
         overall_mention = 0.0
         overall_rec = 0.0
 
     return BenchmarkReport(
-        brand=config.brand,
-        competitors=config.competitors,
+        config=config,
         model_summaries=summaries,
         overall_mention_rate=overall_mention,
         overall_recommendation_rate=overall_rec,
-        total_prompts=len(config.prompts),
-        total_responses=len(results),
+        total_queries=len(results),
         results=results,
     )

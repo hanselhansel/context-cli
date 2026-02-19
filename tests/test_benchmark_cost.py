@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import BenchmarkConfig
+from aeo_cli.core.models import BenchmarkConfig, PromptEntry
+
+
+def _pe(text: str) -> PromptEntry:
+    """Shorthand to create a PromptEntry."""
+    return PromptEntry(prompt=text)
 
 
 class TestModelCosts:
@@ -45,7 +50,7 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config = BenchmarkConfig(
-            prompts=["prompt1", "prompt2"],
+            prompts=[_pe("prompt1"), _pe("prompt2")],
             brand="TestBrand",
             models=["gpt-4o-mini"],
             runs_per_model=3,
@@ -58,13 +63,13 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config_small = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o-mini"],
             runs_per_model=1,
         )
         config_large = BenchmarkConfig(
-            prompts=["p1", "p2", "p3", "p4"],
+            prompts=[_pe("p1"), _pe("p2"), _pe("p3"), _pe("p4")],
             brand="B",
             models=["gpt-4o-mini"],
             runs_per_model=1,
@@ -77,13 +82,13 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config_one = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o-mini"],
             runs_per_model=1,
         )
         config_two = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o-mini", "gpt-4o-mini"],
             runs_per_model=1,
@@ -96,13 +101,13 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config_1run = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o-mini"],
             runs_per_model=1,
         )
         config_5run = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o-mini"],
             runs_per_model=5,
@@ -115,7 +120,7 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["some-unknown-model-xyz"],
             runs_per_model=1,
@@ -128,7 +133,7 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
 
         config = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o"],
             runs_per_model=1,
@@ -144,7 +149,7 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
 
         config = BenchmarkConfig(
-            prompts=["p1"],
+            prompts=[_pe("p1")],
             brand="B",
             models=["gpt-4o", "gpt-4o-mini"],
             runs_per_model=1,
@@ -174,7 +179,7 @@ class TestEstimateBenchmarkCost:
         from aeo_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
 
         config = BenchmarkConfig(
-            prompts=["p1", "p2", "p3"],
+            prompts=[_pe("p1"), _pe("p2"), _pe("p3")],
             brand="B",
             models=["gpt-4o", "claude-3-opus-20240229"],
             runs_per_model=2,

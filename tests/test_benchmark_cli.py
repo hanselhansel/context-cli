@@ -10,6 +10,7 @@ import pytest
 from typer.testing import CliRunner
 
 from aeo_cli.core.models import (
+    BenchmarkConfig,
     BenchmarkReport,
     ModelBenchmarkSummary,
     PromptBenchmarkResult,
@@ -20,38 +21,50 @@ from aeo_cli.main import app
 runner = CliRunner()
 
 
+def _pe(text: str, category: str | None = None) -> PromptEntry:
+    """Shorthand to create a PromptEntry."""
+    return PromptEntry(prompt=text, category=category)
+
+
 def _make_report(brand: str = "TestBrand") -> BenchmarkReport:
     """Create a mock benchmark report for testing."""
-    return BenchmarkReport(
+    pe = _pe("best brand?", "general")
+    config = BenchmarkConfig(
+        prompts=[pe],
         brand=brand,
         competitors=["CompA", "CompB"],
-        overall_mention_rate=0.75,
-        overall_recommendation_rate=0.50,
-        per_prompt=[
+        models=["gpt-4o-mini"],
+        runs_per_model=3,
+    )
+    return BenchmarkReport(
+        config=config,
+        results=[
             PromptBenchmarkResult(
-                prompt="best brand?",
-                mention_rate=0.8,
-                recommendation_rate=0.6,
-                total_runs=5,
+                prompt=pe,
+                model="gpt-4o-mini",
+                run_index=0,
+                response_text="TestBrand is great",
             ),
         ],
-        per_model=[
+        model_summaries=[
             ModelBenchmarkSummary(
                 model="gpt-4o-mini",
                 mention_rate=0.75,
                 recommendation_rate=0.50,
-                total_runs=5,
+                sentiment_breakdown={"positive": 3, "neutral": 1, "negative": 0},
             ),
         ],
-        estimated_cost=0.05,
-        total_runs=5,
+        overall_mention_rate=0.75,
+        overall_recommendation_rate=0.50,
+        total_queries=5,
+        total_cost_estimate=0.05,
     )
 
 
 def _make_prompts() -> list[PromptEntry]:
     return [
-        PromptEntry(text="best brand?", category="general"),
-        PromptEntry(text="top recommendations?", category="general"),
+        _pe("best brand?", "general"),
+        _pe("top recommendations?", "general"),
     ]
 
 
@@ -125,7 +138,7 @@ class TestBenchmarkCLIFlow:
         )
         assert result.exit_code == 0
         data = json.loads(result.output)
-        assert data["brand"] == "TestBrand"
+        assert data["config"]["brand"] == "TestBrand"
         assert "overall_mention_rate" in data
 
     @patch("aeo_cli.cli.benchmark._run_benchmark")
@@ -245,12 +258,12 @@ class TestBenchmarkCLIFlow:
         f.write_text("best brand?")
         mock_load.return_value = _make_prompts()
         report = _make_report()
-        report.per_model.append(
+        report.model_summaries.append(
             ModelBenchmarkSummary(
                 model="gpt-4o",
                 mention_rate=0.9,
                 recommendation_rate=0.7,
-                total_runs=5,
+                sentiment_breakdown={"positive": 4, "neutral": 1, "negative": 0},
             )
         )
         mock_run.return_value = report
@@ -380,10 +393,9 @@ class TestRunBenchmarkFunction:
     ) -> None:
         """_run_benchmark should call dispatch, judge, and compute in sequence."""
         from aeo_cli.cli.benchmark import _run_benchmark
-        from aeo_cli.core.models import BenchmarkConfig
 
         config = BenchmarkConfig(
-            prompts=["p1"], brand="B", models=["gpt-4o-mini"], runs_per_model=1
+            prompts=[_pe("p1")], brand="B", models=["gpt-4o-mini"], runs_per_model=1
         )
         mock_dispatch.return_value = ["result1"]
         mock_judge.return_value = ["judged1"]
@@ -394,7 +406,7 @@ class TestRunBenchmarkFunction:
         mock_dispatch.assert_called_once_with(config)
         mock_judge.assert_called_once_with(["result1"], "B", [])
         mock_compute.assert_called_once_with(config, ["judged1"])
-        assert report.brand == "TestBrand"
+        assert report.config.brand == "TestBrand"
 
 
 class TestBenchmarkMCPTool:
@@ -432,7 +444,7 @@ class TestBenchmarkMCPTool:
                 runs_per_model=1,
             )
         assert isinstance(result, dict)
-        assert result["brand"] == "TestBrand"
+        assert result["config"]["brand"] == "TestBrand"
 
     @pytest.mark.asyncio
     async def test_mcp_benchmark_defaults(self) -> None:
