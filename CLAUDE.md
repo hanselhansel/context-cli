@@ -3,7 +3,7 @@
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: Final (1.0.0 — all features complete, fully documented)
+CURRENT PHASE: 1.0.0 (GA — all features complete)
 AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section below.
 
 ## Session Workflow (MANDATORY — enforced by hooks)
@@ -150,7 +150,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 | B3 | 0.10.0 | DONE | Citation radar: multi-model citation extraction |
 | B4 | 0.11.0 | DONE | Benchmark: Share-of-Recommendation tracking |
 | B5 | 0.12.0 | DONE | Retail: 8 marketplace parsers, retail scoring |
-| Final | 1.0.0 | — | All features complete, fully documented |
+| Final | 1.0.0 | DONE | All features complete, fully documented |
 
 Details: `docs/long-running-session-plan.md`
 
