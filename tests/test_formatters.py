@@ -93,10 +93,10 @@ def test_markdown_single_report_structure():
     """Markdown output should contain a heading, table, and overall score."""
     md = format_single_report_md(_single_report())
 
-    assert "# AEO Audit:" in md
+    assert "# Context Lint:" in md
     assert "| Pillar |" in md
     assert "Robots.txt AI Access" in md
-    assert "**Overall AEO Score: 55.0/100**" in md
+    assert "**Overall Readiness Score: 55.0/100**" in md
 
 
 def test_markdown_single_report_pillar_values():
@@ -113,10 +113,10 @@ def test_markdown_site_report_structure():
     """Site markdown should contain site-wide and per-page sections."""
     md = format_site_report_md(_site_report())
 
-    assert "# AEO Site Audit:" in md
+    assert "# Context Site Lint:" in md
     assert "## Site-Wide Scores" in md
     assert "## Per-Page Breakdown" in md
-    assert "**Overall AEO Score: 68.0/100**" in md
+    assert "**Overall Readiness Score: 68.0/100**" in md
 
 
 def test_markdown_site_report_pages():

@@ -301,7 +301,7 @@ def test_cli_format_html_single(tmp_path, monkeypatch):
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--format", "html"]
+            app, ["lint", "https://example.com", "--single", "--format", "html"]
         )
 
     assert result.exit_code == 0
@@ -317,7 +317,7 @@ def test_cli_format_html_site(tmp_path, monkeypatch):
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--format", "html"]
+            app, ["lint", "https://example.com", "--format", "html"]
         )
 
     assert result.exit_code == 0

@@ -52,8 +52,8 @@ def test_db_creates_file(tmp_path: Path) -> None:
 
 
 def test_default_db_path() -> None:
-    """DEFAULT_DB_PATH should point to ~/.aeo-cli/history.db."""
-    assert DEFAULT_DB_PATH == Path.home() / ".aeo-cli" / "history.db"
+    """DEFAULT_DB_PATH should point to ~/.context-cli/history.db."""
+    assert DEFAULT_DB_PATH == Path.home() / ".context-cli" / "history.db"
 
 
 # ── save ────────────────────────────────────────────────────────────────────

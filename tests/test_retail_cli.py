@@ -5,8 +5,10 @@ import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import typer
 from typer.testing import CliRunner
 
+from context_cli.cli import retail as _retail_mod
 from context_cli.core.models import (
     ContentQualityReport,
     FeedComplianceReport,
@@ -17,8 +19,12 @@ from context_cli.core.models import (
     SocialProofReport,
     VisualAssetsReport,
 )
-from context_cli.main import app
 from context_cli.server import retail_audit_tool as _retail_tool_obj
+
+# Build a test-local app with the retail command registered
+# (retail is hidden from the main app but the module still exists)
+app = typer.Typer()
+_retail_mod.register(app)
 
 runner = CliRunner()
 

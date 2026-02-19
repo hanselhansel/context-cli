@@ -112,7 +112,7 @@ class TestGenerateConfig:
         config = GenerateConfig(url="https://example.com")
         assert config.profile == ProfileType.generic
         assert config.model is None
-        assert config.output_dir == "./aeo-output"
+        assert config.output_dir == "./context-output"
 
     def test_custom_values(self):
         config = GenerateConfig(

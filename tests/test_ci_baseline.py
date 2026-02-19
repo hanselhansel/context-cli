@@ -404,7 +404,7 @@ def test_cli_save_baseline_writes_file(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(baseline_path),
             ],
         )
@@ -422,7 +422,7 @@ def test_cli_save_baseline_with_nested_dir(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(baseline_path),
             ],
         )
@@ -441,7 +441,7 @@ def test_cli_baseline_no_regression(tmp_path: Path):
         runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(baseline_path),
             ],
         )
@@ -450,7 +450,7 @@ def test_cli_baseline_no_regression(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--baseline", str(baseline_path),
             ],
         )
@@ -470,7 +470,7 @@ def test_cli_baseline_with_regression_exits_1(tmp_path: Path):
         runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(baseline_path),
             ],
         )
@@ -479,7 +479,7 @@ def test_cli_baseline_with_regression_exits_1(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--baseline", str(baseline_path),
             ],
         )
@@ -493,7 +493,7 @@ def test_cli_baseline_missing_file_exits_1():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--baseline", "/tmp/nonexistent_baseline_xxx.json",
             ],
         )
@@ -509,7 +509,7 @@ def test_cli_baseline_custom_threshold(tmp_path: Path):
         runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(baseline_path),
             ],
         )
@@ -523,7 +523,7 @@ def test_cli_baseline_custom_threshold(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--baseline", str(baseline_path),
                 "--regression-threshold", "2",
             ],
@@ -540,7 +540,7 @@ def test_cli_save_and_compare_together(tmp_path: Path):
         runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(old_baseline),
             ],
         )
@@ -549,7 +549,7 @@ def test_cli_save_and_compare_together(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--baseline", str(old_baseline),
                 "--save-baseline", str(new_baseline),
             ],
@@ -565,7 +565,7 @@ def test_cli_baseline_prints_comparison(tmp_path: Path):
         runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(baseline_path),
             ],
         )
@@ -573,7 +573,7 @@ def test_cli_baseline_prints_comparison(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--baseline", str(baseline_path),
             ],
         )
@@ -595,7 +595,7 @@ def test_cli_save_baseline_error_handling(tmp_path: Path):
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--save-baseline", str(tmp_path / "baseline.json"),
             ],
         )

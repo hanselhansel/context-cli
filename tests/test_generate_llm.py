@@ -26,7 +26,7 @@ class TestEnsureLitellm:
 
     def test_raises_when_not_installed(self):
         with patch.dict("sys.modules", {"litellm": None}):
-            with pytest.raises(ImportError, match="pip install aeo-cli\\[generate\\]"):
+            with pytest.raises(ImportError, match="pip install context-cli\\[generate\\]"):
                 ensure_litellm()
 
 
