@@ -23,6 +23,18 @@ def _format_token_waste_md(report: AuditReport | SiteAuditReport) -> list[str]:
     for check in lr.checks:
         status = "PASS" if check.passed else "FAIL"
         lines.append(f"| {check.name} | {status} | {check.detail} |")
+
+    if lr.diagnostics:
+        lines.extend([
+            "",
+            "### Diagnostics",
+            "",
+            "| Code | Severity | Message |",
+            "|------|----------|---------|",
+        ])
+        for d in lr.diagnostics:
+            lines.append(f"| {d.code} | {d.severity} | {d.message} |")
+
     return lines
 
 

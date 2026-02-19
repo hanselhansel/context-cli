@@ -63,6 +63,19 @@ def _format_page_breakdown(report: SiteAuditReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _format_diagnostics(report: AuditReport | SiteAuditReport) -> str:
+    """Format diagnostics as a markdown section for CI summary."""
+    if not hasattr(report, "lint_result") or report.lint_result is None:
+        return ""
+    lr = report.lint_result
+    if not lr.diagnostics:
+        return ""
+    lines = ["\n### Diagnostics", ""]
+    for d in lr.diagnostics:
+        lines.append(f"- **{d.code}** ({d.severity}): {d.message}")
+    return "\n".join(lines) + "\n"
+
+
 def _format_lint_results(report: AuditReport | SiteAuditReport) -> str:
     """Format token waste lint results as a markdown section."""
     if not hasattr(report, "lint_result") or report.lint_result is None:
@@ -90,6 +103,7 @@ def format_ci_summary(
         _format_header(report, fail_under),
         _format_pillar_table(report),
         _format_lint_results(report),
+        _format_diagnostics(report),
         _format_bot_table(report),
     ]
     if isinstance(report, SiteAuditReport):

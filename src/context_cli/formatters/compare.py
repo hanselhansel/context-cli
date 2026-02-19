@@ -42,6 +42,20 @@ def render_compare(report: CompareReport, console: Console) -> None:
             _delta_text(p.delta),
         )
 
+    # Token waste row (if both reports have lint_result)
+    if report.report_a.lint_result and report.report_b.lint_result:
+        waste_a = report.report_a.lint_result.context_waste_pct
+        waste_b = report.report_b.lint_result.context_waste_pct
+        # For waste, lower is better, so invert delta sign for coloring
+        waste_delta = waste_a - waste_b
+        if waste_delta > 0:
+            delta_str = f"[red]+{waste_delta:.0f}%[/red]"
+        elif waste_delta < 0:
+            delta_str = f"[green]{waste_delta:.0f}%[/green]"
+        else:
+            delta_str = "[dim]0%[/dim]"
+        table.add_row("Token Waste", f"{waste_a:.0f}%", f"{waste_b:.0f}%", delta_str)
+
     # Overall row
     table.add_section()
     table.add_row(

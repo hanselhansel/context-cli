@@ -167,11 +167,22 @@ class Diagnostic(BaseModel):
     message: str = Field(description="Human-readable diagnostic message")
 
 
+class Diagnostic(BaseModel):
+    """A single diagnostic message (linter-style)."""
+
+    code: str = Field(description="Diagnostic code (e.g., WARN-001)")
+    severity: str = Field(description="Severity: error, warn, or info")
+    message: str = Field(description="Human-readable diagnostic message")
+
+
 class LintResult(BaseModel):
     """Aggregated lint results for a page."""
 
     checks: list[LintCheck] = Field(
         default_factory=list, description="Individual check results"
+    )
+    diagnostics: list[Diagnostic] = Field(
+        default_factory=list, description="Diagnostic messages"
     )
     context_waste_pct: float = Field(default=0.0, description="Token waste percentage")
     raw_tokens: int = Field(default=0, description="Estimated raw HTML tokens")

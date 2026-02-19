@@ -389,3 +389,100 @@ def test_html_token_waste_check_status_colors():
     assert "#0cce6b" in html
     # FAIL checks should use red
     assert "#ff4e42" in html
+
+
+# -- Diagnostics in HTML tests ------------------------------------------------
+
+
+def test_single_html_with_diagnostics():
+    """HTML should include diagnostics table when diagnostics exist."""
+    from context_cli.core.models import Diagnostic
+    report = _single_report()
+    lr = _lint_result()
+    lr.diagnostics = [
+        Diagnostic(code="WARN-001", severity="warn", message="Excessive DOM bloat."),
+        Diagnostic(code="INFO-001", severity="info", message="Readability grade: 12.3"),
+    ]
+    report.lint_result = lr
+    html = format_single_report_html(report)
+
+    assert "<h3>Diagnostics</h3>" in html
+    assert "WARN-001" in html
+    assert "INFO-001" in html
+    assert "Excessive DOM bloat." in html
+    assert "Readability grade: 12.3" in html
+
+
+def test_single_html_diagnostics_severity_colors():
+    """HTML diagnostics should use appropriate colors for severity levels."""
+    from context_cli.core.models import Diagnostic
+    report = _single_report()
+    lr = _lint_result()
+    lr.diagnostics = [
+        Diagnostic(code="ERR-001", severity="error", message="Critical issue"),
+        Diagnostic(code="WARN-001", severity="warn", message="Warning"),
+        Diagnostic(code="INFO-001", severity="info", message="Info"),
+    ]
+    report.lint_result = lr
+    html = format_single_report_html(report)
+
+    # error should be red
+    assert "#ff4e42" in html
+    # warn should be orange
+    assert "#ffa400" in html
+    # info should be green
+    assert "#0cce6b" in html
+
+
+def test_single_html_no_diagnostics_section_when_empty():
+    """HTML with lint_result but no diagnostics should NOT show diagnostics table."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    html = format_single_report_html(report)
+
+    assert "<h3>Diagnostics</h3>" not in html
+
+
+def test_single_html_no_diagnostics_section_when_no_lint_result():
+    """HTML without lint_result should NOT show diagnostics table."""
+    report = _single_report()
+    html = format_single_report_html(report)
+
+    assert "<h3>Diagnostics</h3>" not in html
+
+
+def test_site_html_with_diagnostics():
+    """Site HTML should include diagnostics table when diagnostics exist."""
+    from context_cli.core.models import Diagnostic
+    report = _site_report()
+    lr = _lint_result()
+    lr.diagnostics = [
+        Diagnostic(code="WARN-001", severity="warn", message="Excessive DOM bloat."),
+    ]
+    report.lint_result = lr
+    html = format_site_report_html(report)
+
+    assert "<h3>Diagnostics</h3>" in html
+    assert "WARN-001" in html
+
+
+def test_html_diagnostics_escapes_special_characters():
+    """HTML diagnostics should escape special characters in messages."""
+    from context_cli.core.models import Diagnostic
+    report = _single_report()
+    lr = _lint_result()
+    lr.diagnostics = [
+        Diagnostic(code="WARN-001", severity="warn", message="Found <script> tag in content"),
+    ]
+    report.lint_result = lr
+    html = format_single_report_html(report)
+
+    assert "&lt;script&gt;" in html
+    assert "<script>" not in html.split("<style>")[0].split("</style>")[-1]
+
+
+def test_diagnostics_section_returns_empty_when_no_lint_result():
+    """_diagnostics_section should return empty string when lint_result is None."""
+    from context_cli.formatters.html import _diagnostics_section
+    report = _single_report()
+    assert _diagnostics_section(report) == ""

@@ -5,6 +5,7 @@ from __future__ import annotations
 from context_cli.core.models import (
     AuditReport,
     ContentReport,
+    Diagnostic,
     DiscoveryResult,
     LintCheck,
     LintResult,
@@ -237,3 +238,84 @@ def test_markdown_site_report_with_lint_result():
     assert "## Token Waste" in md
     assert "Context Waste: 85%" in md
     assert "Token Efficiency" in md
+
+
+# -- Diagnostics in CSV tests ------------------------------------------------
+
+
+def _diagnostics() -> list[Diagnostic]:
+    return [
+        Diagnostic(code="WARN-001", severity="warn", message="Excessive DOM bloat."),
+        Diagnostic(code="INFO-001", severity="info", message="Readability grade: 12.3"),
+    ]
+
+
+def test_csv_single_report_has_diagnostics_column():
+    """CSV with diagnostics should include diagnostics column with comma-separated codes."""
+    report = _single_report()
+    lr = _lint_result()
+    lr.diagnostics = _diagnostics()
+    report.lint_result = lr
+    csv_output = format_single_report_csv(report)
+    lines = csv_output.strip().split("\n")
+
+    assert "diagnostics" in lines[0]
+    assert "WARN-001" in lines[1]
+    assert "INFO-001" in lines[1]
+
+
+def test_csv_single_report_empty_diagnostics():
+    """CSV with lint_result but no diagnostics should have empty diagnostics column."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    csv_output = format_single_report_csv(report)
+    lines = csv_output.strip().split("\n")
+
+    assert "diagnostics" in lines[0]
+
+
+def test_csv_single_report_no_lint_result_has_empty_diagnostics():
+    """CSV without lint_result should have empty diagnostics column."""
+    report = _single_report()
+    csv_output = format_single_report_csv(report)
+    lines = csv_output.strip().split("\n")
+
+    assert "diagnostics" in lines[0]
+
+
+# -- Diagnostics in Markdown tests -------------------------------------------
+
+
+def test_markdown_single_report_with_diagnostics():
+    """Markdown should include Diagnostics section when diagnostics exist."""
+    report = _single_report()
+    lr = _lint_result()
+    lr.diagnostics = _diagnostics()
+    report.lint_result = lr
+    md = format_single_report_md(report)
+
+    assert "### Diagnostics" in md
+    assert "| WARN-001 | warn | Excessive DOM bloat. |" in md
+    assert "| INFO-001 | info | Readability grade: 12.3 |" in md
+
+
+def test_markdown_single_report_lint_result_no_diagnostics():
+    """Markdown with lint_result but no diagnostics should NOT show Diagnostics section."""
+    report = _single_report()
+    report.lint_result = _lint_result()
+    md = format_single_report_md(report)
+
+    assert "### Diagnostics" not in md
+
+
+def test_markdown_site_report_with_diagnostics():
+    """Site markdown should include Diagnostics section when diagnostics exist."""
+    report = _site_report()
+    lr = _lint_result()
+    lr.diagnostics = _diagnostics()
+    report.lint_result = lr
+    md = format_site_report_md(report)
+
+    assert "### Diagnostics" in md
+    assert "WARN-001" in md
+    assert "INFO-001" in md
