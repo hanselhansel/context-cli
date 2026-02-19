@@ -59,7 +59,17 @@ if [[ -n $(git log origin/main..HEAD --oneline 2>/dev/null) ]]; then
     exit 2
 fi
 
-# 6. File size advisory (non-blocking)
+# 6. README freshness advisory (non-blocking but visible)
+CHANGED_FEATURES=$(git log --oneline HEAD~10..HEAD 2>/dev/null | grep -c "^.*feat:" || true)
+if [[ "$CHANGED_FEATURES" -gt 3 ]]; then
+    README_UPDATED=$(git log --oneline HEAD~10..HEAD -- README.md 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$README_UPDATED" -eq 0 ]]; then
+        echo "WARNING: $CHANGED_FEATURES features committed but README.md not updated."
+        echo "  Consider updating README to reflect new features."
+    fi
+fi
+
+# 7. File size advisory (non-blocking)
 LARGE_FILES=$(find src/ -name "*.py" -exec wc -l {} + 2>/dev/null | \
     awk '$1 > 400 && !/total$/ {print "  " $1 " lines: " $2}' | sort -rn)
 if [[ -n "$LARGE_FILES" ]]; then

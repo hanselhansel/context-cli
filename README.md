@@ -15,12 +15,15 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 
 ## Features
 
-- **Robots.txt AI bot access** — checks whether major AI crawlers are allowed or blocked
-- **llms.txt presence** — detects the emerging standard for LLM-specific site instructions
-- **Schema.org JSON-LD** — extracts and evaluates structured data markup
-- **Content density** — measures useful content vs. boilerplate via markdown conversion
+- **Robots.txt AI bot access** — checks 13 AI crawlers (GPTBot, ClaudeBot, DeepSeek-AI, Grok, and more)
+- **llms.txt & llms-full.txt** — detects both standard and extended LLM instruction files
+- **Schema.org JSON-LD** — extracts and evaluates structured data with high-value type weighting (Product, Article, FAQ, HowTo)
+- **Content density** — measures useful content vs. boilerplate with readability scoring, heading structure analysis, and answer-first detection
+- **Batch mode** — audit multiple URLs from a file with `--file` and configurable `--concurrency`
+- **Custom bot list** — override default bots with `--bots` for targeted checks
+- **Verbose output** — detailed per-pillar breakdown with scoring explanations and recommendations
 - **Rich CLI output** — formatted tables and scores via Rich
-- **JSON output** — machine-readable results for pipelines
+- **JSON / CSV / Markdown output** — machine-readable results for pipelines
 - **MCP server** — expose the audit as a tool for AI agents via FastMCP
 - **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation
 - **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, GitHub Step Summary
@@ -100,6 +103,32 @@ Show detailed per-pillar breakdown with scoring explanations:
 
 ```bash
 aeo-cli audit example.com --single --verbose
+```
+
+### Timeout
+
+Set the HTTP timeout (default: 15 seconds):
+
+```bash
+aeo-cli audit example.com --timeout 30
+```
+
+### Custom Bot List
+
+Override the default 13 bots with a custom list:
+
+```bash
+aeo-cli audit example.com --bots "GPTBot,ClaudeBot,PerplexityBot"
+```
+
+### Batch Mode
+
+Audit multiple URLs from a file (one URL per line, `.txt` or `.csv`):
+
+```bash
+aeo-cli audit --file urls.txt
+aeo-cli audit --file urls.txt --concurrency 5
+aeo-cli audit --file urls.txt --format csv
 ```
 
 ### CI Mode
@@ -228,12 +257,12 @@ The weights reflect how AI search engines (ChatGPT, Perplexity, Claude) actually
 
 - **Content density (40 pts)** is weighted highest because it's what LLMs extract and cite when answering questions. Rich, well-structured content with headings and lists gives AI better material to work with.
 - **Robots.txt (25 pts)** is the gatekeeper — if a bot is blocked, it literally cannot crawl. It's critical but largely binary (either you're blocking or you're not).
-- **Schema.org (25 pts)** provides structured "cheat sheets" that help AI understand entities (products, articles, organizations). Valuable but not required for citation.
-- **llms.txt (10 pts)** is an emerging standard. No major AI search engine heavily weights it yet, but it signals forward-thinking AI readiness.
+- **Schema.org (25 pts)** provides structured "cheat sheets" that help AI understand entities. High-value types (Product, Article, FAQ, HowTo, Recipe) receive bonus weighting. Valuable but not required for citation.
+- **llms.txt (10 pts)** is an emerging standard. Both `/llms.txt` and `/llms-full.txt` are checked. No major AI search engine heavily weights it yet, but it signals forward-thinking AI readiness.
 
 ## AI Bots Checked
 
-AEO-CLI checks access rules for these AI crawlers:
+AEO-CLI checks access rules for 13 AI crawlers:
 
 - GPTBot
 - ChatGPT-User
@@ -242,6 +271,12 @@ AEO-CLI checks access rules for these AI crawlers:
 - PerplexityBot
 - Amazonbot
 - OAI-SearchBot
+- DeepSeek-AI
+- Grok
+- Meta-ExternalAgent
+- cohere-ai
+- AI2Bot
+- ByteSpider
 
 ## Development
 

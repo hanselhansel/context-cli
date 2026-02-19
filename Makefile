@@ -49,6 +49,9 @@ worktree-cleanup:
 
 release:
 	@test -n "$(VERSION)" || (echo "Usage: make release VERSION=x.y.z" && exit 1)
+	@echo "Checking README.md was updated..."
+	@git diff --name-only HEAD~5 2>/dev/null | grep -q README.md || \
+		(echo "WARNING: README.md not updated recently. Review before releasing." && exit 1)
 	sed -i '' 's/^version = ".*"/version = "$(VERSION)"/' pyproject.toml
 	git add pyproject.toml
 	git commit -m "Release v$(VERSION)"
