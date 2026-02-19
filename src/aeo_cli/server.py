@@ -189,10 +189,11 @@ async def benchmark_tool(
     from aeo_cli.core.benchmark.dispatcher import dispatch_queries
     from aeo_cli.core.benchmark.judge import judge_all
     from aeo_cli.core.benchmark.metrics import compute_report
-    from aeo_cli.core.models import BenchmarkConfig
+    from aeo_cli.core.models import BenchmarkConfig, PromptEntry
 
+    prompt_entries = [PromptEntry(prompt=p) for p in prompts]
     config = BenchmarkConfig(
-        prompts=prompts,
+        prompts=prompt_entries,
         brand=brand,
         competitors=competitors or [],
         models=models or ["gpt-4o-mini"],

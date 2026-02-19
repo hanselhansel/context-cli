@@ -70,14 +70,13 @@ def register(app: typer.Typer) -> None:
             )
             raise SystemExit(1)
 
-        prompts = [e.text for e in entries]
-        if not prompts:
+        if not entries:
             console.print("[red]Error:[/red] No prompts found in file")
             raise SystemExit(1)
 
         # Build config
         config = BenchmarkConfig(
-            prompts=prompts,
+            prompts=entries,
             brand=brand,
             competitors=competitor,
             models=model,
@@ -93,7 +92,7 @@ def register(app: typer.Typer) -> None:
         # Cost confirmation
         if not yes:
             console.print(
-                f"\n[bold]Benchmark plan:[/bold] {len(prompts)} prompts x "
+                f"\n[bold]Benchmark plan:[/bold] {len(entries)} prompts x "
                 f"{len(model)} model(s) x {runs} runs"
             )
             console.print(f"[bold]Estimated cost:[/bold] {cost_str}")
@@ -116,9 +115,9 @@ def register(app: typer.Typer) -> None:
             return
 
         # Rich output
-        console.print(f"\n[bold]Benchmark Report: {report.brand}[/bold]")
-        console.print(f"  Competitors: {', '.join(report.competitors)}")
-        console.print(f"  Total runs: {report.total_runs}")
+        console.print(f"\n[bold]Benchmark Report: {report.config.brand}[/bold]")
+        console.print(f"  Competitors: {', '.join(report.config.competitors)}")
+        console.print(f"  Total queries: {report.total_queries}")
         console.print(f"  Estimated cost: {cost_str}")
         console.print(
             f"\n  [bold]Overall mention rate:[/bold] "
@@ -130,20 +129,17 @@ def register(app: typer.Typer) -> None:
         )
 
         # Per-model summaries
-        if report.per_model:
+        if report.model_summaries:
             console.print("\n[bold]Per-Model Summary:[/bold]")
-            for ms in report.per_model:
+            for ms in report.model_summaries:
                 console.print(
                     f"  {ms.model}: mention={ms.mention_rate:.0%} "
-                    f"recommend={ms.recommendation_rate:.0%} "
-                    f"({ms.total_runs} runs)"
+                    f"recommend={ms.recommendation_rate:.0%}"
                 )
 
         # Per-prompt results
-        if report.per_prompt:
-            console.print("\n[bold]Per-Prompt Results:[/bold]")
-            for pp in report.per_prompt:
-                console.print(
-                    f"  {pp.prompt[:60]}: mention={pp.mention_rate:.0%} "
-                    f"recommend={pp.recommendation_rate:.0%}"
-                )
+        unique_prompts = sorted({r.prompt.prompt for r in report.results if not r.error})
+        if unique_prompts:
+            console.print("\n[bold]Prompts Evaluated:[/bold]")
+            for p in unique_prompts:
+                console.print(f"  {p[:60]}")
