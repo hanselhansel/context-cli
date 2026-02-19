@@ -143,14 +143,14 @@ def test_compute_scores_full_marks():
     # llms.txt: 10 (revised weight)
     assert llms_txt.score == 10
 
-    # Schema: 8 base + 5 * 2 unique types = 18
-    assert schema_org.score == 18
+    # Schema: 8 base + 5 (Article=high-value) + 3 (Organization=standard) = 16
+    assert schema_org.score == 16
 
     # Content: 25 (1500+ words) + 7 (headings) + 5 (lists) = 37
     assert content.score == 37
 
-    # Overall: 25 + 10 + 18 + 37 = 90
-    assert overall == 90
+    # Overall: 25 + 10 + 16 + 37 = 88
+    assert overall == 88
 
 
 def test_compute_scores_nothing_found():
@@ -191,11 +191,11 @@ def test_compute_scores_partial():
     # Robots: round(25 * 3/7, 1) = 10.7
     assert robots.score == 10.7
     assert llms_txt.score == 0
-    # Schema: 8 + 5*1 = 13
-    assert schema_org.score == 13
+    # Schema: 8 + 3 (WebSite=standard) = 11
+    assert schema_org.score == 11
     # Content: 15 (400+ words) + 7 (headings) + 5 (lists) = 27
     assert content.score == 27
-    assert overall == 10.7 + 0 + 13 + 27
+    assert overall == 10.7 + 0 + 11 + 27
 
 
 # -- check_robots (async, mocked HTTP) ----------------------------------------
@@ -217,7 +217,7 @@ async def test_check_robots_returns_tuple():
 
     assert isinstance(report, RobotsReport)
     assert report.found is True
-    assert len(report.bots) == 7  # all AI_BOTS checked
+    assert len(report.bots) == 13  # all AI_BOTS checked
     assert raw_text == robots_txt
 
 

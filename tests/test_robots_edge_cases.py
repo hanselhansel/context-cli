@@ -80,7 +80,7 @@ async def test_malformed_robots_txt():
     report, raw_text = await check_robots("https://example.com", mock_client)
 
     assert report.found is True
-    assert len(report.bots) == 7
+    assert len(report.bots) == 13
     assert raw_text == robots_txt
 
 
