@@ -10,6 +10,7 @@ app = typer.Typer(
 
 # Register commands from cli/ subpackage
 from aeo_cli.cli import audit as _audit_mod  # noqa: E402
+from aeo_cli.cli import benchmark as _bench_mod  # noqa: E402
 from aeo_cli.cli import compare as _compare_mod  # noqa: E402
 from aeo_cli.cli import generate as _generate_mod  # noqa: E402
 from aeo_cli.cli import history as _history_mod  # noqa: E402
@@ -18,6 +19,7 @@ from aeo_cli.cli import radar as _radar_mod  # noqa: E402
 from aeo_cli.cli import watch as _watch_mod  # noqa: E402
 
 _audit_mod.register(app)
+_bench_mod.register(app)
 _compare_mod.register(app)
 _generate_mod.register(app)
 _history_mod.register(app)
