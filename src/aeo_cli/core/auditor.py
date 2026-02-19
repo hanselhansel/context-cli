@@ -39,6 +39,29 @@ AI_BOTS: list[str] = [
 
 DEFAULT_TIMEOUT: int = 15
 
+# ── Scoring Constants ────────────────────────────────────────────────────────
+# Exported so verbose output can display the actual thresholds used.
+
+CONTENT_WORD_TIERS: list[tuple[int, int]] = [
+    (1500, 25),
+    (800, 20),
+    (400, 15),
+    (150, 8),
+]
+"""(min_words, base_score) — evaluated top-down, first match wins."""
+
+CONTENT_HEADING_BONUS: int = 7
+CONTENT_LIST_BONUS: int = 5
+CONTENT_CODE_BONUS: int = 3
+CONTENT_MAX: int = 40
+
+SCHEMA_BASE_SCORE: int = 8
+SCHEMA_PER_TYPE_BONUS: int = 5
+SCHEMA_MAX: int = 25
+
+ROBOTS_MAX: int = 25
+LLMS_TXT_MAX: int = 10
+
 
 # ── Pillar 1: Robots.txt ──────────────────────────────────────────────────────
 
@@ -208,42 +231,38 @@ def compute_scores(
     "cheat sheets" (Product, Article, FAQ). Robots.txt is pass/fail per bot.
     llms.txt is emerging but not yet weighted by any major AI search engine.
     """
-    # Robots: max 25 — proportional to bots allowed
+    # Robots: max ROBOTS_MAX — proportional to bots allowed
     if robots.found and robots.bots:
         allowed = sum(1 for b in robots.bots if b.allowed)
-        robots.score = round(25 * allowed / len(robots.bots), 1)
+        robots.score = round(ROBOTS_MAX * allowed / len(robots.bots), 1)
     else:
         robots.score = 0
 
-    # llms.txt: max 10
-    llms_txt.score = 10 if llms_txt.found else 0
+    # llms.txt: max LLMS_TXT_MAX
+    llms_txt.score = LLMS_TXT_MAX if llms_txt.found else 0
 
-    # Schema: max 25 — reward high-value types more
+    # Schema: max SCHEMA_MAX — reward high-value types more
     if schema_org.blocks_found > 0:
         unique_types = {s.schema_type for s in schema_org.schemas}
-        # Base 8 for having any JSON-LD, +5 per unique type, capped at 25
-        schema_org.score = min(25, 8 + 5 * len(unique_types))
+        schema_org.score = min(
+            SCHEMA_MAX, SCHEMA_BASE_SCORE + SCHEMA_PER_TYPE_BONUS * len(unique_types)
+        )
     else:
         schema_org.score = 0
 
-    # Content: max 40 — word count tiers + structure bonuses
-    # Higher thresholds reflect that LLMs need substantial content to cite
+    # Content: max CONTENT_MAX — word count tiers + structure bonuses
     score = 0
-    if content.word_count >= 1500:
-        score = 25
-    elif content.word_count >= 800:
-        score = 20
-    elif content.word_count >= 400:
-        score = 15
-    elif content.word_count >= 150:
-        score = 8
+    for min_words, tier_score in CONTENT_WORD_TIERS:
+        if content.word_count >= min_words:
+            score = tier_score
+            break
     if content.has_headings:
-        score += 7  # structure matters a lot for LLM extraction
+        score += CONTENT_HEADING_BONUS
     if content.has_lists:
-        score += 5  # lists are highly extractable by LLMs
+        score += CONTENT_LIST_BONUS
     if content.has_code_blocks:
-        score += 3  # relevant for technical content
-    content.score = min(40, score)
+        score += CONTENT_CODE_BONUS
+    content.score = min(CONTENT_MAX, score)
 
     overall = robots.score + llms_txt.score + schema_org.score + content.score
     return robots, llms_txt, schema_org, content, overall

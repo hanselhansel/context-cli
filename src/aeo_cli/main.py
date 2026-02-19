@@ -22,39 +22,28 @@ from aeo_cli.core.models import (
 )
 from aeo_cli.formatters.csv import format_single_report_csv, format_site_report_csv
 from aeo_cli.formatters.markdown import format_single_report_md, format_site_report_md
+from aeo_cli.formatters.verbose import (
+    overall_color as _overall_color_impl,
+)
+from aeo_cli.formatters.verbose import (
+    render_verbose_single,
+    render_verbose_site,
+)
+from aeo_cli.formatters.verbose import (
+    score_color as _score_color_impl,
+)
 
 app = typer.Typer(help="AEO-CLI: Audit URLs for AI crawler readiness and get a 0-100 AEO score.")
 console = Console()
 
-# Pillar max scores for color thresholds
-_PILLAR_MAX = {
-    "robots": 25,
-    "llms_txt": 10,
-    "schema_org": 25,
-    "content": 40,
-}
-
-
 def _score_color(score: float, pillar: str) -> Text:
     """Return a Rich Text with the score colored by threshold (green/yellow/red)."""
-    max_pts = _PILLAR_MAX[pillar]
-    ratio = score / max_pts if max_pts else 0
-    if ratio >= 0.7:
-        color = "green"
-    elif ratio >= 0.4:
-        color = "yellow"
-    else:
-        color = "red"
-    return Text(f"{score}", style=color)
+    return _score_color_impl(score, pillar)
 
 
 def _overall_color(score: float) -> str:
     """Return a Rich color string for an overall 0-100 score."""
-    if score >= 70:
-        return "green"
-    elif score >= 40:
-        return "yellow"
-    return "red"
+    return _overall_color_impl(score)
 
 
 def _render_site_report(report: SiteAuditReport) -> None:
@@ -236,6 +225,8 @@ def _render_output(
     # Rich output
     if isinstance(report, SiteAuditReport):
         _render_site_report(report)
+        if verbose:
+            render_verbose_site(report, console)
         return
 
     # Single-page Rich table
@@ -257,57 +248,12 @@ def _render_output(
     console.print(f"\n[bold]Overall AEO Score:[/bold] [cyan]{report.overall_score}/100[/cyan]")
 
     if verbose:
-        _render_verbose(report)
+        render_verbose_single(report, console)
 
     if report.errors:
         console.print("\n[bold red]Errors:[/bold red]")
         for err in report.errors:
             console.print(f"  • {err}")
-
-
-def _render_verbose(report) -> None:
-    """Render a detailed verbose breakdown with scoring explanations in Rich panels."""
-    console.print()
-    console.print("[bold]Scoring Methodology:[/bold] Content (40pts) + Robots (25pts) "
-                  "+ Schema (25pts) + llms.txt (10pts) = 100pts max")
-
-    # Robots detail
-    robots_lines = [f"[bold]Robots.txt AI Bot Access[/bold] — Score: {report.robots.score}/25"]
-    if report.robots.found and report.robots.bots:
-        for bot in report.robots.bots:
-            status = "[green]Allowed[/green]" if bot.allowed else "[red]Blocked[/red]"
-            robots_lines.append(f"  {bot.bot}: {status}")
-    else:
-        robots_lines.append("  robots.txt not found or inaccessible")
-    console.print(Panel("\n".join(robots_lines), title="Robots.txt Detail", border_style="blue"))
-
-    # llms.txt detail
-    llms_info = f"Score: {report.llms_txt.score}/10"
-    if report.llms_txt.found:
-        llms_info += f"\n  Found at: {report.llms_txt.url}"
-    else:
-        llms_info += "\n  Not found at /llms.txt or /.well-known/llms.txt"
-    console.print(Panel(
-        f"[bold]llms.txt[/bold] — {llms_info}",
-        title="llms.txt Detail", border_style="blue",
-    ))
-
-    # Schema detail
-    schema_lines = [f"[bold]Schema.org JSON-LD[/bold] — Score: {report.schema_org.score}/25"]
-    schema_lines.append(f"  Blocks found: {report.schema_org.blocks_found}")
-    for s in report.schema_org.schemas:
-        schema_lines.append(f"  @type: {s.schema_type} ({len(s.properties)} properties)")
-    console.print(Panel("\n".join(schema_lines), title="Schema.org Detail", border_style="blue"))
-
-    # Content detail
-    content_lines = [
-        f"[bold]Content Density[/bold] — Score: {report.content.score}/40",
-        f"  Word count: {report.content.word_count}",
-        f"  Headings: {'Yes' if report.content.has_headings else 'No'} (+7 if present)",
-        f"  Lists: {'Yes' if report.content.has_lists else 'No'} (+5 if present)",
-        f"  Code blocks: {'Yes' if report.content.has_code_blocks else 'No'} (+3 if present)",
-    ]
-    console.print(Panel("\n".join(content_lines), title="Content Detail", border_style="blue"))
 
 
 def _check_exit_conditions(
