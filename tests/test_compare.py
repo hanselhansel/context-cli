@@ -292,3 +292,83 @@ def test_pillar_delta_model():
     )
     assert pd.pillar == "robots"
     assert pd.delta == 15
+
+
+# ── Token waste comparison tests ────────────────────────────────────────────
+
+
+def test_render_compare_shows_token_waste_when_both_have_lint():
+    """Compare table should show Token Waste row when both reports have lint_result."""
+    from context_cli.core.models import LintCheck, LintResult
+    a = _high_report()
+    b = _low_report()
+    a.lint_result = LintResult(
+        checks=[LintCheck(name="Token Efficiency", passed=False, detail="85%")],
+        context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500, passed=False,
+    )
+    b.lint_result = LintResult(
+        checks=[LintCheck(name="Token Efficiency", passed=True, detail="42%")],
+        context_waste_pct=42.0, raw_tokens=10000, clean_tokens=5800, passed=True,
+    )
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare(result)
+    assert "Token Waste" in text
+    assert "85%" in text
+    assert "42%" in text
+
+
+def test_render_compare_no_token_waste_without_lint():
+    """Compare table should NOT show Token Waste row when lint_result is missing."""
+    result = build_compare_report(_URL_A, _URL_B, _high_report(), _low_report())
+    text = _capture_compare(result)
+    assert "Token Waste" not in text
+
+
+def test_render_compare_no_token_waste_when_only_one_has_lint():
+    """Compare table should NOT show Token Waste row when only one report has lint_result."""
+    from context_cli.core.models import LintCheck, LintResult
+    a = _high_report()
+    a.lint_result = LintResult(
+        checks=[LintCheck(name="Token Efficiency", passed=False, detail="85%")],
+        context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500, passed=False,
+    )
+    b = _low_report()  # No lint_result
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare(result)
+    assert "Token Waste" not in text
+
+
+def test_render_compare_token_waste_equal():
+    """Compare should show 0% delta when both have same waste percentage."""
+    from context_cli.core.models import LintResult
+    a = _high_report()
+    b = _low_report()
+    a.lint_result = LintResult(
+        checks=[], context_waste_pct=50.0, raw_tokens=5000, clean_tokens=2500, passed=True,
+    )
+    b.lint_result = LintResult(
+        checks=[], context_waste_pct=50.0, raw_tokens=5000, clean_tokens=2500, passed=True,
+    )
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare(result)
+    assert "Token Waste" in text
+    assert "0%" in text
+
+
+def test_render_compare_token_waste_a_less_waste():
+    """Compare should show green negative delta when A has less waste than B."""
+    from context_cli.core.models import LintResult
+    a = _high_report()
+    b = _low_report()
+    a.lint_result = LintResult(
+        checks=[], context_waste_pct=30.0, raw_tokens=10000, clean_tokens=7000, passed=True,
+    )
+    b.lint_result = LintResult(
+        checks=[], context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500, passed=False,
+    )
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare(result)
+    assert "Token Waste" in text
+    # A has 30%, B has 85%, delta is -55 (A has less waste = green)
+    assert "30%" in text
+    assert "85%" in text

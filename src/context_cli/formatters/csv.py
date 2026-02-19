@@ -10,12 +10,13 @@ from context_cli.core.models import AuditReport, BatchAuditReport, SiteAuditRepo
 
 def _lint_columns(report: AuditReport) -> tuple[list[str], list[object]]:
     """Return lint result column headers and values for CSV output."""
-    headers = ["raw_tokens", "clean_tokens", "context_waste_pct"]
+    headers = ["raw_tokens", "clean_tokens", "context_waste_pct", "diagnostics"]
     if report.lint_result is not None:
         lr = report.lint_result
-        values: list[object] = [lr.raw_tokens, lr.clean_tokens, lr.context_waste_pct]
+        diag_str = ",".join(d.code for d in lr.diagnostics) if lr.diagnostics else ""
+        values: list[object] = [lr.raw_tokens, lr.clean_tokens, lr.context_waste_pct, diag_str]
     else:
-        values = ["", "", ""]
+        values = ["", "", "", ""]
     return headers, values
 
 

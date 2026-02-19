@@ -54,6 +54,31 @@ def _pillar_detail(label: str, detail: str) -> str:
 </div>"""
 
 
+def _diagnostics_section(report: AuditReport | SiteAuditReport) -> str:
+    """Generate an HTML diagnostics table section."""
+    if not hasattr(report, "lint_result") or report.lint_result is None:
+        return ""
+    lr = report.lint_result
+    if not lr.diagnostics:
+        return ""
+    severity_colors = {"error": "#ff4e42", "warn": "#ffa400", "info": "#0cce6b"}
+    rows_html = ""
+    for d in lr.diagnostics:
+        color = severity_colors.get(d.severity, "#333")
+        rows_html += (
+            f'<tr><td>{html_lib.escape(d.code)}</td>'
+            f'<td style="color:{color};font-weight:600">{html_lib.escape(d.severity)}</td>'
+            f'<td>{html_lib.escape(d.message)}</td></tr>\n'
+        )
+    return f"""<div class="details">
+  <h3>Diagnostics</h3>
+  <table class="pages-table">
+    <thead><tr><th>Code</th><th>Severity</th><th>Message</th></tr></thead>
+    <tbody>{rows_html}</tbody>
+  </table>
+</div>"""
+
+
 def _token_waste_section(report: AuditReport | SiteAuditReport) -> str:
     """Generate an HTML token waste section."""
     if not hasattr(report, "lint_result") or report.lint_result is None:
@@ -70,6 +95,7 @@ def _token_waste_section(report: AuditReport | SiteAuditReport) -> str:
             f'<td>{html_lib.escape(check.detail)}</td></tr>\n'
         )
     pct = f"{lr.context_waste_pct:.0f}%"
+    diagnostics = _diagnostics_section(report)
     return f"""<div class="details">
   <h2>Token Waste</h2>
   <div style="text-align:center;margin:16px 0">
@@ -83,7 +109,8 @@ def _token_waste_section(report: AuditReport | SiteAuditReport) -> str:
     <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
     <tbody>{checks_html}</tbody>
   </table>
-</div>"""
+</div>
+{diagnostics}"""
 
 
 def _errors_section(errors: list[str]) -> str:

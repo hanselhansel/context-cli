@@ -179,3 +179,53 @@ def test_ci_summary_lint_results_empty_string_when_none():
     from context_cli.formatters.ci_summary import _format_lint_results
     report = _mock_report()
     assert _format_lint_results(report) == ""
+
+
+# -- Diagnostics in CI Summary tests ------------------------------------------
+
+
+def test_ci_summary_includes_diagnostics():
+    """CI summary should include diagnostics section when diagnostics exist."""
+    from context_cli.core.models import Diagnostic
+    report = _mock_report()
+    lr = _lint_result()
+    lr.diagnostics = [
+        Diagnostic(code="WARN-001", severity="warn", message="Excessive DOM bloat."),
+        Diagnostic(code="INFO-001", severity="info", message="Readability grade: 12.3"),
+    ]
+    report.lint_result = lr
+    md = format_ci_summary(report)
+
+    assert "### Diagnostics" in md
+    assert "**WARN-001** (warn): Excessive DOM bloat." in md
+    assert "**INFO-001** (info): Readability grade: 12.3" in md
+
+
+def test_ci_summary_no_diagnostics_without_lint_result():
+    """CI summary should NOT include diagnostics when lint_result is None."""
+    report = _mock_report()
+    md = format_ci_summary(report)
+    assert "### Diagnostics" not in md
+
+
+def test_ci_summary_no_diagnostics_when_empty():
+    """CI summary should NOT include diagnostics when diagnostics list is empty."""
+    report = _mock_report()
+    report.lint_result = _lint_result()
+    md = format_ci_summary(report)
+    assert "### Diagnostics" not in md
+
+
+def test_ci_summary_diagnostics_empty_string_when_none():
+    """_format_diagnostics returns empty string when lint_result is None."""
+    from context_cli.formatters.ci_summary import _format_diagnostics
+    report = _mock_report()
+    assert _format_diagnostics(report) == ""
+
+
+def test_ci_summary_diagnostics_empty_string_when_no_diagnostics():
+    """_format_diagnostics returns empty string when diagnostics list is empty."""
+    from context_cli.formatters.ci_summary import _format_diagnostics
+    report = _mock_report()
+    report.lint_result = _lint_result()
+    assert _format_diagnostics(report) == ""
