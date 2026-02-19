@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -365,4 +366,19 @@ class GenerateResult(BaseModel):
     )
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors during generation"
+    )
+
+
+# ── Plugin models ────────────────────────────────────────────────────────────
+
+
+class PluginResult(BaseModel):
+    """Result returned by an audit plugin check."""
+
+    plugin_name: str = Field(description="Name of the plugin")
+    score: float = Field(description="Score awarded by plugin")
+    max_score: float = Field(description="Maximum possible score")
+    detail: str = Field(description="Human-readable detail")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Additional plugin-specific data"
     )
