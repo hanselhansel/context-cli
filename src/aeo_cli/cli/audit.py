@@ -12,6 +12,7 @@ from rich.table import Table
 from rich.text import Text
 
 from aeo_cli.core.auditor import audit_site, audit_url
+from aeo_cli.core.config import load_config
 from aeo_cli.core.history import HistoryDB
 from aeo_cli.core.models import (
     AuditReport,
@@ -121,17 +122,43 @@ def register(app: typer.Typer) -> None:
         ),
     ) -> None:
         """Run an AEO audit on a URL and display the results."""
+        # Load config file defaults
+        cfg = load_config()
+
+        # Apply config defaults (CLI flags override when explicitly set)
+        effective_timeout = cfg.timeout if timeout == 15 else timeout
+        effective_max_pages = cfg.max_pages if max_pages == 10 else max_pages
+        effective_save = save or cfg.save
+        effective_verbose = verbose or cfg.verbose
+        effective_single = single or cfg.single
+        effective_threshold = (
+            cfg.regression_threshold if regression_threshold == 5.0 else regression_threshold
+        )
+
         # --json flag is a shortcut for --format json
         if json_output and format is None:
             format = OutputFormat.json
 
-        # Parse --bots into a list
-        bots_list = [b.strip() for b in bots.split(",")] if bots else None
+        # Apply config format if no CLI format specified
+        if format is None and cfg.format is not None:
+            try:
+                format = OutputFormat(cfg.format)
+            except ValueError:
+                pass
+
+        # Parse --bots into a list (CLI overrides config)
+        if bots:
+            bots_list: list[str] | None = [b.strip() for b in bots.split(",")]
+        elif cfg.bots:
+            bots_list = cfg.bots
+        else:
+            bots_list = None
 
         # Batch mode: --file flag
         if file:
             _run_batch_mode(
-                file, format, single, max_pages, timeout, concurrency, bots=bots_list
+                file, format, effective_single, effective_max_pages,
+                effective_timeout, concurrency, bots=bots_list,
             )
             return
 
@@ -145,21 +172,22 @@ def register(app: typer.Typer) -> None:
             url = f"https://{url}"
 
         if quiet:
-            # Backwards compat: --quiet uses threshold 50 unless --fail-under overrides
-            threshold = fail_under if fail_under is not None else 50
+            threshold_val = fail_under if fail_under is not None else 50
             _audit_quiet(
-                url, single, max_pages, threshold, fail_on_blocked_bots, timeout,
-                bots=bots_list,
+                url, effective_single, effective_max_pages, threshold_val,
+                fail_on_blocked_bots, effective_timeout, bots=bots_list,
             )
             return  # pragma: no cover — _audit_quiet always raises SystemExit
 
         # Normal flow
-        report = _run_audit(url, single, max_pages, timeout, bots=bots_list)
-        _render_output(report, format, verbose, single)
+        report = _run_audit(
+            url, effective_single, effective_max_pages, effective_timeout, bots=bots_list,
+        )
+        _render_output(report, format, effective_verbose, effective_single)
 
-        if save:
+        if effective_save:
             if isinstance(report, AuditReport):
-                _save_to_history(report, console, threshold=regression_threshold)
+                _save_to_history(report, console, threshold=effective_threshold)
             else:
                 console.print(
                     "[yellow]Note:[/yellow] --save stores single-page audits only. "
@@ -272,7 +300,6 @@ def _check_exit_conditions(
     fail_on_blocked_bots: bool,
 ) -> None:
     """Check CI exit conditions and raise SystemExit if thresholds are breached."""
-    # Bot blocking takes priority over score failure (exit 2 before exit 1)
     if fail_on_blocked_bots and report.robots.found:
         if any(not b.allowed for b in report.robots.bots):
             raise SystemExit(2)
