@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-02-19
+
+### Added
+
+- **Citation Radar** (`aeo-cli radar "prompt"`): Query AI models and analyze what they cite and recommend for any search prompt
+- **Multi-model querying**: Send prompts to multiple LLMs (GPT-4o, Claude, etc.) via litellm with configurable `--runs` for statistical significance
+- **Citation extraction**: Parse URLs, numbered references, and domain sources from LLM responses
+- **Brand mention detection**: Track how often and in what sentiment brands are mentioned across models with `--brand` option
+- **Domain classification**: Categorize cited sources (reddit, news, review_site, marketplace, blog, official, reference, other)
+- **Radar MCP tool** (`radar`): Expose citation radar to AI agents via FastMCP
+- **Radar models**: `RadarConfig`, `CitationSource`, `BrandMention`, `DomainCategory`, `ModelRadarResult`, `RadarReport` in `core/models.py`
+
+### Changed
+
+- Test suite expanded from 898 to 1040 tests, maintaining **100% code coverage**
+- New `core/radar/` package with `query.py`, `parser.py`, `analyzer.py`, `domains.py` modules
+
 ## [0.9.0] - 2026-02-19
 
 ### Added
