@@ -25,6 +25,16 @@ inputs:
     description: 'Maximum pages to audit in multi-page mode'
     required: false
     default: '10'
+  baseline-file:
+    description: 'Path to baseline JSON file to compare against (regression detection)'
+    required: false
+  save-baseline:
+    description: 'Path to save current scores as a baseline JSON file'
+    required: false
+  regression-threshold:
+    description: 'Minimum score drop to flag as regression (default: 5 points)'
+    required: false
+    default: '5'
   python-version:
     description: 'Python version to use'
     required: false
@@ -97,6 +107,15 @@ runs:
 
         if [ "${{ inputs.fail-on-blocked-bots }}" = "true" ]; then
           SUMMARY_CMD="$SUMMARY_CMD --fail-on-blocked-bots"
+        fi
+
+        if [ -n "${{ inputs.baseline-file }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --baseline '${{ inputs.baseline-file }}'"
+          SUMMARY_CMD="$SUMMARY_CMD --regression-threshold ${{ inputs.regression-threshold }}"
+        fi
+
+        if [ -n "${{ inputs.save-baseline }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --save-baseline '${{ inputs.save-baseline }}'"
         fi
 
         eval $SUMMARY_CMD

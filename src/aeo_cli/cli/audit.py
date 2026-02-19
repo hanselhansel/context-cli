@@ -142,6 +142,14 @@ def register(app: typer.Typer) -> None:
             None, "--webhook",
             help="Webhook URL to POST audit results to (Slack/Discord/custom)",
         ),
+        save_baseline: str = typer.Option(
+            None, "--save-baseline",
+            help="Save audit scores as a JSON baseline file at this path",
+        ),
+        baseline: str = typer.Option(
+            None, "--baseline",
+            help="Compare audit against a saved baseline file (exit 1 on regression)",
+        ),
     ) -> None:
         """Run an AEO audit on a URL and display the results."""
         # Load config file defaults
@@ -219,10 +227,64 @@ def register(app: typer.Typer) -> None:
                     "Use --single for history tracking."
                 )
 
+        # Baseline save/compare (only for single-page AuditReport)
+        if save_baseline and isinstance(report, AuditReport):
+            _handle_save_baseline(report, save_baseline)
+
+        if baseline and isinstance(report, AuditReport):
+            _handle_baseline_compare(
+                report, baseline, effective_threshold, console,
+            )
+
         _write_github_step_summary(report, fail_under)
 
         if fail_under is not None or fail_on_blocked_bots:
             _check_exit_conditions(report, fail_under, fail_on_blocked_bots)
+
+
+def _handle_save_baseline(report: AuditReport, path_str: str) -> None:
+    """Save audit scores as a baseline JSON file."""
+    from pathlib import Path
+
+    from aeo_cli.core.ci.baseline import save_baseline
+
+    try:
+        save_baseline(report, Path(path_str))
+        console.print(f"[green]Baseline saved to:[/green] {path_str}")
+    except Exception as exc:
+        console.print(f"[yellow]Baseline save error:[/yellow] {exc}")
+
+
+def _handle_baseline_compare(
+    report: AuditReport,
+    path_str: str,
+    threshold: float,
+    con: Console,
+) -> None:
+    """Compare audit against a saved baseline and exit 1 on regression."""
+    from pathlib import Path
+
+    from aeo_cli.core.ci.baseline import compare_baseline, load_baseline
+
+    try:
+        baseline = load_baseline(Path(path_str))
+    except FileNotFoundError:
+        con.print(f"[red]Error:[/red] Baseline file not found: {path_str}")
+        raise SystemExit(1)
+
+    result = compare_baseline(report, baseline, threshold=threshold)
+
+    if result.passed:
+        con.print("[green]Baseline comparison passed:[/green] No regressions detected.")
+    else:
+        con.print("[bold red]Baseline comparison failed — regressions detected:[/bold red]")
+        for reg in result.regressions:
+            con.print(
+                f"  [red]{reg.pillar}:[/red] "
+                f"{reg.previous_score:.1f} -> {reg.current_score:.1f} "
+                f"(delta: {reg.delta:+.1f})"
+            )
+        raise SystemExit(1)
 
 
 def _run_audit(
