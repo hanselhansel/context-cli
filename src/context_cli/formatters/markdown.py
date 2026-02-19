@@ -1,4 +1,4 @@
-"""Markdown formatter for AEO audit reports."""
+"""Markdown formatter for Context Lint reports."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from context_cli.core.models import AuditReport, BatchAuditReport, SiteAuditRepo
 def format_single_report_md(report: AuditReport) -> str:
     """Format a single-page AuditReport as a Markdown table."""
     lines = [
-        f"# AEO Audit: {report.url}",
+        f"# Context Lint: {report.url}",
         "",
         "| Pillar | Score | Detail |",
         "|--------|------:|--------|",
@@ -17,7 +17,7 @@ def format_single_report_md(report: AuditReport) -> str:
         f"| Schema.org JSON-LD | {report.schema_org.score} | {report.schema_org.detail} |",
         f"| Content Density | {report.content.score} | {report.content.detail} |",
         "",
-        f"**Overall AEO Score: {report.overall_score}/100**",
+        f"**Overall Readiness Score: {report.overall_score}/100**",
     ]
 
     if report.errors:
@@ -32,7 +32,7 @@ def format_single_report_md(report: AuditReport) -> str:
 def format_site_report_md(report: SiteAuditReport) -> str:
     """Format a site-level SiteAuditReport as Markdown tables."""
     lines = [
-        f"# AEO Site Audit: {report.url}",
+        f"# Context Lint Report: {report.url}",
         "",
         f"**Domain:** {report.domain}  ",
         f"**Discovery:** {report.discovery.method} — {report.discovery.detail}  ",
@@ -69,7 +69,7 @@ def format_site_report_md(report: SiteAuditReport) -> str:
 
     lines.extend([
         "",
-        f"**Overall AEO Score: {report.overall_score}/100**",
+        f"**Overall Readiness Score: {report.overall_score}/100**",
     ])
 
     if report.errors:
@@ -84,7 +84,7 @@ def format_site_report_md(report: SiteAuditReport) -> str:
 def format_batch_report_md(report: BatchAuditReport) -> str:
     """Format a BatchAuditReport as a Markdown table."""
     lines = [
-        "# Batch AEO Audit Results",
+        "# Batch Context Lint Results",
         "",
         "| URL | Score | Robots | llms.txt | Schema | Content |",
         "|-----|-------|--------|----------|--------|---------|",

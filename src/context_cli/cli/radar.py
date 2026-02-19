@@ -33,7 +33,7 @@ def register(app: typer.Typer) -> None:
         except ImportError:
             console.print(
                 "[red]Error:[/red] litellm is required for the radar command.\n"
-                "Install it with: [bold]pip install aeo-cli\\[generate][/bold]"
+                "Install it with: [bold]pip install context-cli\\[generate][/bold]"
             )
             raise SystemExit(1)
 

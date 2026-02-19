@@ -26,7 +26,7 @@ def register(app: typer.Typer) -> None:
             None, "--model", "-m", help="LLM model to use (auto-detected if not set)"
         ),
         output_dir: str = typer.Option(
-            "./aeo-output", "--output-dir", "-o", help="Directory to write generated files"
+            "./context-output", "--output-dir", "-o", help="Directory to write generated files"
         ),
         json_output: bool = typer.Option(False, "--json", help="Output result as JSON"),
     ) -> None:
@@ -39,7 +39,7 @@ def register(app: typer.Typer) -> None:
         except ImportError:
             console.print(
                 "[red]Error:[/red] litellm is required for the generate command.\n"
-                "Install it with: [bold]pip install aeo-cli\\[generate][/bold]"
+                "Install it with: [bold]pip install context-cli\\[generate][/bold]"
             )
             raise SystemExit(1)
 
@@ -59,7 +59,7 @@ def register(app: typer.Typer) -> None:
             return
 
         # Rich output
-        console.print(f"\n[bold green]Generated AEO assets for {result.url}[/bold green]")
+        console.print(f"\n[bold green]Generated assets for {result.url}[/bold green]")
         console.print(f"  [bold]Model:[/bold] {result.model_used}")
         console.print(f"  [bold]Profile:[/bold] {result.profile.value}")
         if result.llms_txt_path:
@@ -81,7 +81,7 @@ def register(app: typer.Typer) -> None:
             None, "--model", "-m", help="LLM model to use (auto-detected if not set)"
         ),
         output_dir: str = typer.Option(
-            "./aeo-output", "--output-dir", "-o", help="Directory to write generated files"
+            "./context-output", "--output-dir", "-o", help="Directory to write generated files"
         ),
         concurrency: int = typer.Option(
             3, "--concurrency", "-c", help="Max concurrent generations"
@@ -113,7 +113,7 @@ def register(app: typer.Typer) -> None:
         except ImportError:
             console.print(
                 "[red]Error:[/red] litellm is required for the generate-batch command.\n"
-                "Install it with: [bold]pip install aeo-cli\\[generate][/bold]"
+                "Install it with: [bold]pip install context-cli\\[generate][/bold]"
             )
             raise SystemExit(1)
 

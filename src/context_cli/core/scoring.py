@@ -1,4 +1,4 @@
-"""Scoring logic for AEO audit pillars."""
+"""Scoring logic for readiness lint pillars."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ def compute_scores(
     schema_org: SchemaReport,
     content: ContentReport,
 ) -> tuple[RobotsReport, LlmsTxtReport, SchemaReport, ContentReport, float]:
-    """Compute scores for each pillar and overall AEO score.
+    """Compute scores for each pillar and overall Readiness Score.
 
     Scoring weights (revised 2026-02-18):
         Content (max 40): most impactful — what LLMs actually extract and cite

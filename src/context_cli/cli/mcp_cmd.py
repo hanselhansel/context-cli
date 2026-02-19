@@ -10,7 +10,7 @@ def register(app: typer.Typer) -> None:
 
     @app.command()
     def mcp() -> None:
-        """Start the AEO-CLI MCP server (stdio transport)."""
+        """Start the Context CLI MCP server (stdio transport)."""
         from context_cli.server import mcp as mcp_server
 
         mcp_server.run(transport="stdio")

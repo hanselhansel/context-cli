@@ -1,4 +1,4 @@
-"""Per-pillar check functions for AEO auditing."""
+"""Per-pillar check functions for readiness linting."""
 
 from context_cli.core.checks.content import check_content
 from context_cli.core.checks.content_usage import check_content_usage
