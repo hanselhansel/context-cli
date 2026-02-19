@@ -10,9 +10,11 @@ app = typer.Typer(
 
 # Register commands from cli/ subpackage
 from aeo_cli.cli import audit as _audit_mod  # noqa: E402
+from aeo_cli.cli import compare as _compare_mod  # noqa: E402
 from aeo_cli.cli import generate as _generate_mod  # noqa: E402
 from aeo_cli.cli import mcp_cmd as _mcp_mod  # noqa: E402
 
 _audit_mod.register(app)
+_compare_mod.register(app)
 _generate_mod.register(app)
 _mcp_mod.register(app)
