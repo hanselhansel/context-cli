@@ -19,7 +19,7 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
         f"[bold]Pages audited:[/bold] {report.pages_audited}"
         + (f"  ([red]{report.pages_failed} failed[/red])" if report.pages_failed else ""),
     ]
-    console.print(Panel("\n".join(header_lines), title=f"AEO Site Audit: {report.url}"))
+    console.print(Panel("\n".join(header_lines), title=f"Context Lint Report: {report.url}"))
 
     site_table = Table(title="Site-Wide Scores")
     site_table.add_column("Pillar", style="bold")
@@ -71,7 +71,7 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
 
     color = overall_color(report.overall_score)
     console.print(
-        f"\n[bold]Overall AEO Score:[/bold] [{color}]{report.overall_score}/100[/{color}]"
+        f"\n[bold]Overall Readiness Score:[/bold] [{color}]{report.overall_score}/100[/{color}]"
     )
 
     if report.errors:
@@ -82,7 +82,7 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
 
 def render_batch_rich(batch_report: BatchAuditReport, console: Console) -> None:
     """Render batch audit results as a Rich summary table."""
-    table = Table(title=f"Batch AEO Audit ({len(batch_report.reports)} URLs)")
+    table = Table(title=f"Batch Context Lint ({len(batch_report.reports)} URLs)")
     table.add_column("URL", max_width=50)
     table.add_column("Score", justify="right")
     table.add_column("Robots", justify="right")

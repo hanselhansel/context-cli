@@ -1,4 +1,4 @@
-"""SQLite persistence for AEO audit history."""
+"""SQLite persistence for Context Lint history."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from context_cli.core.models import AuditReport
 
 # Default DB location
-DEFAULT_DB_PATH = Path.home() / ".aeo-cli" / "history.db"
+DEFAULT_DB_PATH = Path.home() / ".context-cli" / "history.db"
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS audits (
@@ -36,7 +36,7 @@ class HistoryEntry(BaseModel):
     id: int = Field(description="Database row ID")
     url: str = Field(description="Audited URL")
     timestamp: str = Field(description="ISO 8601 timestamp of the audit")
-    overall_score: float = Field(description="Overall AEO score")
+    overall_score: float = Field(description="Overall Readiness Score")
     robots_score: float = Field(description="Robots pillar score")
     llms_txt_score: float = Field(description="llms.txt pillar score")
     schema_org_score: float = Field(description="Schema.org pillar score")

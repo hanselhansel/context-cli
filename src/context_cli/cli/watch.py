@@ -45,7 +45,7 @@ def _render_report(report: AuditReport, json_output: bool) -> None:
         console.print(report.model_dump_json(indent=2))
         return
 
-    table = Table(title=f"AEO Audit: {report.url}")
+    table = Table(title=f"Context Lint: {report.url}")
     table.add_column("Pillar", style="bold")
     table.add_column("Score", justify="right")
     table.add_column("Detail")
@@ -92,7 +92,7 @@ def watch_command(
         None, "--bots", help="Comma-separated custom AI bot list"
     ),
 ) -> None:
-    """Continuously monitor a URL with periodic AEO audits."""
+    """Continuously monitor a URL with periodic readiness lints."""
     if not url.startswith("http"):
         url = f"https://{url}"
 

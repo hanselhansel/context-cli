@@ -1,4 +1,4 @@
-"""Configuration file support — loads .aeorc.yml from CWD or home directory."""
+"""Configuration file support — loads .contextrc.yml from CWD or home directory."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
 
-_CONFIG_FILENAME = ".aeorc.yml"
+_CONFIG_FILENAME = ".contextrc.yml"
 
 
 class AeoConfig(BaseModel):
-    """AEO-CLI configuration loaded from .aeorc.yml."""
+    """Context CLI configuration loaded from .contextrc.yml."""
 
     timeout: int = Field(default=15, description="HTTP timeout in seconds")
     max_pages: int = Field(default=10, description="Max pages for multi-page audit")
@@ -32,10 +32,10 @@ class AeoConfig(BaseModel):
 def load_config(
     search_dirs: list[Path] | None = None,
 ) -> AeoConfig:
-    """Load config from .aeorc.yml, searching CWD then home directory.
+    """Load config from .contextrc.yml, searching CWD then home directory.
 
     Args:
-        search_dirs: Directories to search for .aeorc.yml.
+        search_dirs: Directories to search for .contextrc.yml.
             Defaults to [CWD, HOME]. First match wins.
 
     Returns:

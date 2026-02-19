@@ -1,4 +1,4 @@
-"""GitHub Step Summary formatter for AEO audit reports."""
+"""GitHub Step Summary formatter for Context Lint reports."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ def _format_header(report: AuditReport | SiteAuditReport, fail_under: float | No
     else:
         status = "PASS ✅" if score >= 50 else "FAIL ❌"
     url = report.url
-    return f"## AEO Audit: {url}\n\n**Score: {score}/100** — {status}\n"
+    return f"## Context Lint: {url}\n\n**Score: {score}/100** — {status}\n"
 
 
 def _format_pillar_table(report: AuditReport | SiteAuditReport) -> str:

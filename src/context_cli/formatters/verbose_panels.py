@@ -1,4 +1,4 @@
-"""Per-pillar verbose panels for AEO audit reports.
+"""Per-pillar verbose panels for Context Lint reports.
 
 Each function renders a Rich Panel with detailed scoring breakdown,
 formulas, and per-item details for one audit pillar.

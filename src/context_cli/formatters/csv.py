@@ -1,4 +1,4 @@
-"""CSV formatter for AEO audit reports."""
+"""CSV formatter for Context Lint reports."""
 
 from __future__ import annotations
 
