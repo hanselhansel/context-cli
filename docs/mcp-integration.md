@@ -12,7 +12,7 @@ MCP is an open protocol that lets AI assistants (like Claude, ChatGPT, etc.) cal
 aeo-cli mcp
 ```
 
-This starts the server using **stdio transport** — it communicates via standard input/output, which is how most MCP clients (Claude Desktop, Claude Code, etc.) expect to connect.
+This starts the server using **stdio transport** -- it communicates via standard input/output, which is how most MCP clients (Claude Desktop, Claude Code, etc.) expect to connect.
 
 ## Claude Desktop Configuration
 
@@ -42,23 +42,66 @@ To use AEO-CLI as an MCP tool in Claude Code:
 claude mcp add aeo-cli -- aeo-cli mcp
 ```
 
-## Available Tool
+## Available Tools
 
 ### `audit`
 
 Audit a URL for AI engine optimization readiness.
 
-**Parameters:**
-
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `url` | `string` | (required) | The URL to audit |
-| `single_page` | `boolean` | `false` | If `true`, audit only the given URL. If `false`, discover and audit multiple pages across the site. |
+| `single_page` | `boolean` | `false` | Audit only the given URL (skip multi-page discovery) |
 | `max_pages` | `integer` | `10` | Maximum number of pages to audit in multi-page mode |
 
-**Returns:** A dictionary matching the `AuditReport` (single page) or `SiteAuditReport` (multi-page) schema.
+**Returns:** `AuditReport` (single page) or `SiteAuditReport` (multi-page) as dict.
 
-### Example: Single Page Audit
+### `generate`
+
+Generate llms.txt and schema.jsonld for a URL using LLM analysis.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | `string` | (required) | URL to generate assets for |
+| `profile` | `string` | `"generic"` | Industry profile (generic, cpg, saas, ecommerce, blog) |
+| `model` | `string` | `null` | LLM model to use (auto-detected from env if not set) |
+| `output_dir` | `string` | `"./aeo-output"` | Directory to write generated files |
+
+**Returns:** `GenerateResult` as dict.
+
+### `compare`
+
+Compare AEO audit results between two URLs.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url1` | `string` | (required) | First URL to audit |
+| `url2` | `string` | (required) | Second URL to audit |
+
+**Returns:** `CompareReport` as dict, including per-pillar deltas and a winner summary.
+
+### `history`
+
+Retrieve audit history for a URL from local SQLite storage.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | `string` | (required) | URL to look up history for |
+| `limit` | `integer` | `10` | Maximum number of history entries to return |
+
+**Returns:** List of historical audit reports as dicts.
+
+### `recommend`
+
+Audit a URL and generate actionable recommendations to improve its AEO score.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | `string` | (required) | URL to audit and generate recommendations for |
+
+**Returns:** List of `Recommendation` objects as dicts, sorted by estimated impact. Each recommendation includes: pillar, action, estimated_impact, priority, and detail.
+
+## Example: Single Page Audit
 
 **Request** (from an AI agent):
 ```
@@ -77,7 +120,7 @@ Call the audit tool with url="https://example.com" and single_page=true
       {"bot": "ClaudeBot", "allowed": true, "detail": "Allowed"}
     ],
     "score": 25.0,
-    "detail": "7/7 AI bots allowed"
+    "detail": "13/13 AI bots allowed"
   },
   "llms_txt": {
     "found": false,
@@ -90,7 +133,7 @@ Call the audit tool with url="https://example.com" and single_page=true
     "schemas": [
       {"schema_type": "Organization", "properties": ["name", "url", "logo"]}
     ],
-    "score": 13,
+    "score": 11,
     "detail": "1 JSON-LD block(s) found"
   },
   "content": {
@@ -106,49 +149,45 @@ Call the audit tool with url="https://example.com" and single_page=true
 }
 ```
 
-### Example: Multi-Page Site Audit
+## Example: Get Recommendations
 
 **Request:**
 ```
-Call the audit tool with url="https://example.com" and max_pages=5
+Call the recommend tool with url="https://example.com"
 ```
 
 **Response** (abbreviated):
 ```json
-{
-  "url": "https://example.com",
-  "domain": "example.com",
-  "overall_score": 61.3,
-  "robots": { "score": 25.0, "detail": "7/7 AI bots allowed" },
-  "llms_txt": { "score": 0, "detail": "llms.txt not found" },
-  "schema_org": { "score": 15.5, "detail": "4 JSON-LD block(s) across 5 pages (weighted avg score 15.5)" },
-  "content": { "score": 20.8, "detail": "avg 520 words across 5 pages (weighted avg score 20.8)" },
-  "discovery": {
-    "method": "sitemap",
-    "urls_found": 47,
-    "urls_sampled": ["https://example.com", "https://example.com/about", "..."],
-    "detail": "method=sitemap, found=47, sampled=5"
+[
+  {
+    "pillar": "llms_txt",
+    "action": "Create an llms.txt file",
+    "estimated_impact": 10.0,
+    "priority": "high",
+    "detail": "No llms.txt file was found. Create /llms.txt with..."
   },
-  "pages": [
-    { "url": "https://example.com", "schema_org": { "score": 13 }, "content": { "score": 22 } },
-    { "url": "https://example.com/about", "schema_org": { "score": 18 }, "content": { "score": 15 } }
-  ],
-  "pages_audited": 5,
-  "pages_failed": 0,
-  "errors": []
-}
+  {
+    "pillar": "schema_org",
+    "action": "Add high-value schema types",
+    "estimated_impact": 5.0,
+    "priority": "high",
+    "detail": "Add FAQPage, Article, or HowTo schema..."
+  }
+]
 ```
 
 ## Use Cases
 
-- **Content teams**: Ask Claude to "audit our blog for AEO readiness" — it calls the tool automatically
+- **Content teams**: Ask Claude to "audit our blog for AEO readiness" -- it calls the tool automatically
 - **SEO monitoring**: Build an AI agent that periodically audits your site and flags regressions
-- **Competitive analysis**: Have an AI compare AEO scores across competitor sites
+- **Competitive analysis**: Use `compare` to pit two URLs against each other
+- **Score improvement**: Use `recommend` to get actionable suggestions sorted by impact
 - **CI/CD integration**: Use the MCP tool in automated pipelines to gate deployments on AEO thresholds
+- **Trend tracking**: Use `history` to track score changes over time
 
 ## Technical Details
 
 - The MCP server is built with [FastMCP](https://github.com/jlowin/fastmcp)
 - Transport: stdio (standard for desktop AI clients)
 - All Pydantic `Field(description=...)` annotations propagate to the MCP tool schema, giving AI agents rich parameter descriptions
-- The server is a thin wrapper around the same `audit_url()` and `audit_site()` functions used by the CLI
+- The server exposes 5 tools: `audit`, `generate`, `compare`, `history`, `recommend`
