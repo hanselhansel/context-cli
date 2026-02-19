@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.auditor import compute_scores
 from aeo_cli.core.models import (
     BotAccessResult,
     ContentReport,
@@ -11,6 +10,7 @@ from aeo_cli.core.models import (
     SchemaOrgResult,
     SchemaReport,
 )
+from aeo_cli.core.scoring import compute_scores
 
 AI_BOT_NAMES = [
     "GPTBot", "ChatGPT-User", "Google-Extended",

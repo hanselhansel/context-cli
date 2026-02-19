@@ -10,7 +10,11 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from aeo_cli.core.auditor import (
+from aeo_cli.core.models import (
+    AuditReport,
+    SiteAuditReport,
+)
+from aeo_cli.core.scoring import (
     CONTENT_CODE_BONUS,
     CONTENT_HEADING_BONUS,
     CONTENT_LIST_BONUS,
@@ -21,10 +25,6 @@ from aeo_cli.core.auditor import (
     SCHEMA_BASE_SCORE,
     SCHEMA_MAX,
     SCHEMA_PER_TYPE_BONUS,
-)
-from aeo_cli.core.models import (
-    AuditReport,
-    SiteAuditReport,
 )
 
 # ── Pillar max scores ────────────────────────────────────────────────────────

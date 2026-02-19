@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.auditor import check_content, compute_scores
+from aeo_cli.core.checks.content import check_content
 from aeo_cli.core.models import LlmsTxtReport, RobotsReport, SchemaReport
+from aeo_cli.core.scoring import compute_scores
 
 
 def _score_content(word_count: int, **kwargs) -> float:

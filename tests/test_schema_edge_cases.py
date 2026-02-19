@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.auditor import check_schema_org
+from aeo_cli.core.checks.schema import check_schema_org
 
 
 def test_nested_graph():

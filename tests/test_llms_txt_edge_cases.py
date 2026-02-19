@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from aeo_cli.core.auditor import check_llms_txt
+from aeo_cli.core.checks.llms_txt import check_llms_txt
 
 
 @pytest.mark.asyncio
