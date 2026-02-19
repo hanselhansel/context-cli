@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -16,8 +16,8 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.formatters.html import format_single_report_html, format_site_report_html
-from aeo_cli.main import app
+from context_cli.formatters.html import format_single_report_html, format_site_report_html
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -299,7 +299,7 @@ def test_cli_format_html_single(tmp_path, monkeypatch):
     async def _fake_audit(url, **kwargs):
         return _single_report()
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--format", "html"]
         )
@@ -315,7 +315,7 @@ def test_cli_format_html_site(tmp_path, monkeypatch):
     async def _fake_audit(*a, **kw):
         return _site_report()
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_audit):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--format", "html"]
         )

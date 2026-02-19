@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.crawler import (
+from context_cli.core.crawler import (
     CrawlResult,
     _extract_internal_links_bs4,
     _normalize_links,
@@ -166,7 +166,7 @@ async def test_extract_page_link_exception_silent():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.crawler.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.crawler.extract_page", new_callable=AsyncMock)
 async def test_extract_pages_basic(mock_ep):
     """Two URLs → two results in order."""
     mock_ep.side_effect = [
@@ -180,7 +180,7 @@ async def test_extract_pages_basic(mock_ep):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.crawler.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.crawler.extract_page", new_callable=AsyncMock)
 async def test_extract_pages_timeout(mock_ep):
     """When extract_page hangs, timeout → CrawlResult(success=False)."""
 
@@ -197,7 +197,7 @@ async def test_extract_pages_timeout(mock_ep):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.crawler.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.crawler.extract_page", new_callable=AsyncMock)
 async def test_extract_pages_exception(mock_ep):
     """When extract_page raises, → CrawlResult(success=False)."""
     mock_ep.side_effect = RuntimeError("kaboom")
@@ -208,7 +208,7 @@ async def test_extract_pages_exception(mock_ep):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.crawler.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.crawler.extract_page", new_callable=AsyncMock)
 async def test_extract_pages_preserves_order(mock_ep):
     """Three URLs → results match input order regardless of completion time."""
     mock_ep.side_effect = [

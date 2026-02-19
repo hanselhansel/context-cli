@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     CompareReport,
     ContentReport,
@@ -16,7 +16,7 @@ from aeo_cli.core.models import (
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.server import compare, history, recommend
+from context_cli.server import compare, history, recommend
 
 # FastMCP 2.x wraps @mcp.tool functions in a FunctionTool object.
 _compare_fn = compare.fn if hasattr(compare, "fn") else compare
@@ -60,7 +60,7 @@ def _mock_compare_report() -> CompareReport:
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.server.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.server.compare_urls", new_callable=AsyncMock)
 async def test_compare_tool_returns_dict(mock_compare):
     """MCP compare tool should return a dict (CompareReport-like)."""
     mock_compare.return_value = _mock_compare_report()
@@ -74,7 +74,7 @@ async def test_compare_tool_returns_dict(mock_compare):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.server.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.server.compare_urls", new_callable=AsyncMock)
 async def test_compare_tool_calls_compare_urls(mock_compare):
     """MCP compare tool should call compare_urls with both URLs."""
     mock_compare.return_value = _mock_compare_report()
@@ -83,7 +83,7 @@ async def test_compare_tool_calls_compare_urls(mock_compare):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.server.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.server.compare_urls", new_callable=AsyncMock)
 async def test_compare_tool_includes_pillar_deltas(mock_compare):
     """MCP compare tool result should include pillar deltas."""
     mock_compare.return_value = _mock_compare_report()
@@ -99,7 +99,7 @@ async def test_compare_tool_includes_pillar_deltas(mock_compare):
 @pytest.mark.asyncio
 async def test_history_tool_returns_list(tmp_path):
     """MCP history tool should return a list of entries."""
-    with patch("aeo_cli.server.HistoryDB") as MockDB:
+    with patch("context_cli.server.HistoryDB") as MockDB:
         mock_db = MagicMock()
         mock_db.list_entries.return_value = []
         MockDB.return_value = mock_db
@@ -113,7 +113,7 @@ async def test_history_tool_returns_list(tmp_path):
 @pytest.mark.asyncio
 async def test_history_tool_passes_limit():
     """MCP history tool should pass limit param to list_entries."""
-    with patch("aeo_cli.server.HistoryDB") as MockDB:
+    with patch("context_cli.server.HistoryDB") as MockDB:
         mock_db = MagicMock()
         mock_db.list_entries.return_value = []
         MockDB.return_value = mock_db
@@ -126,7 +126,7 @@ async def test_history_tool_passes_limit():
 @pytest.mark.asyncio
 async def test_history_tool_returns_serialized_entries():
     """MCP history tool should return entries as dicts."""
-    from aeo_cli.core.history import HistoryEntry
+    from context_cli.core.history import HistoryEntry
 
     entries = [
         HistoryEntry(
@@ -140,7 +140,7 @@ async def test_history_tool_returns_serialized_entries():
             content_score=17.0,
         ),
     ]
-    with patch("aeo_cli.server.HistoryDB") as MockDB:
+    with patch("context_cli.server.HistoryDB") as MockDB:
         mock_db = MagicMock()
         mock_db.list_entries.return_value = entries
         MockDB.return_value = mock_db
@@ -155,7 +155,7 @@ async def test_history_tool_returns_serialized_entries():
 @pytest.mark.asyncio
 async def test_history_tool_default_limit():
     """MCP history tool should default to limit=10."""
-    with patch("aeo_cli.server.HistoryDB") as MockDB:
+    with patch("context_cli.server.HistoryDB") as MockDB:
         mock_db = MagicMock()
         mock_db.list_entries.return_value = []
         MockDB.return_value = mock_db
@@ -169,8 +169,8 @@ async def test_history_tool_default_limit():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.server.generate_recommendations")
-@patch("aeo_cli.server.audit_url", new_callable=AsyncMock)
+@patch("context_cli.server.generate_recommendations")
+@patch("context_cli.server.audit_url", new_callable=AsyncMock)
 async def test_recommend_tool_returns_list(mock_audit, mock_gen_recs):
     """MCP recommend tool should return a list of recommendations."""
     mock_audit.return_value = _mock_report()
@@ -192,8 +192,8 @@ async def test_recommend_tool_returns_list(mock_audit, mock_gen_recs):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.server.generate_recommendations")
-@patch("aeo_cli.server.audit_url", new_callable=AsyncMock)
+@patch("context_cli.server.generate_recommendations")
+@patch("context_cli.server.audit_url", new_callable=AsyncMock)
 async def test_recommend_tool_audits_first(mock_audit, mock_gen_recs):
     """MCP recommend tool should audit the URL before generating recommendations."""
     report = _mock_report()
@@ -207,8 +207,8 @@ async def test_recommend_tool_audits_first(mock_audit, mock_gen_recs):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.server.generate_recommendations")
-@patch("aeo_cli.server.audit_url", new_callable=AsyncMock)
+@patch("context_cli.server.generate_recommendations")
+@patch("context_cli.server.audit_url", new_callable=AsyncMock)
 async def test_recommend_tool_empty_recommendations(mock_audit, mock_gen_recs):
     """MCP recommend tool should return empty list when no recommendations."""
     mock_audit.return_value = _mock_report()

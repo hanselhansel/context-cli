@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,
@@ -23,11 +23,11 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
-_PATCH_GENERATE = "aeo_cli.core.generate.generate_assets"
+_PATCH_GENERATE = "context_cli.core.generate.generate_assets"
 
 
 # ── Mock factories ───────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ def test_site_report_green_score():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com"])
     assert result.exit_code == 0
     assert "75.0" in result.output
@@ -99,7 +99,7 @@ def test_site_report_red_score():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com"])
     assert result.exit_code == 0
     assert "20.0" in result.output
@@ -127,7 +127,7 @@ def test_site_report_with_pages():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com"])
     assert result.exit_code == 0
     assert "example.com/about" in result.output
@@ -143,7 +143,7 @@ def test_site_report_with_errors():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com"])
     assert result.exit_code == 0
     assert "Timeout" in result.output
@@ -159,7 +159,7 @@ def test_quiet_multipage_pass():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com", "--quiet"])
     assert result.exit_code == 0
 
@@ -171,7 +171,7 @@ def test_quiet_multipage_fail():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com", "--quiet"])
     assert result.exit_code == 1
 
@@ -187,7 +187,7 @@ def test_quiet_blocked_bots():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--quiet", "--fail-on-blocked-bots"]
         )
@@ -203,7 +203,7 @@ def test_audit_csv_single():
     async def _fake(url, **kwargs):
         return _report()
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--format", "csv"]
         )
@@ -217,7 +217,7 @@ def test_audit_csv_site():
     async def _fake(*a, **kw):
         return _site_report()
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--format", "csv"]
         )
@@ -230,7 +230,7 @@ def test_audit_markdown_single():
     async def _fake(url, **kwargs):
         return _report()
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--format", "markdown"]
         )
@@ -244,7 +244,7 @@ def test_audit_markdown_site():
     async def _fake(*a, **kw):
         return _site_report()
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--format", "markdown"]
         )
@@ -262,7 +262,7 @@ def test_verbose_robots_not_found():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
@@ -277,7 +277,7 @@ def test_verbose_llms_not_found():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
@@ -297,7 +297,7 @@ def test_verbose_with_bots():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
@@ -316,7 +316,7 @@ def test_verbose_llms_found():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
@@ -338,7 +338,7 @@ def test_verbose_schema_detail():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
@@ -362,7 +362,7 @@ def test_verbose_content_detail():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
@@ -380,7 +380,7 @@ def test_single_page_with_errors():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com", "--single"])
     assert result.exit_code == 0
     assert "Crawl failed" in result.output
@@ -420,9 +420,9 @@ def test_generate_warnings():
 
 def test_mcp_command():
     """mcp command calls mcp_server.run(transport='stdio') (lines 418-420)."""
-    import aeo_cli.server
+    import context_cli.server
 
-    with patch.object(aeo_cli.server, "mcp") as mock_mcp:
+    with patch.object(context_cli.server, "mcp") as mock_mcp:
         mock_mcp.run = MagicMock()
         result = runner.invoke(app, ["mcp"])
     mock_mcp.run.assert_called_once_with(transport="stdio")
@@ -442,7 +442,7 @@ def test_site_audit_progress_callback():
             progress_callback("Crawling page 2/3...")
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com"])
     assert result.exit_code == 0
 
@@ -457,7 +457,7 @@ def test_site_report_pages_failed():
     async def _fake(*a, **kw):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["audit", "https://example.com"])
     assert result.exit_code == 0
     assert "failed" in result.output
@@ -472,7 +472,7 @@ def test_fail_under_triggers_exit():
     async def _fake(url, **kwargs):
         return _report(score=30.0)
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--fail-under", "50"]
         )
@@ -490,7 +490,7 @@ def test_fail_on_blocked_bots_nonquiet():
     async def _fake(url, **kwargs):
         return report
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--fail-on-blocked-bots"]
         )
@@ -508,7 +508,7 @@ def test_github_step_summary(tmp_path):
         return _report(score=55.0)
 
     env = {**os.environ, "GITHUB_STEP_SUMMARY": str(summary_file)}
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake), \
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake), \
          patch.dict(os.environ, env, clear=True):
         result = runner.invoke(app, ["audit", "https://example.com", "--single"])
     assert result.exit_code == 0
@@ -525,7 +525,7 @@ def test_quiet_single_pass():
     async def _fake(url, **kwargs):
         return _report(score=60.0)
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--quiet"]
         )
@@ -538,7 +538,7 @@ def test_quiet_single_fail():
     async def _fake(url, **kwargs):
         return _report(score=30.0)
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--quiet"]
         )

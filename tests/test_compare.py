@@ -10,8 +10,8 @@ import pytest
 from rich.console import Console
 from typer.testing import CliRunner
 
-from aeo_cli.core.compare import build_compare_report, compare_urls
-from aeo_cli.core.models import (
+from context_cli.core.compare import build_compare_report, compare_urls
+from context_cli.core.models import (
     AuditReport,
     CompareReport,
     ContentReport,
@@ -20,8 +20,8 @@ from aeo_cli.core.models import (
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.formatters.compare import render_compare
-from aeo_cli.main import app
+from context_cli.formatters.compare import render_compare
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -123,7 +123,7 @@ def test_build_compare_report_includes_full_reports():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.compare.audit_url", new_callable=AsyncMock)
+@patch("context_cli.core.compare.audit_url", new_callable=AsyncMock)
 async def test_compare_urls_calls_both(mock_audit):
     """compare_urls should call audit_url twice, once per URL."""
     mock_audit.side_effect = [_high_report(), _low_report()]
@@ -136,7 +136,7 @@ async def test_compare_urls_calls_both(mock_audit):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.compare.audit_url", new_callable=AsyncMock)
+@patch("context_cli.core.compare.audit_url", new_callable=AsyncMock)
 async def test_compare_urls_passes_timeout(mock_audit):
     """compare_urls should forward timeout to audit_url."""
     mock_audit.return_value = _high_report()
@@ -147,7 +147,7 @@ async def test_compare_urls_passes_timeout(mock_audit):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.compare.audit_url", new_callable=AsyncMock)
+@patch("context_cli.core.compare.audit_url", new_callable=AsyncMock)
 async def test_compare_urls_passes_bots(mock_audit):
     """compare_urls should forward bots to audit_url."""
     mock_audit.return_value = _high_report()
@@ -216,7 +216,7 @@ def test_render_compare_tie():
 # ── CLI integration ─────────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.compare.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.cli.compare.compare_urls", new_callable=AsyncMock)
 def test_cli_compare_rich_output(mock_compare):
     """CLI compare renders Rich table output by default."""
     mock_compare.return_value = build_compare_report(
@@ -227,7 +227,7 @@ def test_cli_compare_rich_output(mock_compare):
     assert "Overall" in result.output
 
 
-@patch("aeo_cli.cli.compare.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.cli.compare.compare_urls", new_callable=AsyncMock)
 def test_cli_compare_json_output(mock_compare):
     """CLI compare --json produces valid JSON."""
     mock_compare.return_value = build_compare_report(
@@ -241,7 +241,7 @@ def test_cli_compare_json_output(mock_compare):
     assert "pillars" in data
 
 
-@patch("aeo_cli.cli.compare.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.cli.compare.compare_urls", new_callable=AsyncMock)
 def test_cli_compare_timeout_flag(mock_compare):
     """CLI compare --timeout passes through to compare_urls."""
     mock_compare.return_value = build_compare_report(
@@ -252,7 +252,7 @@ def test_cli_compare_timeout_flag(mock_compare):
     assert kwargs["timeout"] == 30
 
 
-@patch("aeo_cli.cli.compare.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.cli.compare.compare_urls", new_callable=AsyncMock)
 def test_cli_compare_bots_flag(mock_compare):
     """CLI compare --bots passes through as list."""
     mock_compare.return_value = build_compare_report(
@@ -263,7 +263,7 @@ def test_cli_compare_bots_flag(mock_compare):
     assert kwargs["bots"] == ["BotA", "BotB"]
 
 
-@patch("aeo_cli.cli.compare.compare_urls", new_callable=AsyncMock)
+@patch("context_cli.cli.compare.compare_urls", new_callable=AsyncMock)
 def test_cli_compare_no_bots_passes_none(mock_compare):
     """CLI compare without --bots passes bots=None."""
     mock_compare.return_value = build_compare_report(

@@ -7,7 +7,7 @@ readability_grade is None when word count < 30.
 
 from __future__ import annotations
 
-from aeo_cli.core.checks.content import _count_syllables, _readability_grade, check_content
+from context_cli.core.checks.content import _count_syllables, _readability_grade, check_content
 
 # ── Syllable counter tests ───────────────────────────────────────────────────
 

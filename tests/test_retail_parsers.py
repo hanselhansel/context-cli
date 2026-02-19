@@ -6,16 +6,16 @@ import json
 
 import pytest
 
-from aeo_cli.core.models import MarketplaceType, ProductData
-from aeo_cli.core.retail.parsers import detect_marketplace, get_parser
-from aeo_cli.core.retail.parsers.amazon import AmazonParser
-from aeo_cli.core.retail.parsers.base import BaseParser
-from aeo_cli.core.retail.parsers.blibli import BlibliParser
-from aeo_cli.core.retail.parsers.lazada import LazadaParser
-from aeo_cli.core.retail.parsers.shopee import ShopeeParser
-from aeo_cli.core.retail.parsers.tiktok_shop import TiktokShopParser
-from aeo_cli.core.retail.parsers.tokopedia import TokopediaParser
-from aeo_cli.core.retail.parsers.zalora import ZaloraParser
+from context_cli.core.models import MarketplaceType, ProductData
+from context_cli.core.retail.parsers import detect_marketplace, get_parser
+from context_cli.core.retail.parsers.amazon import AmazonParser
+from context_cli.core.retail.parsers.base import BaseParser
+from context_cli.core.retail.parsers.blibli import BlibliParser
+from context_cli.core.retail.parsers.lazada import LazadaParser
+from context_cli.core.retail.parsers.shopee import ShopeeParser
+from context_cli.core.retail.parsers.tiktok_shop import TiktokShopParser
+from context_cli.core.retail.parsers.tokopedia import TokopediaParser
+from context_cli.core.retail.parsers.zalora import ZaloraParser
 
 # ── ProductData model tests ──────────────────────────────────────────────────
 

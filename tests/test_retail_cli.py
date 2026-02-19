@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     ContentQualityReport,
     FeedComplianceReport,
     MarketplaceType,
@@ -17,8 +17,8 @@ from aeo_cli.core.models import (
     SocialProofReport,
     VisualAssetsReport,
 )
-from aeo_cli.main import app
-from aeo_cli.server import retail_audit_tool as _retail_tool_obj
+from context_cli.main import app
+from context_cli.server import retail_audit_tool as _retail_tool_obj
 
 runner = CliRunner()
 
@@ -125,7 +125,7 @@ class TestRetailCLIRegistration:
 class TestRetailCLIJsonOutput:
     """Test JSON output from the retail command."""
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_json_output_valid(self, mock_audit: AsyncMock) -> None:
         """--json should produce valid JSON with expected fields."""
         report = _make_retail_report()
@@ -146,7 +146,7 @@ class TestRetailCLIJsonOutput:
         assert "feed_compliance" in data
         assert "product_data" in data
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_json_output_pillar_scores(self, mock_audit: AsyncMock) -> None:
         """JSON output should include correct per-pillar scores."""
         report = _make_retail_report()
@@ -162,7 +162,7 @@ class TestRetailCLIJsonOutput:
         assert data["social_proof"]["score"] == 15.0
         assert data["feed_compliance"]["score"] == 5.0
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_json_output_with_errors(self, mock_audit: AsyncMock) -> None:
         """JSON output should include errors list."""
         report = _make_retail_report()
@@ -182,7 +182,7 @@ class TestRetailCLIJsonOutput:
 class TestRetailCLIRichOutput:
     """Test Rich (human-readable) output from the retail command."""
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_rich_output_shows_score(self, mock_audit: AsyncMock) -> None:
         """Rich output should show URL, marketplace, and overall score."""
         report = _make_retail_report()
@@ -196,7 +196,7 @@ class TestRetailCLIRichOutput:
         assert "72.5" in result.output
         assert "/100" in result.output
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_rich_output_shows_pillar_scores(self, mock_audit: AsyncMock) -> None:
         """Rich output should show per-pillar score breakdown."""
         report = _make_retail_report()
@@ -216,7 +216,7 @@ class TestRetailCLIRichOutput:
         assert "5.0" in result.output  # feed compliance
         assert "/10" in result.output
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_rich_output_generic_marketplace(self, mock_audit: AsyncMock) -> None:
         """Rich output should handle generic marketplace type."""
         report = _make_retail_report(
@@ -238,7 +238,7 @@ class TestRetailCLIRichOutput:
 class TestRetailCLIVerboseOutput:
     """Test verbose output with per-pillar details."""
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_verbose_shows_bullet_count(self, mock_audit: AsyncMock) -> None:
         """Verbose mode should show content details like bullet count."""
         report = _make_retail_report()
@@ -251,7 +251,7 @@ class TestRetailCLIVerboseOutput:
         assert "5" in result.output  # bullet_count
         assert "850" in result.output  # description_length
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_verbose_shows_image_info(self, mock_audit: AsyncMock) -> None:
         """Verbose mode should show visual assets details."""
         report = _make_retail_report()
@@ -264,7 +264,7 @@ class TestRetailCLIVerboseOutput:
         assert "7" in result.output  # image_count
         assert "5" in result.output  # images_with_alt
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_verbose_shows_review_info(self, mock_audit: AsyncMock) -> None:
         """Verbose mode should show social proof details."""
         report = _make_retail_report()
@@ -277,7 +277,7 @@ class TestRetailCLIVerboseOutput:
         assert "1247" in result.output  # review_count
         assert "4.3" in result.output  # rating
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_verbose_shows_schema_details(self, mock_audit: AsyncMock) -> None:
         """Verbose mode should show schema analysis details."""
         report = _make_retail_report()
@@ -290,7 +290,7 @@ class TestRetailCLIVerboseOutput:
         # Should mention schema presence
         assert "product" in result.output.lower() or "schema" in result.output.lower()
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_verbose_shows_feed_compliance(self, mock_audit: AsyncMock) -> None:
         """Verbose mode should show feed compliance details."""
         report = _make_retail_report()
@@ -309,7 +309,7 @@ class TestRetailCLIVerboseOutput:
 class TestRetailCLIErrorHandling:
     """Test error handling in the retail CLI command."""
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_error_exits_with_code_1(self, mock_audit: AsyncMock) -> None:
         """Audit errors should produce exit code 1."""
         mock_audit.side_effect = RuntimeError("Connection refused")
@@ -318,7 +318,7 @@ class TestRetailCLIErrorHandling:
         assert result.exit_code == 1
         assert "error" in result.output.lower()
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_error_message_displayed(self, mock_audit: AsyncMock) -> None:
         """Error message should be displayed to user."""
         mock_audit.side_effect = ValueError("Invalid product URL")
@@ -327,7 +327,7 @@ class TestRetailCLIErrorHandling:
         assert result.exit_code == 1
         assert "Invalid product URL" in result.output
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_report_with_errors_still_succeeds(self, mock_audit: AsyncMock) -> None:
         """Report with non-fatal errors should still exit 0."""
         report = _make_retail_report()
@@ -337,7 +337,7 @@ class TestRetailCLIErrorHandling:
         result = runner.invoke(app, ["retail", "https://example.com/product"])
         assert result.exit_code == 0
 
-    @patch("aeo_cli.cli.retail.retail_audit")
+    @patch("context_cli.cli.retail.retail_audit")
     def test_json_error_exits_with_code_1(self, mock_audit: AsyncMock) -> None:
         """Errors in --json mode should also exit with code 1."""
         mock_audit.side_effect = RuntimeError("Timeout")
@@ -360,7 +360,7 @@ class TestRetailMCPTool:
     """Test the retail_audit MCP tool in server.py."""
 
     @pytest.mark.asyncio
-    @patch("aeo_cli.core.retail.auditor.retail_audit")
+    @patch("context_cli.core.retail.auditor.retail_audit")
     async def test_mcp_tool_returns_dict(self, mock_audit: AsyncMock) -> None:
         """MCP tool should return a dict with correct structure."""
         report = _make_retail_report()
@@ -378,7 +378,7 @@ class TestRetailMCPTool:
         assert "feed_compliance" in result
 
     @pytest.mark.asyncio
-    @patch("aeo_cli.core.retail.auditor.retail_audit")
+    @patch("context_cli.core.retail.auditor.retail_audit")
     async def test_mcp_tool_error_handling(self, mock_audit: AsyncMock) -> None:
         """MCP tool should propagate errors from retail_audit."""
         mock_audit.side_effect = RuntimeError("Network error")
@@ -387,7 +387,7 @@ class TestRetailMCPTool:
             await _retail_fn(url="https://bad.example.com")
 
     @pytest.mark.asyncio
-    @patch("aeo_cli.core.retail.auditor.retail_audit")
+    @patch("context_cli.core.retail.auditor.retail_audit")
     async def test_mcp_tool_pillar_scores(self, mock_audit: AsyncMock) -> None:
         """MCP tool should include correct pillar scores in response."""
         report = _make_retail_report()
@@ -401,7 +401,7 @@ class TestRetailMCPTool:
         assert result["feed_compliance"]["score"] == 5.0
 
     @pytest.mark.asyncio
-    @patch("aeo_cli.core.retail.auditor.retail_audit")
+    @patch("context_cli.core.retail.auditor.retail_audit")
     async def test_mcp_tool_product_data(self, mock_audit: AsyncMock) -> None:
         """MCP tool should include parsed product data."""
         report = _make_retail_report()

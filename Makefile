@@ -30,15 +30,15 @@ build-check:
 # --- Worktree helpers for agent teams ---
 worktree-new:
 	@test -n "$(NAME)" || (echo "Usage: make worktree-new NAME=agent-name" && exit 1)
-	git worktree add ../aeo-cli-$(NAME) -b $(NAME)/work main
-	cd ../aeo-cli-$(NAME) && python3 -m pip install -e ".[dev]"
-	@echo "Worktree ready at ../aeo-cli-$(NAME)"
+	git worktree add ../context-cli-$(NAME) -b $(NAME)/work main
+	cd ../context-cli-$(NAME) && python3 -m pip install -e ".[dev]"
+	@echo "Worktree ready at ../context-cli-$(NAME)"
 
 worktree-remove:
 	@test -n "$(NAME)" || (echo "Usage: make worktree-remove NAME=agent-name" && exit 1)
-	git worktree remove ../aeo-cli-$(NAME) --force
+	git worktree remove ../context-cli-$(NAME) --force
 	git worktree prune
-	@echo "Worktree ../aeo-cli-$(NAME) removed"
+	@echo "Worktree ../context-cli-$(NAME) removed"
 
 worktree-list:
 	git worktree list

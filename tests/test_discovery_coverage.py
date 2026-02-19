@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from aeo_cli.core.discovery import discover_pages, fetch_sitemap_urls
+from context_cli.core.discovery import discover_pages, fetch_sitemap_urls
 
 # ---------------------------------------------------------------------------
 # Sitemap XML fixtures

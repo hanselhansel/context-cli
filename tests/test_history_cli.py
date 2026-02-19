@@ -7,15 +7,15 @@ from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.history import HistoryEntry
-from aeo_cli.core.models import (
+from context_cli.core.history import HistoryEntry
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     LlmsTxtReport,
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -51,7 +51,7 @@ def _report(score: float = 65.0) -> AuditReport:
 # ── history list (default) ─────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_list_shows_entries(mock_db_cls):
     """history <url> shows past audit entries."""
     mock_db = MagicMock()
@@ -68,7 +68,7 @@ def test_history_list_shows_entries(mock_db_cls):
     mock_db.close.assert_called_once()
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_list_empty(mock_db_cls):
     """history <url> shows message when no entries exist."""
     mock_db = MagicMock()
@@ -81,7 +81,7 @@ def test_history_list_empty(mock_db_cls):
     mock_db.close.assert_called_once()
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_list_limit(mock_db_cls):
     """history <url> --limit passes limit to DB."""
     mock_db = MagicMock()
@@ -95,7 +95,7 @@ def test_history_list_limit(mock_db_cls):
 # ── history --json ─────────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_json_output(mock_db_cls):
     """history <url> --json outputs valid JSON."""
     mock_db = MagicMock()
@@ -112,7 +112,7 @@ def test_history_json_output(mock_db_cls):
 # ── history --show <id> ────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_show_full_report(mock_db_cls):
     """history <url> --show <id> shows the full report."""
     mock_db = MagicMock()
@@ -125,7 +125,7 @@ def test_history_show_full_report(mock_db_cls):
     assert data["overall_score"] == 75.0
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_show_rich_output(mock_db_cls):
     """history <url> --show <id> renders report in Rich format by default."""
     mock_db = MagicMock()
@@ -137,7 +137,7 @@ def test_history_show_rich_output(mock_db_cls):
     assert "75" in result.output
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_show_not_found(mock_db_cls):
     """history <url> --show <id> when ID doesn't exist."""
     mock_db = MagicMock()
@@ -152,7 +152,7 @@ def test_history_show_not_found(mock_db_cls):
 # ── history --delete ───────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_delete(mock_db_cls):
     """history <url> --delete removes entries."""
     mock_db = MagicMock()
@@ -165,7 +165,7 @@ def test_history_delete(mock_db_cls):
     mock_db.close.assert_called_once()
 
 
-@patch("aeo_cli.cli.history.HistoryDB")
+@patch("context_cli.cli.history.HistoryDB")
 def test_history_delete_nothing(mock_db_cls):
     """history <url> --delete when no entries exist."""
     mock_db = MagicMock()

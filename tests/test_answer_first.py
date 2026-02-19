@@ -6,7 +6,7 @@ answer_first_ratio = fraction of sections with statement-first pattern.
 
 from __future__ import annotations
 
-from aeo_cli.core.checks.content import _answer_first_ratio, check_content
+from context_cli.core.checks.content import _answer_first_ratio, check_content
 
 # ── Direct answer_first_ratio tests ──────────────────────────────────────────
 

@@ -12,8 +12,8 @@ import httpx
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.checks.robots import AI_BOTS, check_robots
-from aeo_cli.main import app
+from context_cli.core.checks.robots import AI_BOTS, check_robots
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -84,13 +84,13 @@ async def test_check_robots_single_custom_bot_blocked():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_passes_bots(mock_robots, mock_llms, mock_crawl):
     """audit_url should forward bots param to check_robots."""
-    from aeo_cli.core.auditor import audit_url
-    from aeo_cli.core.models import LlmsTxtReport, RobotsReport
+    from context_cli.core.auditor import audit_url
+    from context_cli.core.models import LlmsTxtReport, RobotsReport
 
     mock_robots.return_value = (
         RobotsReport(found=True, detail="1/1 AI bots allowed"),
@@ -113,17 +113,17 @@ async def test_audit_url_passes_bots(mock_robots, mock_llms, mock_crawl):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_passes_bots(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_pages
 ):
     """audit_site should forward bots param to check_robots."""
-    from aeo_cli.core.auditor import audit_site
-    from aeo_cli.core.models import DiscoveryResult, LlmsTxtReport, RobotsReport
+    from context_cli.core.auditor import audit_site
+    from context_cli.core.models import DiscoveryResult, LlmsTxtReport, RobotsReport
 
     mock_robots.return_value = (
         RobotsReport(found=True, detail="1/1 AI bots allowed"),
@@ -149,11 +149,11 @@ async def test_audit_site_passes_bots(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.batch.audit_url", new_callable=AsyncMock)
+@patch("context_cli.core.batch.audit_url", new_callable=AsyncMock)
 async def test_batch_audit_passes_bots(mock_audit_url):
     """run_batch_audit should forward bots to audit_url."""
-    from aeo_cli.core.batch import run_batch_audit
-    from aeo_cli.core.models import (
+    from context_cli.core.batch import run_batch_audit
+    from context_cli.core.models import (
         AuditReport,
         ContentReport,
         LlmsTxtReport,
@@ -182,10 +182,10 @@ async def test_batch_audit_passes_bots(mock_audit_url):
 # ── CLI --bots flag ──────────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_bots_flag_parsed(mock_run_audit):
     """CLI --bots flag should parse comma-separated string into a list."""
-    from aeo_cli.core.models import (
+    from context_cli.core.models import (
         AuditReport,
         ContentReport,
         LlmsTxtReport,
@@ -209,10 +209,10 @@ def test_cli_bots_flag_parsed(mock_run_audit):
     assert kwargs.get("bots") == ["BotA", "BotB"]
 
 
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_no_bots_flag_passes_none(mock_run_audit):
     """Without --bots flag, bots=None should be passed."""
-    from aeo_cli.core.models import (
+    from context_cli.core.models import (
         AuditReport,
         ContentReport,
         LlmsTxtReport,

@@ -6,14 +6,14 @@ from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     LlmsTxtReport,
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -35,8 +35,8 @@ def _make_report(url: str = "https://example.com", score: float = 75.0) -> Audit
 
 
 class TestWatchCommand:
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_runs_one_iteration_then_ctrl_c(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -46,8 +46,8 @@ class TestWatchCommand:
         assert "Run #1" in result.output
         mock_run.assert_called_once()
 
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_with_json_flag(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -57,8 +57,8 @@ class TestWatchCommand:
         # Should contain JSON-ish output (url key)
         assert "example.com" in result.output
 
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_with_single_flag(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -69,9 +69,9 @@ class TestWatchCommand:
         assert result.exit_code == 0
         assert "Run #1" in result.output
 
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
-    @patch("aeo_cli.cli.watch._save_to_history")
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch._save_to_history")
     def test_watch_with_save_flag(
         self, mock_save: MagicMock, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -84,8 +84,8 @@ class TestWatchCommand:
 
 
 class TestWatchFailUnder:
-    @patch("aeo_cli.cli.watch.time.sleep")
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report(score=40.0))
+    @patch("context_cli.cli.watch.time.sleep")
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report(score=40.0))
     def test_watch_fail_under_exits_on_low_score(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -95,8 +95,8 @@ class TestWatchFailUnder:
         )
         assert result.exit_code == 1
 
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report(score=80.0))
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report(score=80.0))
     def test_watch_fail_under_continues_on_passing_score(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -109,8 +109,8 @@ class TestWatchFailUnder:
 
 
 class TestWatchGracefulShutdown:
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_ctrl_c_prints_summary(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -119,7 +119,7 @@ class TestWatchGracefulShutdown:
         assert result.exit_code == 0
         assert "Stopped" in result.output or "1 run" in result.output
 
-    @patch("aeo_cli.cli.watch.asyncio.run", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", side_effect=KeyboardInterrupt)
     def test_watch_ctrl_c_during_audit(self, mock_run: MagicMock) -> None:
         """Ctrl+C during audit itself still exits gracefully."""
         result = runner.invoke(app, ["watch", "https://example.com"])
@@ -128,8 +128,8 @@ class TestWatchGracefulShutdown:
 
 
 class TestWatchRunCounter:
-    @patch("aeo_cli.cli.watch.time.sleep")
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep")
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_displays_run_counter(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -152,8 +152,8 @@ class TestWatchRunCounter:
 
 
 class TestWatchBotsOption:
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_with_custom_bots(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -165,8 +165,8 @@ class TestWatchBotsOption:
 
 
 class TestWatchUrlNormalization:
-    @patch("aeo_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
-    @patch("aeo_cli.cli.watch.asyncio.run", return_value=_make_report())
+    @patch("context_cli.cli.watch.time.sleep", side_effect=KeyboardInterrupt)
+    @patch("context_cli.cli.watch.asyncio.run", return_value=_make_report())
     def test_watch_prepends_https(
         self, mock_run: MagicMock, mock_sleep: MagicMock,
     ) -> None:
@@ -179,22 +179,22 @@ class TestWatchUrlNormalization:
 
 
 class TestSaveToHistory:
-    @patch("aeo_cli.cli.watch.HistoryDB")
+    @patch("context_cli.cli.watch.HistoryDB")
     def test_save_to_history_no_previous(self, mock_db_cls: MagicMock) -> None:
         """Save to history when no previous report exists."""
         mock_db = MagicMock()
         mock_db.get_latest_report.return_value = None
         mock_db_cls.return_value = mock_db
 
-        from aeo_cli.cli.watch import _save_to_history
+        from context_cli.cli.watch import _save_to_history
 
         report = _make_report()
         _save_to_history(report)
         mock_db.save.assert_called_once_with(report)
         mock_db.close.assert_called_once()
 
-    @patch("aeo_cli.cli.watch.detect_regression")
-    @patch("aeo_cli.cli.watch.HistoryDB")
+    @patch("context_cli.cli.watch.detect_regression")
+    @patch("context_cli.cli.watch.HistoryDB")
     def test_save_to_history_with_regression(
         self, mock_db_cls: MagicMock, mock_detect: MagicMock,
     ) -> None:
@@ -211,15 +211,15 @@ class TestSaveToHistory:
         mock_result.current_score = 75.0
         mock_detect.return_value = mock_result
 
-        from aeo_cli.cli.watch import _save_to_history
+        from context_cli.cli.watch import _save_to_history
 
         report = _make_report(score=75.0)
         _save_to_history(report)
         mock_detect.assert_called_once()
         mock_db.close.assert_called_once()
 
-    @patch("aeo_cli.cli.watch.detect_regression")
-    @patch("aeo_cli.cli.watch.HistoryDB")
+    @patch("context_cli.cli.watch.detect_regression")
+    @patch("context_cli.cli.watch.HistoryDB")
     def test_save_to_history_no_regression(
         self, mock_db_cls: MagicMock, mock_detect: MagicMock,
     ) -> None:
@@ -233,20 +233,20 @@ class TestSaveToHistory:
         mock_result.has_regression = False
         mock_detect.return_value = mock_result
 
-        from aeo_cli.cli.watch import _save_to_history
+        from context_cli.cli.watch import _save_to_history
 
         report = _make_report(score=75.0)
         _save_to_history(report)
         mock_detect.assert_called_once()
 
-    @patch("aeo_cli.cli.watch.HistoryDB")
+    @patch("context_cli.cli.watch.HistoryDB")
     def test_save_to_history_handles_exception(self, mock_db_cls: MagicMock) -> None:
         """Save to history catches exceptions gracefully."""
         mock_db = MagicMock()
         mock_db.get_latest_report.side_effect = RuntimeError("db error")
         mock_db_cls.return_value = mock_db
 
-        from aeo_cli.cli.watch import _save_to_history
+        from context_cli.cli.watch import _save_to_history
 
         report = _make_report()
         # Should not raise

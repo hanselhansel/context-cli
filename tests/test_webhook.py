@@ -8,7 +8,7 @@ import httpx
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -18,8 +18,8 @@ from aeo_cli.core.models import (
     SiteAuditReport,
     WebhookPayload,
 )
-from aeo_cli.core.webhook import build_webhook_payload, send_webhook
-from aeo_cli.main import app
+from context_cli.core.webhook import build_webhook_payload, send_webhook
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -118,7 +118,7 @@ async def test_send_webhook_success():
         timestamp="2026-01-01T00:00:00Z",
     )
     mock_response = httpx.Response(200, request=httpx.Request("POST", "https://hooks.example.com"))
-    with patch("aeo_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
+    with patch("context_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.post.return_value = mock_response
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -144,7 +144,7 @@ async def test_send_webhook_failure_returns_false():
         timestamp="2026-01-01T00:00:00Z",
     )
     mock_response = httpx.Response(500, request=httpx.Request("POST", "https://hooks.example.com"))
-    with patch("aeo_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
+    with patch("context_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.post.return_value = mock_response
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -168,7 +168,7 @@ async def test_send_webhook_timeout_returns_false():
         content_score=25.0,
         timestamp="2026-01-01T00:00:00Z",
     )
-    with patch("aeo_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
+    with patch("context_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.post.side_effect = httpx.TimeoutException("timeout")
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -192,7 +192,7 @@ async def test_send_webhook_connection_error_returns_false():
         content_score=25.0,
         timestamp="2026-01-01T00:00:00Z",
     )
-    with patch("aeo_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
+    with patch("context_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.post.side_effect = httpx.ConnectError("connection refused")
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -217,7 +217,7 @@ async def test_send_webhook_posts_json_payload():
         timestamp="2026-01-01T00:00:00Z",
     )
     mock_response = httpx.Response(200, request=httpx.Request("POST", "https://hooks.example.com"))
-    with patch("aeo_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
+    with patch("context_cli.core.webhook.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client.post.return_value = mock_response
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -262,10 +262,10 @@ def test_cli_webhook_flag_single():
         return True
 
     with (
-        patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit),
-        patch("aeo_cli.core.webhook.send_webhook", side_effect=_fake_send) as mock_send,
+        patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit),
+        patch("context_cli.core.webhook.send_webhook", side_effect=_fake_send) as mock_send,
         patch(
-            "aeo_cli.core.webhook.build_webhook_payload",
+            "context_cli.core.webhook.build_webhook_payload",
             return_value=WebhookPayload(
                 url="https://example.com",
                 overall_score=72.5,
@@ -297,10 +297,10 @@ def test_cli_webhook_flag_site():
         return True
 
     with (
-        patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_audit),
-        patch("aeo_cli.core.webhook.send_webhook", side_effect=_fake_send) as mock_send,
+        patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit),
+        patch("context_cli.core.webhook.send_webhook", side_effect=_fake_send) as mock_send,
         patch(
-            "aeo_cli.core.webhook.build_webhook_payload",
+            "context_cli.core.webhook.build_webhook_payload",
             return_value=WebhookPayload(
                 url="https://example.com",
                 overall_score=68.0,
@@ -331,10 +331,10 @@ def test_cli_webhook_failure_does_not_crash():
         return False
 
     with (
-        patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit),
-        patch("aeo_cli.core.webhook.send_webhook", side_effect=_fake_send),
+        patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit),
+        patch("context_cli.core.webhook.send_webhook", side_effect=_fake_send),
         patch(
-            "aeo_cli.core.webhook.build_webhook_payload",
+            "context_cli.core.webhook.build_webhook_payload",
             return_value=WebhookPayload(
                 url="https://example.com",
                 overall_score=72.5,
@@ -362,9 +362,9 @@ def test_cli_webhook_exception_does_not_crash():
         return _mock_report()
 
     with (
-        patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit),
+        patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit),
         patch(
-            "aeo_cli.core.webhook.build_webhook_payload",
+            "context_cli.core.webhook.build_webhook_payload",
             side_effect=RuntimeError("unexpected error"),
         ),
     ):

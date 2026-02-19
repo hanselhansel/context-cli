@@ -8,19 +8,19 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     BatchGenerateConfig,
     BatchGenerateResult,
     BatchPageResult,
     ProfileType,
 )
-from aeo_cli.main import app
-from aeo_cli.server import generate_batch_tool
+from context_cli.main import app
+from context_cli.server import generate_batch_tool
 
 runner = CliRunner()
 
 
-_PATCH_TARGET = "aeo_cli.core.generate.batch.generate_batch"
+_PATCH_TARGET = "context_cli.core.generate.batch.generate_batch"
 
 
 def _mock_batch_result(
@@ -275,7 +275,7 @@ def test_generate_batch_litellm_import_error(tmp_path):
     original_import = builtins.__import__
 
     def _mock_import(name, *args, **kwargs):
-        if name == "aeo_cli.core.generate.batch":
+        if name == "context_cli.core.generate.batch":
             raise ImportError("No module named 'litellm'")
         return original_import(name, *args, **kwargs)
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import DomainCategory
-from aeo_cli.core.radar.domains import (
+from context_cli.core.models import DomainCategory
+from context_cli.core.radar.domains import (
     DOMAIN_REGISTRY,
     _extract_root_domain,
     classify_domain,

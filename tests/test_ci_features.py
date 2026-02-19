@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,
@@ -17,7 +17,7 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -84,7 +84,7 @@ async def _fake_audit_site_low(url: str, *, max_pages: int = 10, **kwargs) -> Si
 
 def test_fail_under_exits_1_below_threshold():
     """--fail-under exits 1 when score is below the threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--fail-under", "70"]
         )
@@ -93,7 +93,7 @@ def test_fail_under_exits_1_below_threshold():
 
 def test_fail_under_exits_0_above_threshold():
     """--fail-under exits 0 when score is at or above the threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--fail-under", "50"]
         )
@@ -102,14 +102,14 @@ def test_fail_under_exits_0_above_threshold():
 
 def test_quiet_backwards_compat_default_threshold():
     """--quiet without --fail-under uses default threshold of 50."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         # score=55, threshold=50 → exit 0
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--quiet"]
         )
     assert result.exit_code == 0
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_low):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_low):
         # score=30, threshold=50 → exit 1
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--quiet"]
@@ -119,7 +119,7 @@ def test_quiet_backwards_compat_default_threshold():
 
 def test_fail_under_with_json_outputs_before_exit():
     """--fail-under with --json should still output JSON before exiting."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--json", "--fail-under", "70"],
@@ -132,7 +132,7 @@ def test_fail_under_with_json_outputs_before_exit():
 
 def test_fail_under_with_markdown():
     """--fail-under with --format markdown should still output markdown before exiting."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             [
@@ -150,7 +150,7 @@ def test_fail_under_with_markdown():
 
 def test_fail_on_blocked_bots_exits_2():
     """--fail-on-blocked-bots exits 2 when bots are blocked."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_blocked):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_blocked):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--fail-on-blocked-bots"],
@@ -160,7 +160,7 @@ def test_fail_on_blocked_bots_exits_2():
 
 def test_blocked_bots_priority_over_score_failure():
     """Blocked bots (exit 2) takes priority over score failure (exit 1)."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_low_blocked):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_low_blocked):
         result = runner.invoke(
             app,
             [
@@ -177,7 +177,7 @@ def test_blocked_bots_priority_over_score_failure():
 
 def test_fail_under_with_site_audit():
     """--fail-under works with multi-page site audit."""
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_audit_site_low):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site_low):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--json", "--fail-under", "60"],

@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-from aeo_cli.core.models import RetryConfig
-from aeo_cli.core.retry import request_with_retry
+from context_cli.core.models import RetryConfig
+from context_cli.core.retry import request_with_retry
 
 
 @pytest.mark.asyncio
@@ -42,7 +42,7 @@ async def test_retry_on_429():
     mock_client.request = AsyncMock(side_effect=[response_429, response_200])
 
     config = RetryConfig(max_retries=3, backoff_base=0.01)
-    with patch("aeo_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
+    with patch("context_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
         result = await request_with_retry(
             mock_client, "GET", "https://example.com", retry_config=config
         )
@@ -61,7 +61,7 @@ async def test_retry_exhausted_returns_last_response():
     mock_client.request = AsyncMock(return_value=response_503)
 
     config = RetryConfig(max_retries=2, backoff_base=0.01)
-    with patch("aeo_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
+    with patch("context_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
         result = await request_with_retry(
             mock_client, "GET", "https://example.com", retry_config=config
         )
@@ -82,7 +82,7 @@ async def test_retry_on_network_error():
     )
 
     config = RetryConfig(max_retries=3, backoff_base=0.01)
-    with patch("aeo_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
+    with patch("context_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
         result = await request_with_retry(
             mock_client, "GET", "https://example.com", retry_config=config
         )
@@ -131,7 +131,7 @@ async def test_retry_exhausted_raises_last_exception():
     )
 
     config = RetryConfig(max_retries=1, backoff_base=0.01)
-    with patch("aeo_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
+    with patch("context_cli.core.retry.asyncio.sleep", new_callable=AsyncMock):
         with pytest.raises(httpx.ConnectError, match="Connection refused"):
             await request_with_retry(
                 mock_client, "GET", "https://example.com", retry_config=config

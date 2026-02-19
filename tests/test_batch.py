@@ -8,8 +8,8 @@ from unittest.mock import patch
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.batch import parse_url_file, run_batch_audit
-from aeo_cli.core.models import (
+from context_cli.core.batch import parse_url_file, run_batch_audit
+from context_cli.core.models import (
     AuditReport,
     BatchAuditReport,
     ContentReport,
@@ -19,7 +19,7 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -148,7 +148,7 @@ async def test_run_batch_audit_single_mode():
     async def _fake(url, **kwargs):
         return _report(url)
 
-    with patch("aeo_cli.core.batch.audit_url", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_url", side_effect=_fake):
         result = await run_batch_audit(
             ["https://a.com", "https://b.com"], single=True
         )
@@ -165,7 +165,7 @@ async def test_run_batch_audit_site_mode():
     async def _fake(url, **kwargs):
         return _site_report(url)
 
-    with patch("aeo_cli.core.batch.audit_site", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_site", side_effect=_fake):
         result = await run_batch_audit(
             ["https://a.com", "https://b.com"], single=False
         )
@@ -186,7 +186,7 @@ async def test_run_batch_audit_error_handling():
             raise RuntimeError("Connection refused")
         return _report(url)
 
-    with patch("aeo_cli.core.batch.audit_url", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_url", side_effect=_fake):
         result = await run_batch_audit(
             ["https://good.com", "https://bad.com"], single=True
         )
@@ -214,7 +214,7 @@ async def test_run_batch_audit_concurrency():
         return _report(url)
 
     urls = [f"https://site{i}.com" for i in range(6)]
-    with patch("aeo_cli.core.batch.audit_url", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_url", side_effect=_fake):
         result = await run_batch_audit(urls, single=True, concurrency=2)
 
     assert len(result.reports) == 6
@@ -230,7 +230,7 @@ async def test_run_batch_audit_passes_timeout():
         captured_kwargs.append(kwargs)
         return _report(url)
 
-    with patch("aeo_cli.core.batch.audit_url", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_url", side_effect=_fake):
         await run_batch_audit(["https://a.com"], single=True, timeout=45)
 
     assert captured_kwargs[0]["timeout"] == 45
@@ -245,7 +245,7 @@ async def test_run_batch_audit_passes_max_pages():
         captured_kwargs.append(kwargs)
         return _site_report(url)
 
-    with patch("aeo_cli.core.batch.audit_site", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_site", side_effect=_fake):
         await run_batch_audit(["https://a.com"], single=False, max_pages=5)
 
     assert captured_kwargs[0]["max_pages"] == 5
@@ -259,7 +259,7 @@ async def test_run_batch_audit_progress_callback():
     async def _fake(url, **kwargs):
         return _report(url)
 
-    with patch("aeo_cli.core.batch.audit_url", side_effect=_fake):
+    with patch("context_cli.core.batch.audit_url", side_effect=_fake):
         await run_batch_audit(
             ["https://a.com", "https://b.com"],
             single=True,
@@ -283,7 +283,7 @@ def test_cli_file_flag_json(tmp_path):
             reports=[_report("https://a.com"), _report("https://b.com")],
         )
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "--file", str(url_file), "--json"]
         )
@@ -305,7 +305,7 @@ def test_cli_file_flag_rich(tmp_path):
             reports=[_report("https://a.com", score=55.0)],
         )
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(app, ["audit", "--file", str(url_file)])
 
     assert result.exit_code == 0
@@ -325,7 +325,7 @@ def test_cli_file_flag_with_errors(tmp_path):
             errors={"https://bad.com": "Connection refused"},
         )
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(app, ["audit", "--file", str(url_file)])
 
     assert result.exit_code == 0
@@ -343,7 +343,7 @@ def test_cli_concurrency_flag(tmp_path):
         captured.append(kwargs)
         return BatchAuditReport(urls=urls, reports=[_report("https://a.com")])
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "--file", str(url_file), "--concurrency", "5", "--json"]
         )
@@ -374,7 +374,7 @@ def test_cli_file_flag_csv_format(tmp_path):
     async def _fake(urls, **kwargs):
         return BatchAuditReport(urls=urls, reports=[_report("https://a.com")])
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "--file", str(url_file), "--format", "csv"]
         )
@@ -392,7 +392,7 @@ def test_cli_file_flag_markdown_format(tmp_path):
     async def _fake(urls, **kwargs):
         return BatchAuditReport(urls=urls, reports=[_report("https://a.com")])
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "--file", str(url_file), "--format", "markdown"]
         )
@@ -411,7 +411,7 @@ def test_cli_file_flag_passes_single(tmp_path):
         captured.append(kwargs)
         return BatchAuditReport(urls=urls, reports=[_report("https://a.com")])
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "--file", str(url_file), "--single", "--json"]
         )
@@ -430,7 +430,7 @@ def test_cli_file_flag_passes_timeout(tmp_path):
         captured.append(kwargs)
         return BatchAuditReport(urls=urls, reports=[_report("https://a.com")])
 
-    with patch("aeo_cli.core.batch.run_batch_audit", side_effect=_fake):
+    with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
             app, ["audit", "--file", str(url_file), "--timeout", "30", "--json"]
         )
@@ -452,7 +452,7 @@ def test_cli_file_empty_urls(tmp_path):
 
 def test_batch_markdown_with_errors():
     """format_batch_report_md should include error section when errors exist."""
-    from aeo_cli.formatters.markdown import format_batch_report_md
+    from context_cli.formatters.markdown import format_batch_report_md
 
     batch = BatchAuditReport(
         urls=["https://a.com", "https://bad.com"],

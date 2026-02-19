@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     CitationSource,
     ModelRadarResult,
     RadarConfig,
     RadarReport,
 )
-from aeo_cli.core.radar.analyzer import (
+from context_cli.core.radar.analyzer import (
     NEGATIVE_WORDS,
     POSITIVE_WORDS,
     _collect_domains,

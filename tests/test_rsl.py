@@ -1,7 +1,7 @@
 """Tests for RSL (Really Simple Licensing) robots.txt analysis."""
 
-from aeo_cli.core.checks.rsl import check_rsl
-from aeo_cli.core.models import RslReport
+from context_cli.core.checks.rsl import check_rsl
+from context_cli.core.models import RslReport
 
 
 class TestCheckRsl:

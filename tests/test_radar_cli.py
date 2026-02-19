@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     BrandMention,
     CitationSource,
     DomainCategory,
@@ -16,13 +16,13 @@ from aeo_cli.core.models import (
     RadarConfig,
     RadarReport,
 )
-from aeo_cli.main import app
-from aeo_cli.server import radar as radar_tool
+from context_cli.main import app
+from context_cli.server import radar as radar_tool
 
 runner = CliRunner()
 
-_PATCH_QUERY = "aeo_cli.core.radar.query.query_models"
-_PATCH_ANALYZER = "aeo_cli.core.radar.analyzer.build_radar_report"
+_PATCH_QUERY = "context_cli.core.radar.query.query_models"
+_PATCH_ANALYZER = "context_cli.core.radar.analyzer.build_radar_report"
 
 
 def _mock_model_results() -> list[ModelRadarResult]:
@@ -248,7 +248,7 @@ def test_radar_litellm_import_error():
     original_import = builtins.__import__
 
     def _mock_import(name, *args, **kwargs):
-        if name == "aeo_cli.core.radar.query":
+        if name == "context_cli.core.radar.query":
             raise ImportError("No module named 'litellm'")
         return original_import(name, *args, **kwargs)
 
@@ -472,18 +472,18 @@ def test_domain_category_fields():
 
 def test_radar_package_importable():
     """The radar package should be importable."""
-    import aeo_cli.core.radar  # noqa: F401
+    import context_cli.core.radar  # noqa: F401
 
 
 def test_radar_query_importable():
     """query_models should be importable from the radar query module."""
-    from aeo_cli.core.radar.query import query_models
+    from context_cli.core.radar.query import query_models
 
     assert callable(query_models)
 
 
 def test_radar_analyzer_importable():
     """build_radar_report should be importable from the radar analyzer module."""
-    from aeo_cli.core.radar.analyzer import build_radar_report
+    from context_cli.core.radar.analyzer import build_radar_report
 
     assert callable(build_radar_report)

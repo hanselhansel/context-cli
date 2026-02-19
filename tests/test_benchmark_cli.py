@@ -9,14 +9,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     BenchmarkConfig,
     BenchmarkReport,
     ModelBenchmarkSummary,
     PromptBenchmarkResult,
     PromptEntry,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -89,7 +89,7 @@ class TestBenchmarkCLIPromptFileValidation:
         )
         assert result.exit_code != 0
 
-    @patch("aeo_cli.core.benchmark.loader.load_prompts", return_value=[])
+    @patch("context_cli.core.benchmark.loader.load_prompts", return_value=[])
     def test_empty_prompts_file(self, mock_load: MagicMock, tmp_path: Path) -> None:
         """Should fail if prompts file contains no prompts after loading."""
         f = tmp_path / "empty.txt"
@@ -102,8 +102,8 @@ class TestBenchmarkCLIPromptFileValidation:
 class TestBenchmarkCLIFlow:
     """Tests for the full benchmark CLI flow (with mocked core functions)."""
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_basic_run_rich_output(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -121,8 +121,8 @@ class TestBenchmarkCLIFlow:
         assert "TestBrand" in result.output
         assert "75" in result.output or "0.75" in result.output
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_json_output(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -141,8 +141,8 @@ class TestBenchmarkCLIFlow:
         assert data["config"]["brand"] == "TestBrand"
         assert "overall_mention_rate" in data
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_competitor_flags(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -169,8 +169,8 @@ class TestBenchmarkCLIFlow:
         )
         assert result.exit_code == 0
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_model_flags(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -196,8 +196,8 @@ class TestBenchmarkCLIFlow:
         )
         assert result.exit_code == 0
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_runs_flag(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -213,8 +213,8 @@ class TestBenchmarkCLIFlow:
         )
         assert result.exit_code == 0
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_cost_display(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -231,8 +231,8 @@ class TestBenchmarkCLIFlow:
         assert result.exit_code == 0
         assert "$" in result.output
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_exception_handling(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -248,8 +248,8 @@ class TestBenchmarkCLIFlow:
         )
         assert result.exit_code != 0
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_rich_output_per_model(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -275,8 +275,8 @@ class TestBenchmarkCLIFlow:
         assert result.exit_code == 0
         assert "gpt-4o-mini" in result.output
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_rich_output_per_prompt(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -297,8 +297,8 @@ class TestBenchmarkCLIFlow:
 class TestBenchmarkCLICostConfirmation:
     """Tests for the cost confirmation prompt."""
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_cost_confirmation_abort(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -316,8 +316,8 @@ class TestBenchmarkCLICostConfirmation:
         # Should abort (exit code != 0 or not run)
         mock_run.assert_not_called()
 
-    @patch("aeo_cli.cli.benchmark._run_benchmark")
-    @patch("aeo_cli.core.benchmark.loader.load_prompts")
+    @patch("context_cli.cli.benchmark._run_benchmark")
+    @patch("context_cli.core.benchmark.loader.load_prompts")
     def test_cost_confirmation_proceed(
         self, mock_load: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -340,7 +340,7 @@ class TestBenchmarkCLILitellmImportError:
     """Tests for litellm import error handling."""
 
     @patch(
-        "aeo_cli.core.benchmark.loader.load_prompts",
+        "context_cli.core.benchmark.loader.load_prompts",
         side_effect=ImportError("No module named 'litellm'"),
     )
     def test_litellm_import_error_on_call(
@@ -367,7 +367,7 @@ class TestBenchmarkCLILitellmImportError:
         original_import = builtins.__import__
 
         def mock_import(name: str, *args: object, **kwargs: object) -> object:
-            if name == "aeo_cli.core.benchmark.loader":
+            if name == "context_cli.core.benchmark.loader":
                 raise ImportError("No module named 'litellm'")
             return original_import(name, *args, **kwargs)
 
@@ -382,9 +382,9 @@ class TestBenchmarkCLILitellmImportError:
 class TestRunBenchmarkFunction:
     """Tests for _run_benchmark() to cover the function body directly."""
 
-    @patch("aeo_cli.core.benchmark.metrics.compute_report")
-    @patch("aeo_cli.core.benchmark.judge.judge_all", new_callable=AsyncMock)
-    @patch("aeo_cli.core.benchmark.dispatcher.dispatch_queries", new_callable=AsyncMock)
+    @patch("context_cli.core.benchmark.metrics.compute_report")
+    @patch("context_cli.core.benchmark.judge.judge_all", new_callable=AsyncMock)
+    @patch("context_cli.core.benchmark.dispatcher.dispatch_queries", new_callable=AsyncMock)
     def test_run_benchmark_calls_pipeline(
         self,
         mock_dispatch: AsyncMock,
@@ -392,7 +392,7 @@ class TestRunBenchmarkFunction:
         mock_compute: MagicMock,
     ) -> None:
         """_run_benchmark should call dispatch, judge, and compute in sequence."""
-        from aeo_cli.cli.benchmark import _run_benchmark
+        from context_cli.cli.benchmark import _run_benchmark
 
         config = BenchmarkConfig(
             prompts=[_pe("p1")], brand="B", models=["gpt-4o-mini"], runs_per_model=1
@@ -415,24 +415,24 @@ class TestBenchmarkMCPTool:
     @pytest.mark.asyncio
     async def test_mcp_benchmark_tool(self) -> None:
         """MCP benchmark tool should accept prompts list and return dict."""
-        from aeo_cli.server import benchmark_tool
+        from context_cli.server import benchmark_tool
 
         # FastMCP 2.x wraps @mcp.tool functions in FunctionTool; access via .fn
         _bench_fn = benchmark_tool.fn if hasattr(benchmark_tool, "fn") else benchmark_tool
 
         with (
             patch(
-                "aeo_cli.core.benchmark.dispatcher.dispatch_queries",
+                "context_cli.core.benchmark.dispatcher.dispatch_queries",
                 new_callable=AsyncMock,
                 return_value=["response1"],
             ),
             patch(
-                "aeo_cli.core.benchmark.judge.judge_all",
+                "context_cli.core.benchmark.judge.judge_all",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
             patch(
-                "aeo_cli.core.benchmark.metrics.compute_report",
+                "context_cli.core.benchmark.metrics.compute_report",
                 return_value=_make_report(),
             ),
         ):
@@ -449,23 +449,23 @@ class TestBenchmarkMCPTool:
     @pytest.mark.asyncio
     async def test_mcp_benchmark_defaults(self) -> None:
         """MCP tool should work with default parameters."""
-        from aeo_cli.server import benchmark_tool
+        from context_cli.server import benchmark_tool
 
         _bench_fn = benchmark_tool.fn if hasattr(benchmark_tool, "fn") else benchmark_tool
 
         with (
             patch(
-                "aeo_cli.core.benchmark.dispatcher.dispatch_queries",
+                "context_cli.core.benchmark.dispatcher.dispatch_queries",
                 new_callable=AsyncMock,
                 return_value=["response1"],
             ),
             patch(
-                "aeo_cli.core.benchmark.judge.judge_all",
+                "context_cli.core.benchmark.judge.judge_all",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
             patch(
-                "aeo_cli.core.benchmark.metrics.compute_report",
+                "context_cli.core.benchmark.metrics.compute_report",
                 return_value=_make_report(),
             ),
         ):

@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     GenerateResult,
     LlmsTxtContent,
     LlmsTxtLink,
@@ -15,14 +15,14 @@ from aeo_cli.core.models import (
     ProfileType,
     SchemaJsonLdOutput,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
 # Patch target: generate_assets is lazily imported inside the generate command
-# via `from aeo_cli.core.generate import generate_assets`, so we patch
+# via `from context_cli.core.generate import generate_assets`, so we patch
 # at the source module level.
-_PATCH_TARGET = "aeo_cli.core.generate.generate_assets"
+_PATCH_TARGET = "context_cli.core.generate.generate_assets"
 
 
 def _mock_generate_result() -> GenerateResult:
@@ -134,7 +134,7 @@ def test_generate_missing_litellm():
     original_import = builtins.__import__
 
     def _mock_import(name, *args, **kwargs):
-        if name == "aeo_cli.core.generate":
+        if name == "context_cli.core.generate":
             raise ImportError("No module named 'litellm'")
         return original_import(name, *args, **kwargs)
 

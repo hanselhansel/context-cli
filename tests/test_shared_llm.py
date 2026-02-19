@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
-from aeo_cli.core.cost import MODEL_COSTS, estimate_cost, format_cost
-from aeo_cli.core.llm import (
+from context_cli.core.cost import MODEL_COSTS, estimate_cost, format_cost
+from context_cli.core.llm import (
     LLMError,
     call_llm_structured,
     detect_model,
@@ -50,14 +50,14 @@ def test_detect_model_anthropic():
 def test_detect_model_ollama():
     """Should use Ollama when running locally."""
     with patch.dict("os.environ", {}, clear=True):
-        with patch("aeo_cli.core.llm._check_ollama_running", return_value=True):
+        with patch("context_cli.core.llm._check_ollama_running", return_value=True):
             assert detect_model() == "ollama/llama3.2"
 
 
 def test_detect_model_none():
     """Should raise LLMError when no provider found."""
     with patch.dict("os.environ", {}, clear=True):
-        with patch("aeo_cli.core.llm._check_ollama_running", return_value=False):
+        with patch("context_cli.core.llm._check_ollama_running", return_value=False):
             with pytest.raises(LLMError, match="No LLM provider found"):
                 detect_model()
 
@@ -67,18 +67,18 @@ def test_detect_model_none():
 
 def test_check_ollama_running_true():
     """Should return True when Ollama responds with 200."""
-    from aeo_cli.core.llm import _check_ollama_running
+    from context_cli.core.llm import _check_ollama_running
 
     mock_resp = MagicMock(status_code=200)
-    with patch("aeo_cli.core.llm.httpx.get", return_value=mock_resp):
+    with patch("context_cli.core.llm.httpx.get", return_value=mock_resp):
         assert _check_ollama_running() is True
 
 
 def test_check_ollama_running_false():
     """Should return False when Ollama is not running."""
-    from aeo_cli.core.llm import _check_ollama_running
+    from context_cli.core.llm import _check_ollama_running
 
-    with patch("aeo_cli.core.llm.httpx.get", side_effect=ConnectionError):
+    with patch("context_cli.core.llm.httpx.get", side_effect=ConnectionError):
         assert _check_ollama_running() is False
 
 
@@ -97,7 +97,7 @@ async def test_call_llm_structured_success():
     mock_resp.choices[0].message.content = '{"name":"test","score":42.0}'
 
     with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_resp):
-        with patch("aeo_cli.core.llm.ensure_litellm"):
+        with patch("context_cli.core.llm.ensure_litellm"):
             result = await call_llm_structured(
                 [{"role": "user", "content": "test"}],
                 "gpt-4o-mini",
@@ -118,7 +118,7 @@ async def test_call_llm_structured_format_error_fallback():
         new_callable=AsyncMock,
         side_effect=[Exception("response_format not supported"), mock_resp],
     ):
-        with patch("aeo_cli.core.llm.ensure_litellm"):
+        with patch("context_cli.core.llm.ensure_litellm"):
             result = await call_llm_structured(
                 [{"role": "user", "content": "test"}],
                 "ollama/llama3.2",
@@ -134,7 +134,7 @@ async def test_call_llm_structured_non_format_error():
         new_callable=AsyncMock,
         side_effect=Exception("rate limit"),
     ):
-        with patch("aeo_cli.core.llm.ensure_litellm"):
+        with patch("context_cli.core.llm.ensure_litellm"):
             with pytest.raises(LLMError, match="LLM call failed"):
                 await call_llm_structured(
                     [{"role": "user", "content": "test"}],
@@ -148,7 +148,7 @@ async def test_call_llm_structured_non_format_error():
 
 def test_build_response_format():
     """Should build litellm-compatible response format dict."""
-    from aeo_cli.core.llm import _build_response_format
+    from context_cli.core.llm import _build_response_format
 
     fmt = _build_response_format(SampleResponse)
     assert fmt["type"] == "json_schema"
@@ -161,7 +161,7 @@ def test_build_response_format():
 
 def test_is_format_error_true():
     """Should detect response_format errors."""
-    from aeo_cli.core.llm import _is_format_error
+    from context_cli.core.llm import _is_format_error
 
     assert _is_format_error(Exception("response_format not supported")) is True
     assert _is_format_error(Exception("json_schema error")) is True
@@ -170,7 +170,7 @@ def test_is_format_error_true():
 
 def test_is_format_error_false():
     """Should not match non-format errors."""
-    from aeo_cli.core.llm import _is_format_error
+    from context_cli.core.llm import _is_format_error
 
     assert _is_format_error(Exception("rate limit exceeded")) is False
     assert _is_format_error(Exception("connection timeout")) is False
@@ -222,28 +222,28 @@ def test_estimate_cost_zero_tokens():
 
 def test_generate_llm_re_exports():
     """generate/llm.py should re-export from core/llm.py."""
-    from aeo_cli.core.generate.llm import (
+    from context_cli.core.generate.llm import (
         LLMError as GenLLMError,
     )
-    from aeo_cli.core.generate.llm import (
+    from context_cli.core.generate.llm import (
         call_llm_structured as gen_call,
     )
-    from aeo_cli.core.generate.llm import (
+    from context_cli.core.generate.llm import (
         detect_model as gen_detect,
     )
-    from aeo_cli.core.generate.llm import (
+    from context_cli.core.generate.llm import (
         ensure_litellm as gen_ensure,
     )
-    from aeo_cli.core.llm import (
+    from context_cli.core.llm import (
         LLMError as CoreLLMError,
     )
-    from aeo_cli.core.llm import (
+    from context_cli.core.llm import (
         call_llm_structured as core_call,
     )
-    from aeo_cli.core.llm import (
+    from context_cli.core.llm import (
         detect_model as core_detect,
     )
-    from aeo_cli.core.llm import (
+    from context_cli.core.llm import (
         ensure_litellm as core_ensure,
     )
 

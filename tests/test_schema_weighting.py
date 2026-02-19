@@ -7,14 +7,14 @@ Base score remains 8, max remains 25.
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     ContentReport,
     LlmsTxtReport,
     RobotsReport,
     SchemaOrgResult,
     SchemaReport,
 )
-from aeo_cli.core.scoring import (
+from context_cli.core.scoring import (
     HIGH_VALUE_TYPES,
     SCHEMA_BASE_SCORE,
     SCHEMA_HIGH_VALUE_BONUS,

@@ -6,7 +6,7 @@ no H3 without preceding H2, no H4 without H3, etc.
 
 from __future__ import annotations
 
-from aeo_cli.core.checks.content import _analyze_headings, check_content
+from context_cli.core.checks.content import _analyze_headings, check_content
 
 # ── Heading count tests ──────────────────────────────────────────────────────
 

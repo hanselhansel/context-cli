@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.auditor import _page_weight
+from context_cli.core.auditor import _page_weight
 
 
 def test_root_url():

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,
@@ -13,7 +13,7 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.formatters.ci_summary import format_ci_summary
+from context_cli.formatters.ci_summary import format_ci_summary
 
 
 def _mock_report(score: float = 55.0) -> AuditReport:
@@ -118,7 +118,7 @@ def test_site_audit_page_breakdown():
 
 def test_page_breakdown_empty_pages():
     """_format_page_breakdown with empty pages returns empty string."""
-    from aeo_cli.formatters.ci_summary import _format_page_breakdown
+    from context_cli.formatters.ci_summary import _format_page_breakdown
 
     report = SiteAuditReport(
         url="https://example.com",

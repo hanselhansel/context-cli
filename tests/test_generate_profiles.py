@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from aeo_cli.core.generate.profiles import (
+from context_cli.core.generate.profiles import (
     BLOG_PROFILE,
     CPG_PROFILE,
     ECOMMERCE_PROFILE,

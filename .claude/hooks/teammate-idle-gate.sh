@@ -17,7 +17,7 @@ if ! ruff check src/ tests/ >/dev/null 2>&1; then
 fi
 
 # 2. Tests + 100% coverage
-if ! python3 -m pytest tests/ -q --tb=short --cov=aeo_cli --cov-fail-under=100 >/dev/null 2>&1; then
+if ! python3 -m pytest tests/ -q --tb=short --cov=context_cli --cov-fail-under=100 >/dev/null 2>&1; then
     echo "BLOCKED: Tests failing or coverage < 100%. Fix before going idle." >&2
     exit 2
 fi

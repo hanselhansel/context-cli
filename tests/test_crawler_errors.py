@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.crawler import extract_page
+from context_cli.core.crawler import extract_page
 
 
 @pytest.mark.asyncio

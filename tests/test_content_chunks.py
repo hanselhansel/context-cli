@@ -6,7 +6,7 @@ Sweet spot: 50-150 words per chunk (2.3x more citations).
 
 from __future__ import annotations
 
-from aeo_cli.core.checks.content import check_content
+from context_cli.core.checks.content import check_content
 
 
 def test_no_headings_single_chunk():

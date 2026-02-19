@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -12,8 +12,8 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.formatters.csv import format_single_report_csv, format_site_report_csv
-from aeo_cli.formatters.markdown import format_single_report_md, format_site_report_md
+from context_cli.formatters.csv import format_single_report_csv, format_site_report_csv
+from context_cli.formatters.markdown import format_single_report_md, format_site_report_md
 
 
 def _single_report() -> AuditReport:

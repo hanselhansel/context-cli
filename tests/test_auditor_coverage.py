@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from aeo_cli.core.auditor import _audit_site_inner, audit_site, audit_url
-from aeo_cli.core.crawler import CrawlResult
-from aeo_cli.core.models import (
+from context_cli.core.auditor import _audit_site_inner, audit_site, audit_url
+from context_cli.core.crawler import CrawlResult
+from context_cli.core.models import (
     BotAccessResult,
     ContentReport,
     DiscoveryResult,
@@ -57,9 +57,9 @@ def _make_crawl(success: bool = True, error: str | None = None) -> CrawlResult:
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_robots_exception(mock_robots, mock_llms, mock_crawl):
     """When check_robots raises, errors should contain 'Robots check failed'."""
     mock_robots.side_effect = RuntimeError("boom")
@@ -73,9 +73,9 @@ async def test_audit_url_robots_exception(mock_robots, mock_llms, mock_crawl):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_llms_txt_exception(mock_robots, mock_llms, mock_crawl):
     """When check_llms_txt raises, fallback LlmsTxtReport is used."""
     mock_robots.return_value = _make_robots()
@@ -89,10 +89,10 @@ async def test_audit_url_llms_txt_exception(mock_robots, mock_llms, mock_crawl):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_content_usage", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_content_usage", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_content_usage_exception(
     mock_robots, mock_llms, mock_cu, mock_crawl
 ):
@@ -108,9 +108,9 @@ async def test_audit_url_content_usage_exception(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_crawl_exception(mock_robots, mock_llms, mock_crawl):
     """When extract_page raises, 'Crawl failed' should appear in errors."""
     mock_robots.return_value = _make_robots()
@@ -123,9 +123,9 @@ async def test_audit_url_crawl_exception(mock_robots, mock_llms, mock_crawl):
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_crawl_not_successful(mock_robots, mock_llms, mock_crawl):
     """A CrawlResult with success=False should append 'Crawl error: ...'."""
     mock_robots.return_value = _make_robots()
@@ -138,9 +138,9 @@ async def test_audit_url_crawl_not_successful(mock_robots, mock_llms, mock_crawl
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_happy_path(mock_robots, mock_llms, mock_crawl):
     """All pillars succeed → complete report with scores > 0."""
     mock_robots.return_value = _make_robots()
@@ -167,8 +167,8 @@ async def test_audit_site_timeout():
         await asyncio.sleep(10)
 
     with (
-        patch("aeo_cli.core.auditor._audit_site_inner", side_effect=slow_inner),
-        patch("aeo_cli.core.auditor.SITE_AUDIT_TIMEOUT", 0.01),
+        patch("context_cli.core.auditor._audit_site_inner", side_effect=slow_inner),
+        patch("context_cli.core.auditor.SITE_AUDIT_TIMEOUT", 0.01),
     ):
         report = await audit_site(_SEED)
 
@@ -196,7 +196,7 @@ async def test_audit_site_progress_callback():
             discovery=DiscoveryResult(method="sitemap"),
         )
 
-    with patch("aeo_cli.core.auditor._audit_site_inner", side_effect=fake_inner):
+    with patch("context_cli.core.auditor._audit_site_inner", side_effect=fake_inner):
         await audit_site(_SEED, progress_callback=progress_msgs.append)
 
     assert "test progress" in progress_msgs
@@ -206,11 +206,11 @@ async def test_audit_site_progress_callback():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_happy_path(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):
@@ -241,12 +241,12 @@ async def test_audit_site_inner_happy_path(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_content_usage", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_content_usage", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_content_usage_exception(
     mock_robots, mock_llms, mock_cu, mock_crawl, mock_discover, mock_batch
 ):
@@ -266,11 +266,11 @@ async def test_audit_site_inner_content_usage_exception(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_robots_exception(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):
@@ -290,11 +290,11 @@ async def test_audit_site_inner_robots_exception(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_llms_exception(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):
@@ -314,11 +314,11 @@ async def test_audit_site_inner_llms_exception(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_seed_crawl_exception(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):
@@ -337,11 +337,11 @@ async def test_audit_site_inner_seed_crawl_exception(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_seed_crawl_failed(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):
@@ -364,11 +364,11 @@ async def test_audit_site_inner_seed_crawl_failed(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_batch_failed_pages(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):
@@ -399,11 +399,11 @@ async def test_audit_site_inner_batch_failed_pages(
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_no_remaining_urls(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):

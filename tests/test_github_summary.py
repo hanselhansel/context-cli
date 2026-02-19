@@ -7,14 +7,14 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     LlmsTxtReport,
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -40,7 +40,7 @@ def test_writes_to_file_when_env_set(tmp_path):
     summary_file = tmp_path / "summary.md"
 
     with (
-        patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url),
+        patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url),
         patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary_file)}),
     ):
         result = runner.invoke(
@@ -58,7 +58,7 @@ def test_skips_when_env_unset(tmp_path):
     summary_file = tmp_path / "summary.md"
 
     with (
-        patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url),
+        patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url),
         patch.dict(os.environ, {}, clear=False),
     ):
         # Make sure GITHUB_STEP_SUMMARY is not set
@@ -77,7 +77,7 @@ def test_appends_not_overwrites(tmp_path):
     summary_file.write_text("# Existing content\n\n")
 
     with (
-        patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url),
+        patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url),
         patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary_file)}),
     ):
         result = runner.invoke(

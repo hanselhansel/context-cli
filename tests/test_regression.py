@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     LlmsTxtReport,
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.core.regression import (
+from context_cli.core.regression import (
     PillarRegression,
     RegressionReport,
     detect_regression,

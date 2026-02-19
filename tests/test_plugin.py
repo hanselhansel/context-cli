@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from aeo_cli.core.models import PluginResult
-from aeo_cli.core.plugin import (
+from context_cli.core.models import PluginResult
+from context_cli.core.plugin import (
     AuditPlugin,
     MetaTagsPlugin,
     clear_plugins,
@@ -214,9 +214,9 @@ class TestDiscoverPlugins:
             def load(self) -> type:
                 return MetaTagsPlugin
 
-        fake_eps: dict[str, list[Any]] = {"aeo_cli.plugins": [FakeEntryPoint()]}
+        fake_eps: dict[str, list[Any]] = {"context_cli.plugins": [FakeEntryPoint()]}
 
-        with patch("aeo_cli.core.plugin.entry_points", return_value=fake_eps):
+        with patch("context_cli.core.plugin.entry_points", return_value=fake_eps):
             discover_plugins()
 
         plugins = get_plugins()
@@ -226,8 +226,8 @@ class TestDiscoverPlugins:
     def test_discover_plugins_with_no_entry_points(self) -> None:
         """Test discover_plugins with no plugins installed."""
         with patch(
-            "aeo_cli.core.plugin.entry_points",
-            return_value={"aeo_cli.plugins": []},
+            "context_cli.core.plugin.entry_points",
+            return_value={"context_cli.plugins": []},
         ):
             discover_plugins()
 
@@ -235,7 +235,7 @@ class TestDiscoverPlugins:
 
     def test_discover_plugins_missing_group(self) -> None:
         """Test discover_plugins when the entry_points group doesn't exist."""
-        with patch("aeo_cli.core.plugin.entry_points", return_value={}):
+        with patch("context_cli.core.plugin.entry_points", return_value={}):
             discover_plugins()
 
         assert len(get_plugins()) == 0
@@ -250,8 +250,8 @@ class TestDiscoverPlugins:
                 raise ImportError("Module not found")
 
         with patch(
-            "aeo_cli.core.plugin.entry_points",
-            return_value={"aeo_cli.plugins": [BadEntryPoint()]},
+            "context_cli.core.plugin.entry_points",
+            return_value={"context_cli.plugins": [BadEntryPoint()]},
         ):
             # Should not raise, just skip the broken plugin
             discover_plugins()

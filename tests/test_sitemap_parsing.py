@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.discovery import _parse_sitemap_xml
+from context_cli.core.discovery import _parse_sitemap_xml
 
 
 def test_sitemap_with_lastmod_and_priority():

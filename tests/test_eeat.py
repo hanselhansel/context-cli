@@ -1,7 +1,7 @@
 """Tests for E-E-A-T (Experience, Expertise, Authority, Trust) signal detection."""
 
-from aeo_cli.core.checks.eeat import check_eeat
-from aeo_cli.core.models import EeatReport
+from context_cli.core.checks.eeat import check_eeat
+from context_cli.core.models import EeatReport
 
 
 class TestCheckEeat:

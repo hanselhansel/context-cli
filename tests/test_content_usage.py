@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from aeo_cli.core.checks.content_usage import check_content_usage
-from aeo_cli.core.models import ContentUsageReport
+from context_cli.core.checks.content_usage import check_content_usage
+from context_cli.core.models import ContentUsageReport
 
 
 def _mock_client(

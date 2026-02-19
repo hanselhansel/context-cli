@@ -1,8 +1,8 @@
-"""Tests for benchmark cost estimation — src/aeo_cli/core/benchmark/cost.py."""
+"""Tests for benchmark cost estimation — src/context_cli/core/benchmark/cost.py."""
 
 from __future__ import annotations
 
-from aeo_cli.core.models import BenchmarkConfig, PromptEntry
+from context_cli.core.models import BenchmarkConfig, PromptEntry
 
 
 def _pe(text: str) -> PromptEntry:
@@ -14,7 +14,7 @@ class TestModelCosts:
     """Tests for the MODEL_COSTS dictionary."""
 
     def test_model_costs_has_known_models(self) -> None:
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS
+        from context_cli.core.benchmark.cost import MODEL_COSTS
 
         expected_models = {
             "gpt-4o",
@@ -27,18 +27,18 @@ class TestModelCosts:
         assert expected_models.issubset(set(MODEL_COSTS.keys()))
 
     def test_model_costs_values_are_positive(self) -> None:
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS
+        from context_cli.core.benchmark.cost import MODEL_COSTS
 
         for model, cost in MODEL_COSTS.items():
             assert cost > 0, f"Cost for {model} should be positive"
 
     def test_gpt4o_mini_is_cheapest_openai(self) -> None:
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS
+        from context_cli.core.benchmark.cost import MODEL_COSTS
 
         assert MODEL_COSTS["gpt-4o-mini"] < MODEL_COSTS["gpt-4o"]
 
     def test_opus_is_most_expensive(self) -> None:
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS
+        from context_cli.core.benchmark.cost import MODEL_COSTS
 
         assert MODEL_COSTS["claude-3-opus-20240229"] > MODEL_COSTS["claude-3-sonnet-20240229"]
 
@@ -47,7 +47,7 @@ class TestEstimateBenchmarkCost:
     """Tests for estimate_benchmark_cost()."""
 
     def test_basic_cost_estimation(self) -> None:
-        from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config = BenchmarkConfig(
             prompts=[_pe("prompt1"), _pe("prompt2")],
@@ -60,7 +60,7 @@ class TestEstimateBenchmarkCost:
         assert isinstance(cost, float)
 
     def test_cost_scales_with_prompts(self) -> None:
-        from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config_small = BenchmarkConfig(
             prompts=[_pe("p1")],
@@ -79,7 +79,7 @@ class TestEstimateBenchmarkCost:
         assert cost_large == cost_small * 4
 
     def test_cost_scales_with_models(self) -> None:
-        from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config_one = BenchmarkConfig(
             prompts=[_pe("p1")],
@@ -98,7 +98,7 @@ class TestEstimateBenchmarkCost:
         assert cost_two == cost_one * 2
 
     def test_cost_scales_with_runs(self) -> None:
-        from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config_1run = BenchmarkConfig(
             prompts=[_pe("p1")],
@@ -117,7 +117,7 @@ class TestEstimateBenchmarkCost:
         assert cost_5 == cost_1 * 5
 
     def test_unknown_model_uses_default_cost(self) -> None:
-        from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config = BenchmarkConfig(
             prompts=[_pe("p1")],
@@ -130,7 +130,7 @@ class TestEstimateBenchmarkCost:
 
     def test_includes_judge_cost(self) -> None:
         """Cost should include judge model (gpt-4o-mini) cost on top of query cost."""
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
 
         config = BenchmarkConfig(
             prompts=[_pe("p1")],
@@ -146,7 +146,7 @@ class TestEstimateBenchmarkCost:
         assert abs(cost - expected) < 1e-10
 
     def test_multiple_models_different_costs(self) -> None:
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
 
         config = BenchmarkConfig(
             prompts=[_pe("p1")],
@@ -163,7 +163,7 @@ class TestEstimateBenchmarkCost:
         assert abs(cost - expected) < 1e-10
 
     def test_empty_prompts_zero_cost(self) -> None:
-        from aeo_cli.core.benchmark.cost import estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import estimate_benchmark_cost
 
         config = BenchmarkConfig(
             prompts=[],
@@ -176,7 +176,7 @@ class TestEstimateBenchmarkCost:
 
     def test_cost_formula_exact(self) -> None:
         """Verify exact formula: num_prompts * num_models * runs * (query + judge)."""
-        from aeo_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
+        from context_cli.core.benchmark.cost import MODEL_COSTS, estimate_benchmark_cost
 
         config = BenchmarkConfig(
             prompts=[_pe("p1"), _pe("p2"), _pe("p3")],
@@ -198,38 +198,38 @@ class TestFormatCost:
     """Tests for format_cost()."""
 
     def test_format_zero(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         assert format_cost(0.0) == "$0.00"
 
     def test_format_small_amount(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         assert format_cost(0.005) == "$0.005"
 
     def test_format_normal_amount(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         assert format_cost(1.50) == "$1.50"
 
     def test_format_large_amount(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         assert format_cost(99.99) == "$99.99"
 
     def test_format_very_small(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         result = format_cost(0.001)
         assert result == "$0.001"
 
     def test_format_penny(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         assert format_cost(0.01) == "$0.01"
 
     def test_format_just_under_penny(self) -> None:
-        from aeo_cli.core.benchmark.cost import format_cost
+        from context_cli.core.benchmark.cost import format_cost
 
         result = format_cost(0.009)
         assert result == "$0.009"

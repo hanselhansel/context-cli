@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.radar.parser import (
+from context_cli.core.radar.parser import (
     _get_snippet,
     extract_domain,
     extract_numbered_refs,

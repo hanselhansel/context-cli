@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -16,7 +16,7 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -69,7 +69,7 @@ async def _fake_audit_site(url: str, *, max_pages: int = 10, **kwargs) -> SiteAu
 
 def test_audit_single_json_output():
     """--single --json should emit valid AuditReport JSON."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(app, ["audit", "https://example.com", "--single", "--json"])
 
     assert result.exit_code == 0
@@ -84,7 +84,7 @@ def test_audit_single_json_output():
 
 def test_audit_single_rich_output():
     """--single flag should produce Rich table output with score."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(app, ["audit", "https://example.com", "--single"])
 
     assert result.exit_code == 0
@@ -103,7 +103,7 @@ def _extract_json(output: str) -> dict:
 
 def test_audit_default_multipage_json():
     """Default (no --single) with --json should call audit_site and output SiteAuditReport JSON."""
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
         result = runner.invoke(app, ["audit", "https://example.com", "--json"])
 
     assert result.exit_code == 0
@@ -118,7 +118,7 @@ def test_audit_default_multipage_json():
 
 def test_audit_default_multipage_rich():
     """Default (no --single) should render the site report and exit cleanly."""
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
         result = runner.invoke(app, ["audit", "https://example.com"])
 
     assert result.exit_code == 0
@@ -134,7 +134,7 @@ def test_audit_max_pages_flag():
         calls.append(max_pages)
         return _mock_site_report()
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_capture_audit_site):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_capture_audit_site):
         result = runner.invoke(app, ["audit", "https://example.com", "--max-pages", "5", "--json"])
 
     assert result.exit_code == 0
