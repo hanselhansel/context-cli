@@ -1,9 +1,9 @@
-# AEO-CLI v0.6.0 — CRITICAL CONTEXT
+# AEO-CLI v0.8.0 — CRITICAL CONTEXT
 
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: B1 (CI/CD Enhancement — per-pillar thresholds, baselines)
+CURRENT PHASE: B2 (Batch Generate — llms.txt + JSON-LD generation)
 AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section below.
 
 ## Session Workflow (MANDATORY — enforced by hooks)
@@ -145,8 +145,8 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 | A3 | 0.5.0 | DONE | Ecosystem: config file, MCP expansion, plugin arch, webhooks, HTML report, watch |
 | A4 | 0.6.0 | DONE | Polish: docs, CHANGELOG, benchmarks, Docker |
 | B0 | 0.7.0 | DONE | Shared infra: core/llm.py, core/cost.py |
-| B1 | 0.8.0 | NEXT | CI/CD: per-pillar thresholds, baselines, webhooks |
-| B2 | 0.9.0 | — | Batch generate: llms.txt + JSON-LD generation |
+| B1 | 0.8.0 | DONE | CI/CD: per-pillar thresholds, baselines, webhooks |
+| B2 | 0.9.0 | NEXT | Batch generate: llms.txt + JSON-LD generation |
 | B3 | 0.10.0 | — | Citation radar: multi-model citation extraction |
 | B4 | 0.11.0 | — | Benchmark: Share-of-Recommendation tracking |
 | B5 | 0.12.0 | — | Retail: 8 marketplace parsers, retail scoring |

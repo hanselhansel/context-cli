@@ -26,8 +26,8 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 - **JSON / CSV / Markdown output** — machine-readable results for pipelines
 - **MCP server** — expose the audit as a tool for AI agents via FastMCP
 - **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation
-- **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, GitHub Step Summary
-- **GitHub Action** — composite action for CI pipelines
+- **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
+- **GitHub Action** — composite action for CI pipelines with baseline support
 
 ## Installation
 
@@ -145,7 +145,32 @@ Fail if any AI bot is blocked:
 aeo-cli audit example.com --fail-on-blocked-bots
 ```
 
-Exit codes: 0 = pass, 1 = score below threshold, 2 = bots blocked.
+#### Per-Pillar Thresholds
+
+Gate CI on individual pillar scores:
+
+```bash
+aeo-cli audit example.com --robots-min 20 --content-min 30 --overall-min 60
+```
+
+Available: `--robots-min`, `--schema-min`, `--content-min`, `--llms-min`, `--overall-min`.
+
+#### Baseline Regression Detection
+
+Save a baseline and detect score regressions in future audits:
+
+```bash
+# Save current scores as baseline
+aeo-cli audit example.com --single --save-baseline .aeo-baseline.json
+
+# Compare against baseline (exit 1 if any pillar drops > 5 points)
+aeo-cli audit example.com --single --baseline .aeo-baseline.json
+
+# Custom regression threshold
+aeo-cli audit example.com --single --baseline .aeo-baseline.json --regression-threshold 10
+```
+
+Exit codes: 0 = pass, 1 = score below threshold or regression detected, 2 = bots blocked.
 
 When running in GitHub Actions, a markdown summary is automatically written to `$GITHUB_STEP_SUMMARY`.
 
@@ -236,6 +261,18 @@ Use AEO-CLI in your CI pipeline:
   with:
     url: 'https://your-site.com'
     fail-under: '60'
+```
+
+With baseline regression detection:
+
+```yaml
+- name: Run AEO Audit
+  uses: hanselhansel/aeo-cli@main
+  with:
+    url: 'https://your-site.com'
+    baseline-file: '.aeo-baseline.json'
+    save-baseline: '.aeo-baseline.json'
+    regression-threshold: '5'
 ```
 
 The action sets up Python, installs aeo-cli, and runs the audit. Outputs `score` and `report-json` for downstream steps. See [docs/ci-integration.md](docs/ci-integration.md) for full documentation.

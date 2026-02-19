@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-02-19
+
+### Added
+
+- **Per-pillar CI thresholds**: New CLI options `--robots-min`, `--schema-min`, `--content-min`, `--llms-min`, `--overall-min` to gate CI on individual pillar scores (exit 1 on failure)
+- **Baseline comparison**: `--save-baseline PATH` saves audit scores as JSON; `--baseline PATH` compares against a saved baseline and exits 1 on regressions exceeding `--regression-threshold`
+- **GitHub Action baseline support**: `action.yml` now supports `baseline-file`, `save-baseline`, and `regression-threshold` inputs
+- **Agent-resilient hooks**: Stop hook skips CI when agent worktrees are active; session start detects orphaned worktrees for recovery
+
+### Changed
+
+- Test suite expanded from 798 to 857 tests, maintaining **100% code coverage**
+- New `core/ci/` package with `thresholds.py` and `baseline.py` modules
+
 ## [0.7.0] - 2026-02-19
 
 ### Added
