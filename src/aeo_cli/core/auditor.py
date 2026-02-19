@@ -131,13 +131,15 @@ def aggregate_page_scores(
     return agg_schema, agg_content, overall
 
 
-async def audit_url(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> AuditReport:
+async def audit_url(
+    url: str, *, timeout: int = DEFAULT_TIMEOUT, bots: list[str] | None = None
+) -> AuditReport:
     """Run a full AEO audit on a single URL. Returns AuditReport with all pillar scores."""
     errors: list[str] = []
 
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         # Run HTTP checks and browser crawl concurrently
-        robots_task = check_robots(url, client)
+        robots_task = check_robots(url, client, bots=bots)
         llms_task = check_llms_txt(url, client)
         crawl_task = extract_page(url)
 
@@ -197,6 +199,7 @@ async def audit_site(
     delay_seconds: float = 1.0,
     progress_callback: Callable[[str], None] | None = None,
     timeout: int = DEFAULT_TIMEOUT,
+    bots: list[str] | None = None,
 ) -> SiteAuditReport:
     """Run a multi-page AEO audit. Discovers pages via sitemap/spider and aggregates scores."""
     errors: list[str] = []
@@ -209,7 +212,8 @@ async def audit_site(
     try:
         return await asyncio.wait_for(
             _audit_site_inner(
-                url, domain, max_pages, delay_seconds, errors, _progress, timeout
+                url, domain, max_pages, delay_seconds, errors, _progress, timeout,
+                bots=bots,
             ),
             timeout=SITE_AUDIT_TIMEOUT,
         )
@@ -237,13 +241,15 @@ async def _audit_site_inner(
     errors: list[str],
     progress: Callable[[str], None],
     timeout: int = DEFAULT_TIMEOUT,
+    *,
+    bots: list[str] | None = None,
 ) -> SiteAuditReport:
     """Inner implementation of audit_site, wrapped with a timeout by the caller."""
     progress("Running site-wide checks...")
 
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         # Phase 1: Site-wide checks + seed crawl in parallel
-        robots_task = check_robots(url, client)
+        robots_task = check_robots(url, client, bots=bots)
         llms_task = check_llms_txt(url, client)
         crawl_task = extract_page(url)
 
