@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-02-19
+
+### Added
+
+- **Retail AI-Readiness Auditor** (`aeo-cli retail <url>`): Audit product listings on marketplaces for AI optimization readiness with a 5-pillar scoring system (0-100)
+- **8 marketplace parsers**: Amazon, Shopee, Lazada, Tokopedia, TikTok Shop, Blibli, Zalora, and Generic (Schema.org/OpenGraph fallback)
+- **Parser registry**: Auto-detect marketplace from URL and dispatch to the correct parser
+- **5-pillar retail scoring**: Product Schema (25), Content Quality (30), Visual Assets (15), Social Proof (20), Feed Compliance (10)
+- **OpenAI Product Feed Spec checker**: Verify alignment with required and recommended fields from the OpenAI Product Feed Spec
+- **Retail MCP tool** (`retail_audit_tool`): Expose retail auditing to AI agents via FastMCP
+- **Retail models**: `MarketplaceType` enum, `ProductData`, `ProductSchemaReport`, `ContentQualityReport`, `VisualAssetsReport`, `SocialProofReport`, `FeedComplianceReport`, `RetailAuditReport`
+
+### Changed
+
+- Test suite expanded from 1145 to 1452 tests, maintaining **100% code coverage**
+- 83 source files, new `core/retail/` package with `auditor.py`, `scoring.py`, `feed_spec.py`, and `parsers/` subpackage
+
 ## [0.11.0] - 2026-02-19
 
 ### Added

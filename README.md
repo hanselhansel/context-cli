@@ -30,6 +30,7 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 - **GitHub Action** — composite action for CI pipelines with baseline support
 - **Citation Radar** — query AI models to see what they cite and recommend, with brand tracking and domain classification
 - **Share-of-Recommendation Benchmark** — track how often AI models mention and recommend your brand vs competitors, with LLM-as-judge analysis
+- **Retail AI-Readiness Auditor** — audit product listings on Amazon, Shopee, Lazada, Tokopedia, TikTok Shop, Blibli, Zalora with 5-pillar scoring and OpenAI Feed Spec compliance
 
 ## Installation
 
@@ -279,6 +280,25 @@ Options:
 - `--model/-m`: LLM model to query (repeatable, default: gpt-4o-mini)
 - `--runs/-r`: Runs per model for statistical significance
 - `--json`: Output as JSON
+
+## Retail AI-Readiness Auditor
+
+Audit product listings on marketplaces for AI optimization readiness:
+
+```bash
+aeo-cli retail "https://www.amazon.com/dp/B07L123456"
+aeo-cli retail "https://shopee.sg/product/123" --json
+aeo-cli retail "https://www.lazada.co.id/products/example-i123.html" --verbose
+```
+
+Supported marketplaces: Amazon (all TLDs), Shopee, Lazada, Tokopedia, TikTok Shop, Blibli, Zalora, and a Generic fallback (Schema.org/OpenGraph).
+
+Scoring pillars:
+- **Product Schema** (25): JSON-LD Product, Offer, AggregateRating
+- **Content Quality** (30): Bullet points, description, A+ content, spec charts
+- **Visual Assets** (15): Image count, alt text, video
+- **Social Proof** (20): Reviews, rating, Q&A
+- **Feed Compliance** (10): OpenAI Product Feed Spec alignment
 
 ## Share-of-Recommendation Benchmark
 
