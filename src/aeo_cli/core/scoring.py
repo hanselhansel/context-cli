@@ -57,8 +57,10 @@ def compute_scores(
     else:
         robots.score = 0
 
-    # llms.txt: max LLMS_TXT_MAX
-    llms_txt.score = LLMS_TXT_MAX if llms_txt.found else 0
+    # llms.txt: max LLMS_TXT_MAX — either llms.txt or llms-full.txt qualifies
+    llms_txt.score = (
+        LLMS_TXT_MAX if (llms_txt.found or llms_txt.llms_full_found) else 0
+    )
 
     # Schema: max SCHEMA_MAX — reward high-value types more
     if schema_org.blocks_found > 0:

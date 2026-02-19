@@ -76,6 +76,12 @@ class LlmsTxtReport(BaseModel):
 
     found: bool = Field(description="Whether llms.txt was found")
     url: str | None = Field(default=None, description="URL where llms.txt was found")
+    llms_full_found: bool = Field(
+        default=False, description="Whether llms-full.txt was found"
+    )
+    llms_full_url: str | None = Field(
+        default=None, description="URL where llms-full.txt was found"
+    )
     score: float = Field(default=0, description="llms.txt pillar score (0-10)")
     detail: str = Field(default="", description="Summary of llms.txt findings")
 
@@ -108,6 +114,11 @@ class ContentReport(BaseModel):
     has_headings: bool = Field(default=False, description="Whether headings were found")
     has_lists: bool = Field(default=False, description="Whether lists (ul/ol) were found")
     has_code_blocks: bool = Field(default=False, description="Whether code blocks were found")
+    chunk_count: int = Field(default=0, description="Number of content chunks split by headings")
+    avg_chunk_words: int = Field(default=0, description="Average word count per chunk")
+    chunks_in_sweet_spot: int = Field(
+        default=0, description="Chunks with 50-150 words (citation sweet spot)"
+    )
     score: float = Field(default=0, description="Content pillar score (0-40)")
     detail: str = Field(default="", description="Summary of content density findings")
 

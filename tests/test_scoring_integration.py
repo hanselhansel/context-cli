@@ -114,3 +114,45 @@ def test_overall_is_sum_of_pillars():
     r, lt, s, c, overall = compute_scores(robots, llms_txt, schema_org, content)
 
     assert overall == r.score + lt.score + s.score + c.score
+
+
+def test_llms_full_only_scores_10():
+    """Only llms-full.txt found (no llms.txt) should still score 10."""
+    llms_txt = LlmsTxtReport(
+        found=False,
+        llms_full_found=True,
+        llms_full_url="https://example.com/llms-full.txt",
+    )
+
+    _, lt, _, _, _ = compute_scores(
+        RobotsReport(found=False), llms_txt, SchemaReport(), ContentReport()
+    )
+
+    assert lt.score == 10
+
+
+def test_both_llms_files_scores_10():
+    """Both llms.txt and llms-full.txt found should still score max 10."""
+    llms_txt = LlmsTxtReport(
+        found=True,
+        url="https://example.com/llms.txt",
+        llms_full_found=True,
+        llms_full_url="https://example.com/llms-full.txt",
+    )
+
+    _, lt, _, _, _ = compute_scores(
+        RobotsReport(found=False), llms_txt, SchemaReport(), ContentReport()
+    )
+
+    assert lt.score == 10
+
+
+def test_neither_llms_scores_0():
+    """Neither llms.txt nor llms-full.txt should score 0."""
+    llms_txt = LlmsTxtReport(found=False, llms_full_found=False)
+
+    _, lt, _, _, _ = compute_scores(
+        RobotsReport(found=False), llms_txt, SchemaReport(), ContentReport()
+    )
+
+    assert lt.score == 0
