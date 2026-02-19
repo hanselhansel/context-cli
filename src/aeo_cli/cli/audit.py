@@ -66,6 +66,24 @@ def _save_to_history(
         db.close()
 
 
+def _send_webhook(
+    webhook_url: str,
+    report: AuditReport | SiteAuditReport,
+) -> None:
+    """Send audit results to a webhook URL (best-effort, never crashes)."""
+    from aeo_cli.core.webhook import build_webhook_payload, send_webhook
+
+    try:
+        payload = build_webhook_payload(report)
+        success = asyncio.run(send_webhook(webhook_url, payload))
+        if success:
+            console.print("[green]Webhook delivered successfully.[/green]")
+        else:
+            console.print("[yellow]Webhook delivery failed (non-2xx response).[/yellow]")
+    except Exception as exc:
+        console.print(f"[yellow]Webhook error:[/yellow] {exc}")
+
+
 def register(app: typer.Typer) -> None:
     """Register the audit command onto the Typer app."""
 
@@ -119,6 +137,10 @@ def register(app: typer.Typer) -> None:
         regression_threshold: float = typer.Option(
             5.0, "--regression-threshold",
             help="Score drop threshold to flag as regression (default: 5 points)",
+        ),
+        webhook: str = typer.Option(
+            None, "--webhook",
+            help="Webhook URL to POST audit results to (Slack/Discord/custom)",
         ),
     ) -> None:
         """Run an AEO audit on a URL and display the results."""
@@ -184,6 +206,9 @@ def register(app: typer.Typer) -> None:
             url, effective_single, effective_max_pages, effective_timeout, bots=bots_list,
         )
         _render_output(report, format, effective_verbose, effective_single)
+
+        if webhook:
+            _send_webhook(webhook, report)
 
         if effective_save:
             if isinstance(report, AuditReport):
@@ -256,6 +281,20 @@ def _render_output(
             console.print(format_site_report_md(report), end="")
         else:
             console.print(format_single_report_md(report), end="")
+        return
+    if format == OutputFormat.html:
+        from pathlib import Path
+
+        from aeo_cli.formatters.html import format_single_report_html, format_site_report_html
+
+        if isinstance(report, SiteAuditReport):
+            html_str = format_site_report_html(report)
+        else:
+            html_str = format_single_report_html(report)
+        slug = report.url.replace("https://", "").replace("http://", "").replace("/", "_")
+        filename = f"aeo-report-{slug}.html"
+        Path(filename).write_text(html_str)
+        console.print(f"[green]HTML report saved to:[/green] {filename}")
         return
 
     # Rich output
