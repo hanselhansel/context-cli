@@ -131,8 +131,41 @@ class ContentReport(BaseModel):
     answer_first_ratio: float = Field(
         default=0.0, description="Fraction of sections starting with a direct statement (0.0-1.0)"
     )
+    raw_html_chars: int = Field(default=0, description="Character count of raw HTML")
+    clean_markdown_chars: int = Field(
+        default=0, description="Character count of extracted markdown"
+    )
+    estimated_raw_tokens: int = Field(
+        default=0, description="Estimated token count of raw HTML (chars/4)"
+    )
+    estimated_clean_tokens: int = Field(
+        default=0, description="Estimated token count of clean markdown (chars/4)"
+    )
+    context_waste_pct: float = Field(
+        default=0.0, ge=0, le=100, description="Percentage of tokens wasted on HTML bloat"
+    )
     score: float = Field(default=0, description="Content pillar score (0-40)")
     detail: str = Field(default="", description="Summary of content density findings")
+
+
+class LintCheck(BaseModel):
+    """Result of a single lint check."""
+
+    name: str = Field(description="Check name (e.g., 'AI Primitives')")
+    passed: bool = Field(description="Whether the check passed")
+    detail: str = Field(default="", description="Human-readable detail")
+
+
+class LintResult(BaseModel):
+    """Aggregated lint results for a page."""
+
+    checks: list[LintCheck] = Field(
+        default_factory=list, description="Individual check results"
+    )
+    context_waste_pct: float = Field(default=0.0, description="Token waste percentage")
+    raw_tokens: int = Field(default=0, description="Estimated raw HTML tokens")
+    clean_tokens: int = Field(default=0, description="Estimated clean markdown tokens")
+    passed: bool = Field(default=True, description="Whether all checks passed")
 
 
 # ── Informational signal models (not scored, verbose output only) ─────────
@@ -212,6 +245,9 @@ class AuditReport(BaseModel):
     llms_txt: LlmsTxtReport = Field(description="llms.txt presence check")
     schema_org: SchemaReport = Field(description="Schema.org JSON-LD analysis")
     content: ContentReport = Field(description="Content density analysis")
+    lint_result: LintResult | None = Field(
+        default=None, description="Pass/fail lint check results"
+    )
     rsl: RslReport | None = Field(
         default=None, description="RSL analysis (informational, not scored)"
     )
