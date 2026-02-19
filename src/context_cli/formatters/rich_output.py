@@ -1,4 +1,4 @@
-"""Rich console renderers for site-level and batch audit reports."""
+"""Rich console renderers for lint reports (linter-style aesthetic)."""
 
 from __future__ import annotations
 
@@ -7,15 +7,105 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from context_cli.core.models import BatchAuditReport, SiteAuditReport
+from context_cli.core.models import (
+    AuditReport,
+    BatchAuditReport,
+    LintResult,
+    SiteAuditReport,
+)
 from context_cli.formatters.verbose import overall_color, score_color
+
+# ── Linter-style helpers ────────────────────────────────────────────────────
+
+
+def _check_status_markup(severity: str, passed: bool) -> str:
+    """Return Rich markup for a lint check status badge."""
+    if severity == "warn":
+        return "[yellow][WARN][/yellow]"
+    if passed:
+        return "[green][PASS][/green]"
+    return "[red][FAIL][/red]"
+
+
+def _render_lint_checks(lr: LintResult, console: Console) -> None:
+    """Render the pass/warn/fail lint checks in linter style."""
+    for check in lr.checks:
+        status = _check_status_markup(check.severity, check.passed)
+        console.print(f"  {status} {check.name:<20s} {check.detail}")
+
+
+def _render_token_analysis(lr: LintResult, console: Console) -> None:
+    """Render the token analysis section in linter style."""
+    dash_line = "\u2500" * 41
+    console.print(f"\n  \u2500\u2500 Token Analysis {dash_line}")
+    console.print(f"  Raw HTML tokens:  {lr.raw_tokens:>10,}")
+    console.print(f"  Clean MD tokens:  {lr.clean_tokens:>10,}")
+    waste_color = (
+        "green" if lr.context_waste_pct < 30
+        else ("yellow" if lr.context_waste_pct < 70 else "red")
+    )
+    wasted = lr.raw_tokens - lr.clean_tokens
+    waste_suffix = f"  ({wasted:,} wasted tokens)" if lr.raw_tokens > 0 else ""
+    console.print(
+        f"  Context Waste:    "
+        f"[{waste_color}]{lr.context_waste_pct:>9.1f}%[/{waste_color}]"
+        f"{waste_suffix}"
+    )
+
+
+def _render_diagnostics(lr: LintResult, console: Console) -> None:
+    """Render the diagnostics section in linter style."""
+    if not lr.diagnostics:
+        return
+
+    dash_line = "\u2500" * 43
+    console.print(f"\n  \u2500\u2500 Diagnostics {dash_line}")
+    for d in lr.diagnostics:
+        color = (
+            "red" if d.severity == "error"
+            else ("yellow" if d.severity == "warn" else "cyan")
+        )
+        console.print(f"  [{color}]{d.code}[/{color}]  {d.message}")
+
+    errors = sum(1 for d in lr.diagnostics if d.severity == "error")
+    warns = sum(1 for d in lr.diagnostics if d.severity == "warn")
+    console.print(
+        f"\n  {warns} warning{'s' if warns != 1 else ''},"
+        f" {errors} error{'s' if errors != 1 else ''}"
+    )
+
+
+# ── Single-page linter output ──────────────────────────────────────────────
+
+
+def render_single_report(report: AuditReport, console: Console) -> None:
+    """Render a single-page audit report in linter style."""
+    console.print(f"\n  [bold]LINT[/bold]  {report.url}\n")
+
+    if report.lint_result:
+        lr = report.lint_result
+        _render_lint_checks(lr, console)
+        _render_token_analysis(lr, console)
+        _render_diagnostics(lr, console)
+
+    console.print(
+        f"\n  [bold]Overall Score:[/bold] [cyan]{report.overall_score:.1f}/100[/cyan]\n"
+    )
+
+    if report.errors:
+        console.print("[bold red]Errors:[/bold red]")
+        for err in report.errors:
+            console.print(f"  \u2022 {err}")
+
+
+# ── Site-level linter output ───────────────────────────────────────────────
 
 
 def render_site_report(report: SiteAuditReport, console: Console) -> None:
     """Render a multi-page site audit report using Rich."""
     header_lines = [
         f"[bold]Domain:[/bold] {report.domain}",
-        f"[bold]Discovery:[/bold] {report.discovery.method} — {report.discovery.detail}",
+        f"[bold]Discovery:[/bold] {report.discovery.method} \u2014 {report.discovery.detail}",
         f"[bold]Pages audited:[/bold] {report.pages_audited}"
         + (f"  ([red]{report.pages_failed} failed[/red])" if report.pages_failed else ""),
     ]
@@ -69,20 +159,13 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
             )
         console.print(page_table)
 
-    # Token Waste display if lint result available
+    # Linter-style lint result display
     if report.lint_result:
         lr = report.lint_result
-        waste_color = (
-            "green" if lr.context_waste_pct < 30
-            else ("yellow" if lr.context_waste_pct < 70 else "red")
-        )
-        console.print(
-            f"\n  [{waste_color}]Token Waste: {lr.context_waste_pct:.0f}%[/{waste_color}]"
-            f"  ({lr.raw_tokens:,} raw → {lr.clean_tokens:,} clean tokens)"
-        )
-        for check in lr.checks:
-            status = "[green]PASS[/green]" if check.passed else "[red]FAIL[/red]"
-            console.print(f"  {status} {check.name:20s} {check.detail}")
+        console.print()
+        _render_lint_checks(lr, console)
+        _render_token_analysis(lr, console)
+        _render_diagnostics(lr, console)
 
     color = overall_color(report.overall_score)
     console.print(
@@ -92,7 +175,7 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
     if report.errors:
         console.print("\n[bold red]Errors:[/bold red]")
         for err in report.errors:
-            console.print(f"  • {err}")
+            console.print(f"  \u2022 {err}")
 
 
 def render_batch_rich(batch_report: BatchAuditReport, console: Console) -> None:
@@ -121,4 +204,4 @@ def render_batch_rich(batch_report: BatchAuditReport, console: Console) -> None:
     if batch_report.errors:
         console.print("\n[bold red]Failed URLs:[/bold red]")
         for url, err in batch_report.errors.items():
-            console.print(f"  • {url}: {err}")
+            console.print(f"  \u2022 {url}: {err}")

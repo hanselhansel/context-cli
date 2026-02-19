@@ -1239,3 +1239,463 @@ def test_render_token_analysis_verbose_re_exported():
     """render_token_analysis_verbose should be re-exported from verbose module."""
     from context_cli.formatters.verbose import render_token_analysis_verbose
     assert callable(render_token_analysis_verbose)
+
+
+# ── Diagnostic Model Tests ──────────────────────────────────────────────────
+
+
+def test_diagnostic_model_fields():
+    """Diagnostic model should have code, severity, and message fields."""
+    from context_cli.core.models import Diagnostic
+    d = Diagnostic(code="WARN-001", severity="warn", message="Test message")
+    assert d.code == "WARN-001"
+    assert d.severity == "warn"
+    assert d.message == "Test message"
+
+
+def test_diagnostic_model_serialization():
+    """Diagnostic model should serialize to dict and JSON."""
+    from context_cli.core.models import Diagnostic
+    d = Diagnostic(code="INFO-001", severity="info", message="Readability grade: 8.5")
+    data = d.model_dump()
+    assert data["code"] == "INFO-001"
+    assert data["severity"] == "info"
+    assert "8.5" in data["message"]
+
+
+# ── Diagnostic Generation Tests ─────────────────────────────────────────────
+
+
+def test_diagnostics_warn_001_high_waste():
+    """WARN-001 should trigger when context waste > 70%."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        context_waste_pct=85.0, has_code_blocks=True, has_headings=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_001 = [d for d in diags if d.code == "WARN-001"]
+    assert len(warn_001) == 1
+    assert "85%" in warn_001[0].message
+    assert "DOM bloat" in warn_001[0].message
+
+
+def test_diagnostics_warn_001_not_triggered_low_waste():
+    """WARN-001 should NOT trigger when waste <= 70%."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        context_waste_pct=50.0, has_code_blocks=True, has_headings=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_001 = [d for d in diags if d.code == "WARN-001"]
+    assert len(warn_001) == 0
+
+
+def test_diagnostics_warn_002_no_code_blocks():
+    """WARN-002 should trigger when no code blocks detected."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(has_code_blocks=False, has_headings=True)
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_002 = [d for d in diags if d.code == "WARN-002"]
+    assert len(warn_002) == 1
+    assert "code blocks" in warn_002[0].message.lower()
+
+
+def test_diagnostics_warn_002_not_triggered_with_code():
+    """WARN-002 should NOT trigger when code blocks exist."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(has_code_blocks=True, has_headings=True)
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_002 = [d for d in diags if d.code == "WARN-002"]
+    assert len(warn_002) == 0
+
+
+def test_diagnostics_warn_003_no_headings():
+    """WARN-003 should trigger when no heading structure."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(has_headings=False, has_code_blocks=True)
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_003 = [d for d in diags if d.code == "WARN-003"]
+    assert len(warn_003) == 1
+    assert "heading" in warn_003[0].message.lower()
+
+
+def test_diagnostics_warn_004_blocked_bots():
+    """WARN-004 should trigger when AI bots are blocked."""
+    from context_cli.core.scoring import _generate_diagnostics
+    robots = RobotsReport(
+        found=True,
+        bots=[
+            BotAccessResult(bot="GPTBot", allowed=True),
+            BotAccessResult(bot="ClaudeBot", allowed=False),
+        ],
+        score=12.5,
+    )
+    content = ContentReport(has_headings=True, has_code_blocks=True)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_004 = [d for d in diags if d.code == "WARN-004"]
+    assert len(warn_004) == 1
+    assert "1 AI bots blocked" in warn_004[0].message
+
+
+def test_diagnostics_warn_004_not_triggered_all_allowed():
+    """WARN-004 should NOT trigger when all bots allowed."""
+    from context_cli.core.scoring import _generate_diagnostics
+    robots = RobotsReport(
+        found=True,
+        bots=[BotAccessResult(bot="GPTBot", allowed=True)],
+        score=25,
+    )
+    content = ContentReport(has_headings=True, has_code_blocks=True)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    warn_004 = [d for d in diags if d.code == "WARN-004"]
+    assert len(warn_004) == 0
+
+
+def test_diagnostics_info_001_readability_grade_elementary():
+    """INFO-001 should show readability grade with 'elementary' for grade < 6."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        readability_grade=4.5, has_headings=True, has_code_blocks=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    info_001 = [d for d in diags if d.code == "INFO-001"]
+    assert len(info_001) == 1
+    assert "4.5" in info_001[0].message
+    assert "elementary" in info_001[0].message
+
+
+def test_diagnostics_info_001_readability_grade_middle_school():
+    """INFO-001 should show 'middle school' for grade 6-8."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        readability_grade=7.2, has_headings=True, has_code_blocks=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    info_001 = [d for d in diags if d.code == "INFO-001"]
+    assert len(info_001) == 1
+    assert "middle school" in info_001[0].message
+
+
+def test_diagnostics_info_001_readability_grade_high_school():
+    """INFO-001 should show 'high school' for grade 9-12."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        readability_grade=10.5, has_headings=True, has_code_blocks=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    info_001 = [d for d in diags if d.code == "INFO-001"]
+    assert len(info_001) == 1
+    assert "high school" in info_001[0].message
+
+
+def test_diagnostics_info_001_readability_grade_college():
+    """INFO-001 should show 'college level' for grade >= 13."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        readability_grade=14.0, has_headings=True, has_code_blocks=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    info_001 = [d for d in diags if d.code == "INFO-001"]
+    assert len(info_001) == 1
+    assert "college level" in info_001[0].message
+
+
+def test_diagnostics_info_001_skipped_when_no_readability():
+    """INFO-001 should NOT trigger when readability_grade is None."""
+    from context_cli.core.scoring import _generate_diagnostics
+    content = ContentReport(
+        readability_grade=None, has_headings=True, has_code_blocks=True,
+    )
+    robots = RobotsReport(found=True, bots=[], score=25)
+    schema = SchemaReport()
+    diags = _generate_diagnostics(robots, content, schema)
+    info_001 = [d for d in diags if d.code == "INFO-001"]
+    assert len(info_001) == 0
+
+
+def test_diagnostics_info_002_schema_blocks_found():
+    """INFO-002 should list detected JSON-LD block types."""
+    from context_cli.core.scoring import _generate_diagnostics
+    schema = SchemaReport(
+        blocks_found=2,
+        schemas=[
+            SchemaOrgResult(schema_type="Article", properties=["headline"]),
+            SchemaOrgResult(schema_type="FAQPage", properties=["mainEntity"]),
+        ],
+    )
+    content = ContentReport(has_headings=True, has_code_blocks=True)
+    robots = RobotsReport(found=True, bots=[], score=25)
+    diags = _generate_diagnostics(robots, content, schema)
+    info_002 = [d for d in diags if d.code == "INFO-002"]
+    assert len(info_002) == 1
+    assert "Article" in info_002[0].message
+    assert "FAQPage" in info_002[0].message
+
+
+def test_diagnostics_info_002_not_triggered_no_schema():
+    """INFO-002 should NOT trigger when no JSON-LD found."""
+    from context_cli.core.scoring import _generate_diagnostics
+    schema = SchemaReport(blocks_found=0)
+    content = ContentReport(has_headings=True, has_code_blocks=True)
+    robots = RobotsReport(found=True, bots=[], score=25)
+    diags = _generate_diagnostics(robots, content, schema)
+    info_002 = [d for d in diags if d.code == "INFO-002"]
+    assert len(info_002) == 0
+
+
+# ── LintCheck severity Tests ────────────────────────────────────────────────
+
+
+def test_lint_check_severity_pass():
+    """LintCheck should have severity='pass' when check passes."""
+    from context_cli.core.models import LintCheck
+    check = LintCheck(name="Test", passed=True, severity="pass", detail="ok")
+    assert check.severity == "pass"
+
+
+def test_lint_check_severity_warn():
+    """LintCheck should support severity='warn'."""
+    from context_cli.core.models import LintCheck
+    check = LintCheck(name="Test", passed=True, severity="warn", detail="borderline")
+    assert check.severity == "warn"
+
+
+def test_lint_check_severity_fail():
+    """LintCheck should support severity='fail'."""
+    from context_cli.core.models import LintCheck
+    check = LintCheck(name="Test", passed=False, severity="fail", detail="blocked")
+    assert check.severity == "fail"
+
+
+# ── LintResult diagnostics field ─────────────────────────────────────────────
+
+
+def test_lint_result_has_diagnostics():
+    """LintResult should have diagnostics field."""
+    from context_cli.core.models import Diagnostic, LintResult
+    lr = LintResult(
+        diagnostics=[Diagnostic(code="WARN-001", severity="warn", message="test")],
+    )
+    assert len(lr.diagnostics) == 1
+    assert lr.diagnostics[0].code == "WARN-001"
+
+
+def test_lint_result_diagnostics_default_empty():
+    """LintResult diagnostics should default to empty list."""
+    from context_cli.core.models import LintResult
+    lr = LintResult()
+    assert lr.diagnostics == []
+
+
+# ── compute_lint_results Severity Tests ──────────────────────────────────────
+
+
+def test_compute_lint_results_token_severity_warn():
+    """Token Efficiency should be severity=warn when waste 30-70%."""
+    from context_cli.core.scoring import compute_lint_results
+    robots = RobotsReport(found=True, bots=[], score=25)
+    llms = LlmsTxtReport(found=True, score=10)
+    schema = SchemaReport(blocks_found=1, schemas=[
+        SchemaOrgResult(schema_type="Article", properties=["headline"]),
+    ], score=13)
+    content = ContentReport(
+        context_waste_pct=50.0, estimated_raw_tokens=1000,
+        estimated_clean_tokens=500, has_headings=True, has_code_blocks=True,
+    )
+    lr = compute_lint_results(robots, llms, schema, content)
+    eff_check = [c for c in lr.checks if c.name == "Token Efficiency"][0]
+    assert eff_check.severity == "warn"
+
+
+def test_compute_lint_results_token_severity_pass():
+    """Token Efficiency should be severity=pass when waste < 30%."""
+    from context_cli.core.scoring import compute_lint_results
+    robots = RobotsReport(found=True, bots=[], score=25)
+    llms = LlmsTxtReport(found=True, score=10)
+    schema = SchemaReport(blocks_found=1, schemas=[
+        SchemaOrgResult(schema_type="Article", properties=["headline"]),
+    ], score=13)
+    content = ContentReport(
+        context_waste_pct=15.0, estimated_raw_tokens=100,
+        estimated_clean_tokens=85, has_headings=True, has_code_blocks=True,
+    )
+    lr = compute_lint_results(robots, llms, schema, content)
+    eff_check = [c for c in lr.checks if c.name == "Token Efficiency"][0]
+    assert eff_check.severity == "pass"
+
+
+def test_compute_lint_results_token_severity_fail():
+    """Token Efficiency should be severity=fail when waste >= 70%."""
+    from context_cli.core.scoring import compute_lint_results
+    robots = RobotsReport(found=True, bots=[], score=25)
+    llms = LlmsTxtReport(found=True, score=10)
+    schema = SchemaReport()
+    content = ContentReport(
+        context_waste_pct=85.0, estimated_raw_tokens=10000,
+        estimated_clean_tokens=1500, has_headings=True, has_code_blocks=True,
+    )
+    lr = compute_lint_results(robots, llms, schema, content)
+    eff_check = [c for c in lr.checks if c.name == "Token Efficiency"][0]
+    assert eff_check.severity == "fail"
+
+
+def test_compute_lint_results_ai_primitives_detail_with_url():
+    """AI Primitives check should include URL in detail when llms.txt found."""
+    from context_cli.core.scoring import compute_lint_results
+    robots = RobotsReport(found=True, bots=[], score=25)
+    llms = LlmsTxtReport(found=True, url="https://example.com/llms.txt", score=10)
+    schema = SchemaReport()
+    content = ContentReport(has_headings=True, has_code_blocks=True)
+    lr = compute_lint_results(robots, llms, schema, content)
+    ai_check = [c for c in lr.checks if c.name == "AI Primitives"][0]
+    assert "llms.txt found at" in ai_check.detail
+    assert "https://example.com/llms.txt" in ai_check.detail
+
+
+def test_compute_lint_results_includes_diagnostics():
+    """compute_lint_results should populate the diagnostics field."""
+    from context_cli.core.scoring import compute_lint_results
+    robots = RobotsReport(
+        found=True,
+        bots=[BotAccessResult(bot="GPTBot", allowed=False)],
+        score=0,
+    )
+    llms = LlmsTxtReport(found=False, score=0)
+    schema = SchemaReport()
+    content = ContentReport(
+        context_waste_pct=85.0, has_headings=False, has_code_blocks=False,
+    )
+    lr = compute_lint_results(robots, llms, schema, content)
+    assert len(lr.diagnostics) > 0
+    codes = [d.code for d in lr.diagnostics]
+    assert "WARN-001" in codes  # high waste
+    assert "WARN-002" in codes  # no code blocks
+    assert "WARN-003" in codes  # no headings
+    assert "WARN-004" in codes  # blocked bots
+
+
+def test_compute_lint_results_uses_arrow_in_detail():
+    """Token Efficiency detail should use arrow character when raw tokens > 0."""
+    from context_cli.core.scoring import compute_lint_results
+    robots = RobotsReport(found=True, bots=[], score=25)
+    llms = LlmsTxtReport(found=True, score=10)
+    schema = SchemaReport()
+    content = ContentReport(
+        context_waste_pct=50.0, estimated_raw_tokens=1000,
+        estimated_clean_tokens=500, has_headings=True, has_code_blocks=True,
+    )
+    lr = compute_lint_results(robots, llms, schema, content)
+    eff_check = [c for c in lr.checks if c.name == "Token Efficiency"][0]
+    assert "\u2192" in eff_check.detail  # arrow character
+
+
+# ── Verbose Panel Diagnostics Tests ──────────────────────────────────────────
+
+
+def test_verbose_token_panel_shows_diagnostics():
+    """Verbose token analysis panel should show diagnostics when present."""
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        checks=[
+            LintCheck(name="Token Efficiency", passed=False, severity="fail", detail="85% waste"),
+        ],
+        context_waste_pct=85.0,
+        raw_tokens=18402,
+        clean_tokens=2760,
+        passed=False,
+        diagnostics=[
+            Diagnostic(code="WARN-001", severity="warn", message="Excessive DOM bloat."),
+            Diagnostic(code="INFO-001", severity="info", message="Readability: 12.3"),
+        ],
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "Diagnostics" in text
+    assert "WARN-001" in text
+    assert "INFO-001" in text
+    assert "Excessive DOM bloat" in text
+
+
+def test_verbose_token_panel_warn_severity_check():
+    """Verbose token analysis panel should show WARN for warn severity checks."""
+    from context_cli.core.models import LintCheck, LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        checks=[
+            LintCheck(
+                name="Token Efficiency", passed=True, severity="warn",
+                detail="50% waste",
+            ),
+        ],
+        context_waste_pct=50.0,
+        raw_tokens=1000,
+        clean_tokens=500,
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "WARN" in text
+
+
+def test_verbose_token_panel_no_diagnostics_section():
+    """Verbose token analysis panel should omit diagnostics section when empty."""
+    from context_cli.core.models import LintCheck, LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        checks=[
+            LintCheck(name="AI Primitives", passed=True, detail="found"),
+        ],
+        context_waste_pct=20.0,
+        raw_tokens=100,
+        clean_tokens=80,
+        diagnostics=[],
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "Diagnostics" not in text
+
+
+def test_verbose_token_panel_error_diagnostic_color():
+    """Verbose panel should use red for error-severity diagnostics."""
+    from context_cli.core.models import Diagnostic, LintResult
+    from context_cli.formatters.verbose_panels import render_token_analysis_verbose
+    report = _verbose_report()
+    report.lint_result = LintResult(
+        context_waste_pct=20.0,
+        raw_tokens=100,
+        clean_tokens=80,
+        diagnostics=[
+            Diagnostic(code="ERR-001", severity="error", message="Critical issue"),
+        ],
+    )
+    panel = render_token_analysis_verbose(report)
+    assert panel is not None
+    text = _panel_text(panel)
+    assert "ERR-001" in text
+    assert "Critical issue" in text
