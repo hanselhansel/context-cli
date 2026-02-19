@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import io
 
-from aeo_cli.core.models import AuditReport, SiteAuditReport
+from aeo_cli.core.models import AuditReport, BatchAuditReport, SiteAuditReport
 
 
 def format_single_report_csv(report: AuditReport) -> str:
@@ -55,5 +55,21 @@ def format_site_report_csv(report: SiteAuditReport) -> str:
         report.schema_org.score,
         report.content.score,
     ])
+
+    return output.getvalue()
+
+
+def format_batch_report_csv(report: BatchAuditReport) -> str:
+    """Format a BatchAuditReport as CSV with one row per URL."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(["url", "overall_score", "robots_score", "llms_txt_score",
+                      "schema_score", "content_score"])
+    for r in report.reports:
+        writer.writerow([
+            r.url, r.overall_score, r.robots.score,
+            r.llms_txt.score, r.schema_org.score, r.content.score,
+        ])
 
     return output.getvalue()

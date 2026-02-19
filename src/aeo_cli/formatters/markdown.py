@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import AuditReport, SiteAuditReport
+from aeo_cli.core.models import AuditReport, BatchAuditReport, SiteAuditReport
 
 
 def format_single_report_md(report: AuditReport) -> str:
@@ -77,5 +77,26 @@ def format_site_report_md(report: SiteAuditReport) -> str:
         lines.append("## Errors")
         for err in report.errors:
             lines.append(f"- {err}")
+
+    return "\n".join(lines) + "\n"
+
+
+def format_batch_report_md(report: BatchAuditReport) -> str:
+    """Format a BatchAuditReport as a Markdown table."""
+    lines = [
+        "# Batch AEO Audit Results",
+        "",
+        "| URL | Score | Robots | llms.txt | Schema | Content |",
+        "|-----|-------|--------|----------|--------|---------|",
+    ]
+    for r in report.reports:
+        lines.append(
+            f"| {r.url} | {r.overall_score} | {r.robots.score} | "
+            f"{r.llms_txt.score} | {r.schema_org.score} | {r.content.score} |"
+        )
+    if report.errors:
+        lines.extend(["", "## Errors", ""])
+        for url, err in report.errors.items():
+            lines.append(f"- **{url}**: {err}")
 
     return "\n".join(lines) + "\n"

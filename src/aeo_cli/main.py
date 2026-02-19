@@ -7,7 +7,6 @@ import os
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.text import Text
@@ -20,10 +19,13 @@ from aeo_cli.core.models import (
     ProfileType,
     SiteAuditReport,
 )
-from aeo_cli.formatters.csv import format_single_report_csv, format_site_report_csv
-from aeo_cli.formatters.markdown import format_single_report_md, format_site_report_md
-from aeo_cli.formatters.verbose import (
-    overall_color as _overall_color_impl,
+from aeo_cli.formatters.csv import (
+    format_single_report_csv,
+    format_site_report_csv,
+)
+from aeo_cli.formatters.markdown import (
+    format_single_report_md,
+    format_site_report_md,
 )
 from aeo_cli.formatters.verbose import (
     render_verbose_single,
@@ -41,89 +43,16 @@ def _score_color(score: float, pillar: str) -> Text:
     return _score_color_impl(score, pillar)
 
 
-def _overall_color(score: float) -> str:
-    """Return a Rich color string for an overall 0-100 score."""
-    return _overall_color_impl(score)
-
-
 def _render_site_report(report: SiteAuditReport) -> None:
     """Render a multi-page site audit report using Rich."""
-    # Header panel
-    header_lines = [
-        f"[bold]Domain:[/bold] {report.domain}",
-        f"[bold]Discovery:[/bold] {report.discovery.method} — {report.discovery.detail}",
-        f"[bold]Pages audited:[/bold] {report.pages_audited}"
-        + (f"  ([red]{report.pages_failed} failed[/red])" if report.pages_failed else ""),
-    ]
-    console.print(Panel("\n".join(header_lines), title=f"AEO Site Audit: {report.url}"))
+    from aeo_cli.formatters.rich_output import render_site_report
 
-    # Site-wide scores table (robots + llms.txt — same across site)
-    site_table = Table(title="Site-Wide Scores")
-    site_table.add_column("Pillar", style="bold")
-    site_table.add_column("Score", justify="right")
-    site_table.add_column("Detail")
-    site_table.add_row(
-        "Robots.txt AI Access",
-        _score_color(report.robots.score, "robots"),
-        report.robots.detail,
-    )
-    site_table.add_row(
-        "llms.txt Presence",
-        _score_color(report.llms_txt.score, "llms_txt"),
-        report.llms_txt.detail,
-    )
-    console.print(site_table)
-
-    # Aggregate per-page scores (schema + content averaged)
-    agg_table = Table(title="Aggregate Page Scores")
-    agg_table.add_column("Pillar", style="bold")
-    agg_table.add_column("Avg Score", justify="right")
-    agg_table.add_column("Detail")
-    agg_table.add_row(
-        "Schema.org JSON-LD",
-        _score_color(report.schema_org.score, "schema_org"),
-        report.schema_org.detail,
-    )
-    agg_table.add_row(
-        "Content Density",
-        _score_color(report.content.score, "content"),
-        report.content.detail,
-    )
-    console.print(agg_table)
-
-    # Per-page breakdown
-    if report.pages:
-        page_table = Table(title="Per-Page Breakdown")
-        page_table.add_column("URL", max_width=60)
-        page_table.add_column("Schema", justify="right")
-        page_table.add_column("Content", justify="right")
-        page_table.add_column("Total", justify="right")
-        for page in report.pages:
-            total = page.schema_org.score + page.content.score
-            page_table.add_row(
-                page.url,
-                _score_color(page.schema_org.score, "schema_org"),
-                _score_color(page.content.score, "content"),
-                Text(f"{total}", style=_overall_color(total)),
-            )
-        console.print(page_table)
-
-    # Overall score
-    color = _overall_color(report.overall_score)
-    console.print(
-        f"\n[bold]Overall AEO Score:[/bold] [{color}]{report.overall_score}/100[/{color}]"
-    )
-
-    # Errors
-    if report.errors:
-        console.print("\n[bold red]Errors:[/bold red]")
-        for err in report.errors:
-            console.print(f"  • {err}")
+    render_site_report(report, console)
 
 
 @app.command()
 def audit(
-    url: str = typer.Argument(help="URL to audit for AI crawler readiness"),
+    url: str = typer.Argument(None, help="URL to audit for AI crawler readiness"),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON instead of Rich table"),
     format: OutputFormat = typer.Option(
         None, "--format", "-f", help="Output format: json, csv, or markdown"
@@ -151,14 +80,29 @@ def audit(
     timeout: int = typer.Option(
         15, "--timeout", "-t", help="HTTP timeout in seconds (default: 15)"
     ),
+    file: str = typer.Option(
+        None, "--file", "-F", help="Path to .txt or .csv file with URLs (one per line)"
+    ),
+    concurrency: int = typer.Option(
+        3, "--concurrency", help="Max concurrent audits in batch mode (default: 3)"
+    ),
 ) -> None:
     """Run an AEO audit on a URL and display the results."""
-    if not url.startswith("http"):
-        url = f"https://{url}"
-
     # --json flag is a shortcut for --format json
     if json_output and format is None:
         format = OutputFormat.json
+
+    # Batch mode: --file flag
+    if file:
+        _run_batch_mode(file, format, single, max_pages, timeout, concurrency)
+        return
+
+    if not url:
+        console.print("[red]Error:[/red] Provide a URL argument or use --file for batch mode.")
+        raise SystemExit(1)
+
+    if not url.startswith("http"):
+        url = f"https://{url}"
 
     if quiet:
         # Backwards compat: --quiet uses threshold 50 unless --fail-under overrides
@@ -307,6 +251,54 @@ def _audit_quiet(
         if any(not b.allowed for b in report.robots.bots):
             raise SystemExit(2)
     raise SystemExit(0 if report.overall_score >= threshold else 1)
+
+
+def _run_batch_mode(
+    file: str,
+    format: OutputFormat | None,
+    single: bool,
+    max_pages: int,
+    timeout: int,
+    concurrency: int,
+) -> None:
+    """Execute batch audit from a URL file and render results."""
+    from aeo_cli.core.batch import parse_url_file, run_batch_audit
+
+    try:
+        urls = parse_url_file(file)
+    except FileNotFoundError:
+        console.print(f"[red]Error:[/red] File not found: {file}")
+        raise SystemExit(1)
+
+    if not urls:
+        console.print("[yellow]Warning:[/yellow] No URLs found in file.")
+        return
+
+    with console.status(f"Running batch audit on {len(urls)} URLs..."):
+        batch_report = asyncio.run(
+            run_batch_audit(
+                urls, single=single, max_pages=max_pages,
+                timeout=timeout, concurrency=concurrency,
+            )
+        )
+
+    if format == OutputFormat.json:
+        console.print(batch_report.model_dump_json(indent=2))
+        return
+    if format == OutputFormat.csv:
+        from aeo_cli.formatters.csv import format_batch_report_csv
+
+        console.print(format_batch_report_csv(batch_report), end="")
+        return
+    if format == OutputFormat.markdown:
+        from aeo_cli.formatters.markdown import format_batch_report_md
+
+        console.print(format_batch_report_md(batch_report), end="")
+        return
+
+    from aeo_cli.formatters.rich_output import render_batch_rich
+
+    render_batch_rich(batch_report, console)
 
 
 @app.command()
