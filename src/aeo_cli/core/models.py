@@ -488,3 +488,40 @@ class BaselineComparison(BaseModel):
         default_factory=list, description="Pillars that regressed beyond threshold"
     )
     passed: bool = Field(description="Whether the comparison passed (no regressions)")
+
+
+# ── Batch Generate models ────────────────────────────────────────────────────
+
+
+class BatchGenerateConfig(BaseModel):
+    """Configuration for batch asset generation."""
+
+    urls: list[str] = Field(description="URLs to generate assets for")
+    profile: ProfileType = Field(default=ProfileType.generic, description="Industry profile")
+    model: str | None = Field(default=None, description="LLM model (auto-detected if not set)")
+    output_dir: str = Field(default="./aeo-output", description="Output directory")
+    concurrency: int = Field(default=3, description="Max concurrent generations")
+
+
+class BatchPageResult(BaseModel):
+    """Result of generating assets for a single page in a batch."""
+
+    url: str = Field(description="The processed URL")
+    success: bool = Field(description="Whether generation succeeded")
+    llms_txt_path: str | None = Field(default=None, description="Path to generated llms.txt")
+    schema_jsonld_path: str | None = Field(
+        default=None, description="Path to generated schema.jsonld"
+    )
+    error: str | None = Field(default=None, description="Error message if generation failed")
+
+
+class BatchGenerateResult(BaseModel):
+    """Aggregated result of batch generation."""
+
+    total: int = Field(description="Total URLs processed")
+    succeeded: int = Field(description="Number of successful generations")
+    failed: int = Field(description="Number of failed generations")
+    results: list[BatchPageResult] = Field(description="Per-URL results")
+    model_used: str = Field(description="LLM model used for generation")
+    profile: ProfileType = Field(description="Profile used")
+    output_dir: str = Field(description="Output directory")
