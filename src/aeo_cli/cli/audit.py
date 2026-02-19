@@ -142,6 +142,26 @@ def register(app: typer.Typer) -> None:
             None, "--webhook",
             help="Webhook URL to POST audit results to (Slack/Discord/custom)",
         ),
+        robots_min: float = typer.Option(
+            None, "--robots-min",
+            help="Minimum robots.txt pillar score (exit 1 if below)",
+        ),
+        schema_min: float = typer.Option(
+            None, "--schema-min",
+            help="Minimum schema.org pillar score (exit 1 if below)",
+        ),
+        content_min: float = typer.Option(
+            None, "--content-min",
+            help="Minimum content density pillar score (exit 1 if below)",
+        ),
+        llms_min: float = typer.Option(
+            None, "--llms-min",
+            help="Minimum llms.txt pillar score (exit 1 if below)",
+        ),
+        overall_min: float = typer.Option(
+            None, "--overall-min",
+            help="Minimum overall AEO score (exit 1 if below)",
+        ),
     ) -> None:
         """Run an AEO audit on a URL and display the results."""
         # Load config file defaults
@@ -220,6 +240,11 @@ def register(app: typer.Typer) -> None:
                 )
 
         _write_github_step_summary(report, fail_under)
+
+        # Per-pillar threshold checking
+        _check_pillar_thresholds(
+            report, robots_min, schema_min, content_min, llms_min, overall_min,
+        )
 
         if fail_under is not None or fail_on_blocked_bots:
             _check_exit_conditions(report, fail_under, fail_on_blocked_bots)
@@ -331,6 +356,42 @@ def _render_output(
         console.print("\n[bold red]Errors:[/bold red]")
         for err in report.errors:
             console.print(f"  • {err}")
+
+
+def _check_pillar_thresholds(
+    report: AuditReport | SiteAuditReport,
+    robots_min: float | None,
+    schema_min: float | None,
+    content_min: float | None,
+    llms_min: float | None,
+    overall_min: float | None,
+) -> None:
+    """Check per-pillar thresholds and exit 1 if any fail."""
+    has_any = any(
+        v is not None for v in (robots_min, schema_min, content_min, llms_min, overall_min)
+    )
+    if not has_any:
+        return
+
+    from aeo_cli.core.ci.thresholds import check_thresholds
+    from aeo_cli.core.models import PillarThresholds
+
+    thresholds = PillarThresholds(
+        robots_min=robots_min,
+        schema_min=schema_min,
+        content_min=content_min,
+        llms_min=llms_min,
+        overall_min=overall_min,
+    )
+    result = check_thresholds(report, thresholds)
+    if not result.passed:
+        console.print("\n[bold red]Pillar threshold failures:[/bold red]")
+        for failure in result.failures:
+            console.print(
+                f"  [red]FAIL[/red] {failure.pillar}: "
+                f"{failure.actual:.1f} < {failure.minimum:.1f} (minimum)"
+            )
+        raise SystemExit(1)
 
 
 def _check_exit_conditions(

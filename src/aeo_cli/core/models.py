@@ -412,3 +412,43 @@ class PluginResult(BaseModel):
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional plugin-specific data"
     )
+
+
+# ── CI/CD threshold models ───────────────────────────────────────────────────
+
+
+class ThresholdFailure(BaseModel):
+    """A single pillar that failed its minimum threshold check."""
+
+    pillar: str = Field(description="Pillar name that failed (e.g., robots, content, overall)")
+    actual: float = Field(description="Actual pillar score from the audit")
+    minimum: float = Field(description="Minimum threshold that was required")
+
+
+class ThresholdResult(BaseModel):
+    """Result of checking audit scores against per-pillar thresholds."""
+
+    passed: bool = Field(description="True if all configured thresholds were met")
+    failures: list[ThresholdFailure] = Field(
+        default_factory=list, description="List of pillar threshold failures"
+    )
+
+
+class PillarThresholds(BaseModel):
+    """Per-pillar minimum score thresholds for CI/CD gating."""
+
+    robots_min: float | None = Field(
+        default=None, description="Minimum robots.txt pillar score (0-25)"
+    )
+    schema_min: float | None = Field(
+        default=None, description="Minimum schema.org pillar score (0-25)"
+    )
+    content_min: float | None = Field(
+        default=None, description="Minimum content density pillar score (0-40)"
+    )
+    llms_min: float | None = Field(
+        default=None, description="Minimum llms.txt pillar score (0-10)"
+    )
+    overall_min: float | None = Field(
+        default=None, description="Minimum overall AEO score (0-100)"
+    )
