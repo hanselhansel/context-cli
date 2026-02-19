@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from context_cli.core.models import (
     ContentReport,
+    Diagnostic,
     LintCheck,
     LintResult,
     LlmsTxtReport,
@@ -99,13 +100,87 @@ def compute_scores(
     return robots, llms_txt, schema_org, content, overall
 
 
+def _generate_diagnostics(
+    robots: RobotsReport,
+    content: ContentReport,
+    schema_org: SchemaReport,
+) -> list[Diagnostic]:
+    """Generate linter-style diagnostic messages from audit data."""
+    diagnostics: list[Diagnostic] = []
+
+    # WARN-001: Excessive DOM bloat
+    if content.context_waste_pct > 70:
+        diagnostics.append(Diagnostic(
+            code="WARN-001",
+            severity="warn",
+            message=(
+                f"Excessive DOM bloat. {content.context_waste_pct:.0f}% of tokens"
+                " are navigation/boilerplate."
+            ),
+        ))
+
+    # WARN-002: No code blocks
+    if not content.has_code_blocks:
+        diagnostics.append(Diagnostic(
+            code="WARN-002",
+            severity="warn",
+            message="No code blocks detected. Technical docs should include examples.",
+        ))
+
+    # WARN-003: No heading structure
+    if not content.has_headings:
+        diagnostics.append(Diagnostic(
+            code="WARN-003",
+            severity="warn",
+            message="No heading structure. Content lacks navigability for LLM extraction.",
+        ))
+
+    # WARN-004: Blocked bots
+    if robots.found and robots.bots:
+        blocked = [b.bot for b in robots.bots if not b.allowed]
+        if blocked:
+            diagnostics.append(Diagnostic(
+                code="WARN-004",
+                severity="warn",
+                message=f"{len(blocked)} AI bots blocked in robots.txt.",
+            ))
+
+    # INFO-001: Readability grade
+    if content.readability_grade is not None:
+        grade = content.readability_grade
+        if grade < 6:
+            level = "elementary"
+        elif grade < 9:
+            level = "middle school"
+        elif grade < 13:
+            level = "high school"
+        else:
+            level = "college level"
+        diagnostics.append(Diagnostic(
+            code="INFO-001",
+            severity="info",
+            message=f"Readability grade: {grade:.1f} ({level})",
+        ))
+
+    # INFO-002: JSON-LD blocks detected
+    if schema_org.blocks_found > 0 and schema_org.schemas:
+        types_str = ", ".join(s.schema_type for s in schema_org.schemas[:5])
+        diagnostics.append(Diagnostic(
+            code="INFO-002",
+            severity="info",
+            message=f"{schema_org.blocks_found} JSON-LD blocks detected: {types_str}",
+        ))
+
+    return diagnostics
+
+
 def compute_lint_results(
     robots: RobotsReport,
     llms_txt: LlmsTxtReport,
     schema_org: SchemaReport,
     content: ContentReport,
 ) -> LintResult:
-    """Compute pass/fail checks and token waste metrics."""
+    """Compute pass/fail checks, token waste metrics, and diagnostics."""
     checks: list[LintCheck] = []
 
     # AI Primitives check
@@ -113,12 +188,17 @@ def compute_lint_results(
     checks.append(LintCheck(
         name="AI Primitives",
         passed=ai_prim_pass,
-        detail="llms.txt found" if ai_prim_pass else "No llms.txt found",
+        severity="pass" if ai_prim_pass else "fail",
+        detail=(
+            f"llms.txt found at {llms_txt.url}" if ai_prim_pass and llms_txt.url
+            else ("llms.txt found" if ai_prim_pass else "No llms.txt found")
+        ),
     ))
 
     # Bot Access check
     bot_pass = True
     bot_detail = "No robots.txt found"
+    bot_severity = "pass"
     if robots.found and robots.bots:
         blocked = [b.bot for b in robots.bots if not b.allowed]
         bot_pass = len(blocked) == 0
@@ -127,7 +207,10 @@ def compute_lint_results(
         bot_detail = f"{allowed}/{total} AI bots allowed"
         if blocked:
             bot_detail += f" ({', '.join(blocked[:3])} blocked)"
-    checks.append(LintCheck(name="Bot Access", passed=bot_pass, detail=bot_detail))
+            bot_severity = "fail"
+    checks.append(LintCheck(
+        name="Bot Access", passed=bot_pass, severity=bot_severity, detail=bot_detail,
+    ))
 
     # Data Structuring check
     schema_pass = schema_org.blocks_found > 0
@@ -135,18 +218,33 @@ def compute_lint_results(
     if schema_org.schemas:
         types_found = [s.schema_type for s in schema_org.schemas]
         schema_detail += f" ({', '.join(types_found[:3])})"
-    checks.append(LintCheck(name="Data Structuring", passed=schema_pass, detail=schema_detail))
+    checks.append(LintCheck(
+        name="Data Structuring",
+        passed=schema_pass,
+        severity="pass" if schema_pass else "fail",
+        detail=schema_detail,
+    ))
 
-    # Token Efficiency check
+    # Token Efficiency check — uses warn for 30-70%, fail for >70%
     waste = content.context_waste_pct
     eff_pass = waste < 70
+    if waste < 30:
+        eff_severity = "pass"
+    elif waste < 70:
+        eff_severity = "warn"
+    else:
+        eff_severity = "fail"
     eff_detail = f"{waste:.0f}% Context Waste"
     if content.estimated_raw_tokens > 0:
         eff_detail += (
             f" ({content.estimated_raw_tokens:,} raw"
-            f" -> {content.estimated_clean_tokens:,} clean tokens)"
+            f" \u2192 {content.estimated_clean_tokens:,} clean tokens)"
         )
-    checks.append(LintCheck(name="Token Efficiency", passed=eff_pass, detail=eff_detail))
+    checks.append(LintCheck(
+        name="Token Efficiency", passed=eff_pass, severity=eff_severity, detail=eff_detail,
+    ))
+
+    diagnostics = _generate_diagnostics(robots, content, schema_org)
 
     return LintResult(
         checks=checks,
@@ -154,4 +252,5 @@ def compute_lint_results(
         raw_tokens=content.estimated_raw_tokens,
         clean_tokens=content.estimated_clean_tokens,
         passed=all(c.passed for c in checks),
+        diagnostics=diagnostics,
     )

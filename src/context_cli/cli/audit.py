@@ -393,33 +393,42 @@ def _render_output(
             render_verbose_site(report, console)
         return
 
-    # Single-page Rich table
-    table = Table(title=f"Context Lint: {report.url}")
-    table.add_column("Pillar", style="bold")
-    table.add_column("Score", justify="right")
-    table.add_column("Detail")
+    # Single-page output — linter style when lint_result available, fallback to table
+    if report.lint_result:
+        from context_cli.formatters.rich_output import render_single_report
 
-    rows = [
-        ("Robots.txt AI Access", report.robots.score, "robots", report.robots.detail),
-        ("llms.txt Presence", report.llms_txt.score, "llms_txt", report.llms_txt.detail),
-        ("Schema.org JSON-LD", report.schema_org.score, "schema_org", report.schema_org.detail),
-        ("Content Density", report.content.score, "content", report.content.detail),
-    ]
-    for label, score, pillar, detail in rows:
-        table.add_row(label, _score_color(score, pillar), detail)
+        render_single_report(report, console)
+    else:
+        table = Table(title=f"Context Lint: {report.url}")
+        table.add_column("Pillar", style="bold")
+        table.add_column("Score", justify="right")
+        table.add_column("Detail")
 
-    console.print(table)
-    console.print(
-        f"\n[bold]Overall Readiness Score:[/bold] [cyan]{report.overall_score}/100[/cyan]"
-    )
+        rows = [
+            ("Robots.txt AI Access", report.robots.score, "robots", report.robots.detail),
+            ("llms.txt Presence", report.llms_txt.score, "llms_txt", report.llms_txt.detail),
+            (
+                "Schema.org JSON-LD",
+                report.schema_org.score, "schema_org", report.schema_org.detail,
+            ),
+            ("Content Density", report.content.score, "content", report.content.detail),
+        ]
+        for label, score, pillar, detail in rows:
+            table.add_row(label, _score_color(score, pillar), detail)
+
+        console.print(table)
+        console.print(
+            f"\n[bold]Overall Readiness Score:[/bold]"
+            f" [cyan]{report.overall_score}/100[/cyan]"
+        )
+
+        if report.errors:
+            console.print("\n[bold red]Errors:[/bold red]")
+            for err in report.errors:
+                console.print(f"  \u2022 {err}")
 
     if verbose:
         render_verbose_single(report, console)
-
-    if report.errors:
-        console.print("\n[bold red]Errors:[/bold red]")
-        for err in report.errors:
-            console.print(f"  • {err}")
 
 
 def _check_pillar_thresholds(
