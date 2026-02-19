@@ -7,7 +7,10 @@ from typing import Any
 from fastmcp import FastMCP
 
 from aeo_cli.core.auditor import audit_site, audit_url
+from aeo_cli.core.compare import compare_urls
+from aeo_cli.core.history import HistoryDB
 from aeo_cli.core.models import AuditReport, GenerateConfig, ProfileType, SiteAuditReport
+from aeo_cli.core.recommend import generate_recommendations
 
 mcp = FastMCP(
     name="aeo-cli",
@@ -60,3 +63,41 @@ async def generate(
     )
     result = await generate_assets(config)
     return result.model_dump()
+
+
+@mcp.tool
+async def compare(url1: str, url2: str) -> dict[str, Any]:
+    """Compare two URLs side-by-side for AI engine optimization readiness.
+
+    Audits both URLs concurrently and returns a comparison report with
+    per-pillar score deltas.
+    """
+    report = await compare_urls(url1, url2)
+    return report.model_dump()
+
+
+@mcp.tool
+async def history(url: str, limit: int = 10) -> list[dict[str, Any]]:
+    """Retrieve audit history for a URL from the local SQLite database.
+
+    Returns recent audit entries (newest first), each with timestamp and
+    per-pillar scores.
+    """
+    db = HistoryDB()
+    try:
+        entries = db.list_entries(url, limit=limit)
+        return [entry.model_dump() for entry in entries]
+    finally:
+        db.close()
+
+
+@mcp.tool
+async def recommend(url: str) -> list[dict[str, Any]]:
+    """Audit a URL and return actionable recommendations to improve AEO score.
+
+    Runs a single-page audit, then analyzes the results to suggest specific
+    improvements sorted by estimated impact.
+    """
+    report = await audit_url(url)
+    recs = generate_recommendations(report)
+    return [rec.model_dump() for rec in recs]

@@ -366,3 +366,16 @@ class GenerateResult(BaseModel):
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors during generation"
     )
+
+
+# ── Recommendation model ────────────────────────────────────────────────────
+
+
+class Recommendation(BaseModel):
+    """A single actionable recommendation to improve AEO score."""
+
+    pillar: str = Field(description="Which pillar this recommendation targets")
+    action: str = Field(description="What to do")
+    estimated_impact: float = Field(description="Estimated score improvement in points")
+    priority: str = Field(description="high, medium, or low")
+    detail: str = Field(description="Detailed explanation")
