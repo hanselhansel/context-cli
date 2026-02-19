@@ -25,9 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example workflows in `.github/examples/` for basic, preview deploy, and inline usage
 - Comprehensive CI integration documentation in `docs/ci-integration.md`
 
+### Fixed
+
+- **CI failure**: FastMCP version compatibility in `test_mcp_server.py` — `@mcp.tool` returns either a `FunctionTool` wrapper (with `.fn`) or the raw function depending on version; added `hasattr` guard to work with all FastMCP 2.x releases
+
 ### Changed
 
 - Refactored audit command into `_run_audit()`, `_render_output()`, `_check_exit_conditions()` helpers for cleaner CI integration
+- Test suite expanded from 239 to 308 tests, achieving **100% code coverage** across all 18 source files
 
 ## [0.1.0] - 2026-02-18
 
