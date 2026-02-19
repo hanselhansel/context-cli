@@ -178,6 +178,18 @@ class SiteAuditReport(BaseModel):
     )
 
 
+class BatchAuditReport(BaseModel):
+    """Batch audit results for multiple URLs."""
+
+    urls: list[str] = Field(description="URLs that were audited")
+    reports: list[AuditReport | SiteAuditReport] = Field(
+        default_factory=list, description="Successful per-URL audit results"
+    )
+    errors: dict[str, str] = Field(
+        default_factory=dict, description="URLs that failed, mapped to error messages"
+    )
+
+
 # ── Generate command models ──────────────────────────────────────────────────
 
 
