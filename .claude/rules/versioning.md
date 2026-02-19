@@ -17,6 +17,7 @@ Semantic versioning: MAJOR.MINOR.PATCH
 | B4 | 0.11.0 | Benchmark |
 | B5 | 0.12.0 | Retail |
 | Final | 1.0.0 | All features complete |
+| Rebrand | 2.0.0 | Pivot from AEO-CLI to Context CLI |
 
 ## When to Bump
 - **Patch** (0.3.1, 0.3.2): After completing each meaningful feature within a phase

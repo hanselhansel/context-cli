@@ -26,7 +26,7 @@ Split when ANY of these are true:
 2. Move the extracted code
 3. Update imports in all consumers
 4. Re-export from `__init__.py` if needed for backward compatibility
-5. Verify: `ruff check src/ tests/ && mypy src/ && pytest tests/ -q --cov=aeo_cli --cov-fail-under=100`
+5. Verify: `ruff check src/ tests/ && mypy src/ && pytest tests/ -q --cov=context_cli --cov-fail-under=100`
 
 ## Module Structure Standards
 - One clear responsibility per module

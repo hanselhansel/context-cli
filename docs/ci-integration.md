@@ -1,26 +1,26 @@
 # CI Integration Guide
 
-AEO-CLI integrates into CI/CD pipelines to catch AI-readiness regressions before they reach production. Use it to enforce minimum AEO scores, detect blocked AI bots, and generate audit reports as part of your build process.
+Context CLI integrates into CI/CD pipelines to catch LLM-readiness regressions before they reach production. Use it to enforce minimum scores, detect blocked AI bots, and generate lint reports as part of your build process.
 
 ## Quick Start
 
-Add this to `.github/workflows/aeo-audit.yml`:
+Add this to `.github/workflows/context-lint.yml`:
 
 ```yaml
-name: AEO Audit
+name: Context Lint
 on:
   push:
     branches: [main]
   pull_request:
 
 jobs:
-  aeo-audit:
+  context-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run AEO Audit
-        uses: hanselhansel/aeo-cli@main
+      - name: Run Context Lint
+        uses: hanselhansel/context-cli@main
         with:
           url: 'https://your-site.com'
           fail-under: '60'
@@ -35,25 +35,25 @@ jobs:
 | `--quiet` | Suppress output; exit 0 if score >= 50, else 1 | `--quiet` |
 | `--json` | Machine-readable JSON output | `--json` |
 | `--format FORMAT` | Output format: json, csv, markdown, or html | `--format markdown` |
-| `--single` | Single-page audit (skip multi-page discovery) | `--single` |
+| `--single` | Single-page lint (skip multi-page discovery) | `--single` |
 | `--max-pages N` | Limit pages in multi-page mode (default: 10) | `--max-pages 5` |
 | `--timeout N` | HTTP timeout in seconds (default: 15) | `--timeout 30` |
 | `--bots LIST` | Custom AI bot list (comma-separated) | `--bots GPTBot,ClaudeBot` |
-| `--save` | Save audit results to local history | `--save` |
+| `--save` | Save lint results to local history | `--save` |
 | `--regression-threshold N` | Score drop threshold for regression (default: 5) | `--regression-threshold 10` |
-| `--webhook URL` | POST results to webhook after audit | `--webhook https://hooks.slack.com/...` |
+| `--webhook URL` | POST results to webhook after lint | `--webhook https://hooks.slack.com/...` |
 
 ## Exit Codes
 
 | Code | Meaning |
 |------|---------|
-| 0 | Audit passed (score meets threshold) |
+| 0 | Lint passed (score meets threshold) |
 | 1 | Score below `--fail-under` threshold (or below 50 in `--quiet` mode) |
 | 2 | AI bot blocked (when `--fail-on-blocked-bots` is set) |
 
 ## Configuration File
 
-Create `.aeorc.yml` in your project root or home directory to set defaults:
+Create `.contextrc.yml` in your project root or home directory to set defaults:
 
 ```yaml
 timeout: 30
@@ -72,10 +72,10 @@ CLI flags override config file values when explicitly set.
 
 ## Webhook Notifications
 
-Send audit results to Slack, Discord, or any webhook URL:
+Send lint results to Slack, Discord, or any webhook URL:
 
 ```bash
-aeo-cli audit https://your-site.com --webhook https://hooks.slack.com/services/...
+context-cli lint https://your-site.com --webhook https://hooks.slack.com/services/...
 ```
 
 The webhook receives a JSON payload with:
@@ -88,14 +88,14 @@ The webhook receives a JSON payload with:
 Track scores over time with `--save` and detect regressions:
 
 ```bash
-# Save each audit to local history
-aeo-cli audit https://your-site.com --save
+# Save each lint to local history
+context-cli lint https://your-site.com --save
 
 # View history
-aeo-cli history https://your-site.com
+context-cli history https://your-site.com
 
 # Detect regression with custom threshold
-aeo-cli audit https://your-site.com --save --regression-threshold 10
+context-cli lint https://your-site.com --save --regression-threshold 10
 ```
 
 ## Continuous Monitoring
@@ -103,8 +103,8 @@ aeo-cli audit https://your-site.com --save --regression-threshold 10
 Use the `watch` command for ongoing monitoring:
 
 ```bash
-# Audit every hour, save results, alert via webhook
-aeo-cli watch https://your-site.com \
+# Lint every hour, save results, alert via webhook
+context-cli watch https://your-site.com \
   --interval 3600 \
   --save \
   --webhook https://hooks.slack.com/services/... \
@@ -113,25 +113,25 @@ aeo-cli watch https://your-site.com \
 
 ## GitHub Action
 
-The `hanselhansel/aeo-cli` composite action wraps the CLI with convenient inputs and outputs.
+The `hanselhansel/context-cli` composite action wraps the CLI with convenient inputs and outputs.
 
 ### Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `url` | Yes | -- | URL to audit |
+| `url` | Yes | -- | URL to lint |
 | `fail-under` | No | -- | Fail if score is below this threshold (0-100) |
 | `fail-on-blocked-bots` | No | `false` | Fail (exit 2) if any AI bot is blocked |
-| `single-page` | No | `false` | Audit only the given URL (skip discovery) |
-| `max-pages` | No | `10` | Maximum pages to audit in multi-page mode |
+| `single-page` | No | `false` | Lint only the given URL (skip discovery) |
+| `max-pages` | No | `10` | Maximum pages to lint in multi-page mode |
 | `python-version` | No | `3.12` | Python version to use |
 
 ### Outputs
 
 | Output | Description |
 |--------|-------------|
-| `score` | Overall AEO score (0-100) |
-| `report-json` | Full audit report as JSON |
+| `score` | Overall LLM readiness score (0-100) |
+| `report-json` | Full lint report as JSON |
 
 ### Using Outputs
 
@@ -139,28 +139,28 @@ Access the score and report in subsequent steps:
 
 ```yaml
 steps:
-  - name: Run AEO Audit
-    id: aeo
-    uses: hanselhansel/aeo-cli@main
+  - name: Run Context Lint
+    id: lint
+    uses: hanselhansel/context-cli@main
     with:
       url: 'https://your-site.com'
 
   - name: Check score
     run: |
-      echo "AEO Score: ${{ steps.aeo.outputs.score }}"
-      if [ "${{ steps.aeo.outputs.score }}" -lt 50 ]; then
-        echo "::warning::AEO score is below 50"
+      echo "Score: ${{ steps.lint.outputs.score }}"
+      if [ "${{ steps.lint.outputs.score }}" -lt 50 ]; then
+        echo "::warning::LLM readiness score is below 50"
       fi
 ```
 
 ## GitHub Step Summary
 
-When running in GitHub Actions, AEO-CLI automatically writes a summary to `$GITHUB_STEP_SUMMARY` if the environment variable is set. You can also generate markdown output:
+When running in GitHub Actions, Context CLI automatically writes a summary to `$GITHUB_STEP_SUMMARY` if the environment variable is set. You can also generate markdown output:
 
 ```yaml
-- name: Run AEO Audit
+- name: Run Context Lint
   run: |
-    aeo-cli audit https://your-site.com --format markdown >> $GITHUB_STEP_SUMMARY
+    context-cli lint https://your-site.com --format markdown >> $GITHUB_STEP_SUMMARY
 ```
 
 ## HTML Reports
@@ -168,8 +168,8 @@ When running in GitHub Actions, AEO-CLI automatically writes a summary to `$GITH
 Generate Lighthouse-style HTML reports:
 
 ```bash
-aeo-cli audit https://your-site.com --format html
-# Creates: aeo-report-your-site.com.html
+context-cli lint https://your-site.com --format html
+# Creates: context-report-your-site.com.html
 ```
 
 The HTML report is self-contained (inline CSS, no external dependencies) and includes:
@@ -181,9 +181,9 @@ The HTML report is self-contained (inline CSS, no external dependencies) and inc
 
 See the example workflows in [`.github/examples/`](../.github/examples/):
 
-- **[aeo-audit.yml](../.github/examples/aeo-audit.yml)** -- Basic workflow with score threshold
-- **[aeo-audit-preview.yml](../.github/examples/aeo-audit-preview.yml)** -- Audit Vercel/Netlify preview deploys
-- **[aeo-audit-inline.yml](../.github/examples/aeo-audit-inline.yml)** -- Inline steps without the composite action
+- **[context-lint.yml](../.github/examples/context-lint.yml)** -- Basic workflow with score threshold
+- **[context-lint-preview.yml](../.github/examples/context-lint-preview.yml)** -- Lint Vercel/Netlify preview deploys
+- **[context-lint-inline.yml](../.github/examples/context-lint-inline.yml)** -- Inline steps without the composite action
 
 ## Troubleshooting
 
@@ -195,11 +195,11 @@ The `crawl4ai-setup` command installs a headless Chromium browser for content an
 - Ensure `ubuntu-latest` is used (browser dependencies are pre-installed)
 - If you only need robots.txt/llms.txt/schema checks, content analysis is optional
 
-### Audit times out
+### Lint times out
 
-Multi-page audits crawl up to `--max-pages` URLs. To speed things up:
+Multi-page lints crawl up to `--max-pages` URLs. To speed things up:
 
-- Use `--single` for single-page audits (fastest)
+- Use `--single` for single-page lints (fastest)
 - Lower `--max-pages` (e.g., `--max-pages 3`)
 - Increase `--timeout` for slow sites
 - Set a workflow timeout: `timeout-minutes: 10`
@@ -210,7 +210,7 @@ Some sites rate-limit automated requests. If you see connection errors:
 
 - Add a delay between CI runs (avoid running on every commit)
 - Use `--single` to reduce request volume
-- Consider auditing only on `main` branch pushes, not every PR
+- Consider linting only on `main` branch pushes, not every PR
 
 ### Score is 0
 

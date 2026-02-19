@@ -3,7 +3,7 @@
 ## TDD Cycle (Mandatory)
 1. Write comprehensive tests FIRST for every new feature
 2. Implement minimum code to pass all tests
-3. Verify: `pytest tests/ -q --cov=aeo_cli --cov-fail-under=100`
+3. Verify: `pytest tests/ -q --cov=context_cli --cov-fail-under=100`
 4. If coverage < 100%, write more tests before proceeding
 
 ## Coverage Requirements

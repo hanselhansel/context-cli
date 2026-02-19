@@ -13,7 +13,7 @@ with open('pyproject.toml', 'rb') as f:
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 
-echo "=== AEO-CLI Session Context ==="
+echo "=== Context CLI Session Context ==="
 echo "Version: $VERSION"
 echo "Branch: $BRANCH"
 echo ""

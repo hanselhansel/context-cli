@@ -1,9 +1,9 @@
-# AEO-CLI v0.12.0 — CRITICAL CONTEXT
+# Context CLI v2.0.0 — CRITICAL CONTEXT
 
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: 1.0.0 (GA — all features complete)
+CURRENT PHASE: 2.0.0 (Rebrand — pivot from AEO-CLI to Context CLI)
 AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section below.
 
 ## Session Workflow (MANDATORY — enforced by hooks)
@@ -11,7 +11,7 @@ AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section 
 2. **CODE** — Implement minimum to pass tests
 3. **REFACTOR** — Clean up: split large files (>300 LOC), extract modules, simplify
 4. **LINT** — Auto-lint via PostToolUse hook on every file change
-5. **VERIFY** — `pytest --cov=aeo_cli --cov-fail-under=100` (100% mandatory)
+5. **VERIFY** — `pytest --cov=context_cli --cov-fail-under=100` (100% mandatory)
 6. **COMMIT** — `git add` + `git commit` + `git push origin main` (every green feature)
 6.5. **README** — If releasing a version: update README Features, CLI Usage, and Bots sections
 7. **VERSION** — Patch bump + tag + push when feature is significant
@@ -19,8 +19,8 @@ AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section 
 8.5. **AGENTS** — If session resumes with active worktrees: check agent branches for commits, merge completed work, clean up worktrees
 
 ## Versioning
-Minor bump per phase: 0.3.0(A1) → 0.4.0(A2) → 0.5.0(A3) → 0.6.0(A4) → 0.7.0(B0) → 0.8.0(B1) → 0.9.0(B2) → 0.10.0(B3) → 0.11.0(B4) → 0.12.0(B5) → 1.0.0
-Patch within phases (0.3.1, 0.3.2, ...). Every `v*` tag auto-publishes to PyPI.
+Minor bump per phase: 0.3.0(A1) → 0.4.0(A2) → 0.5.0(A3) → 0.6.0(A4) → 0.7.0(B0) → 0.8.0(B1) → 0.9.0(B2) → 0.10.0(B3) → 0.11.0(B4) → 0.12.0(B5) → 1.0.0 → 2.0.0(Rebrand)
+Patch within phases (2.0.1, 2.0.2, ...). Every `v*` tag auto-publishes to PyPI.
 
 --- END CRITICAL HEADER (above MUST survive compaction) ---
 
@@ -57,10 +57,10 @@ CLI (main.py)  ←→  MCP Server (server.py)
 
 ## Project Structure
 ```
-src/aeo_cli/
+src/context_cli/
 ├── __init__.py          # Package version
 ├── py.typed             # PEP 561 typed marker
-├── main.py              # Typer CLI (entry point: aeo-cli)
+├── main.py              # Typer CLI (entry point: context-cli)
 ├── server.py            # FastMCP server
 ├── formatters/
 │   ├── csv.py           # CSV output formatter
@@ -100,14 +100,14 @@ pytest                               # Run tests (with coverage)
 ruff check src/ tests/               # Lint
 mypy src/                            # Type check
 make ci                              # Run lint + typecheck + tests
-aeo-cli audit <url>                  # Multi-page site audit (Rich output)
-aeo-cli audit <url> --single         # Single-page audit
-aeo-cli audit <url> --json           # JSON output
-aeo-cli audit <url> --format csv     # CSV output
-aeo-cli audit <url> --format markdown # Markdown output
-aeo-cli audit <url> --verbose        # Detailed pillar breakdown
-aeo-cli audit <url> --quiet          # Silent mode (exit code only)
-aeo-cli mcp                          # Start MCP stdio server
+context-cli lint <url>               # Multi-page site lint (Rich output)
+context-cli lint <url> --single      # Single-page lint
+context-cli lint <url> --json        # JSON output
+context-cli lint <url> --format csv  # CSV output
+context-cli lint <url> --format markdown # Markdown output
+context-cli lint <url> --verbose     # Detailed pillar breakdown
+context-cli lint <url> --quiet       # Silent mode (exit code only)
+context-cli mcp                      # Start MCP stdio server
 ```
 
 ## Hook Infrastructure
@@ -151,6 +151,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 | B4 | 0.11.0 | DONE | Benchmark: Share-of-Recommendation tracking |
 | B5 | 0.12.0 | DONE | Retail: 8 marketplace parsers, retail scoring |
 | Final | 1.0.0 | DONE | All features complete, fully documented |
+| Rebrand | 2.0.0 | DONE | Pivot from AEO-CLI to Context CLI (LLM Readiness Linter) |
 
 Details: `docs/long-running-session-plan.md`
 
@@ -174,8 +175,8 @@ for a team, split it further — the coordination overhead is worth the consiste
 
 ## Agent Team Worktree Protocol
 When spawning agent teams, ALWAYS use git worktrees for isolation:
-1. Create a worktree per agent: `git worktree add ../aeo-cli-{name} -b {name}/{feature} main`
-2. Install deps: `cd ../aeo-cli-{name} && pip install -e ".[dev]"`
+1. Create a worktree per agent: `git worktree add ../context-cli-{name} -b {name}/{feature} main`
+2. Install deps: `cd ../context-cli-{name} && pip install -e ".[dev]"`
 3. Spawn each agent as a separate session in its worktree directory
 4. Agents commit+push to their own branches only
 5. Leader merges branches to main after all agents complete

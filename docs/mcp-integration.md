@@ -1,22 +1,22 @@
 # MCP Integration Guide
 
-AEO-CLI includes a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server, allowing AI agents to run AEO audits programmatically.
+Context CLI includes a built-in [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server, allowing AI agents to run LLM readiness lints programmatically.
 
 ## What is MCP?
 
-MCP is an open protocol that lets AI assistants (like Claude, ChatGPT, etc.) call external tools in a standardized way. By exposing AEO-CLI as an MCP server, any MCP-compatible AI agent can audit URLs for AI crawler readiness without the user needing to run CLI commands manually.
+MCP is an open protocol that lets AI assistants (like Claude, ChatGPT, etc.) call external tools in a standardized way. By exposing Context CLI as an MCP server, any MCP-compatible AI agent can lint URLs for LLM readiness without the user needing to run CLI commands manually.
 
 ## Starting the MCP Server
 
 ```bash
-aeo-cli mcp
+context-cli mcp
 ```
 
 This starts the server using **stdio transport** -- it communicates via standard input/output, which is how most MCP clients (Claude Desktop, Claude Code, etc.) expect to connect.
 
 ## Claude Desktop Configuration
 
-To make AEO-CLI available as a tool in Claude Desktop, add this to your Claude Desktop config file:
+To make Context CLI available as a tool in Claude Desktop, add this to your Claude Desktop config file:
 
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
@@ -24,35 +24,35 @@ To make AEO-CLI available as a tool in Claude Desktop, add this to your Claude D
 ```json
 {
   "mcpServers": {
-    "aeo-cli": {
-      "command": "aeo-cli",
+    "context-cli": {
+      "command": "context-cli",
       "args": ["mcp"]
     }
   }
 }
 ```
 
-After saving, restart Claude Desktop. You'll see "aeo-cli" listed under available tools.
+After saving, restart Claude Desktop. You'll see "context-cli" listed under available tools.
 
 ## Claude Code Configuration
 
-To use AEO-CLI as an MCP tool in Claude Code:
+To use Context CLI as an MCP tool in Claude Code:
 
 ```bash
-claude mcp add aeo-cli -- aeo-cli mcp
+claude mcp add context-cli -- context-cli mcp
 ```
 
 ## Available Tools
 
 ### `audit`
 
-Audit a URL for AI engine optimization readiness.
+Lint a URL for LLM readiness and token efficiency.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `url` | `string` | (required) | The URL to audit |
-| `single_page` | `boolean` | `false` | Audit only the given URL (skip multi-page discovery) |
-| `max_pages` | `integer` | `10` | Maximum number of pages to audit in multi-page mode |
+| `url` | `string` | (required) | The URL to lint |
+| `single_page` | `boolean` | `false` | Lint only the given URL (skip multi-page discovery) |
+| `max_pages` | `integer` | `10` | Maximum number of pages to lint in multi-page mode |
 
 **Returns:** `AuditReport` (single page) or `SiteAuditReport` (multi-page) as dict.
 
@@ -65,43 +65,43 @@ Generate llms.txt and schema.jsonld for a URL using LLM analysis.
 | `url` | `string` | (required) | URL to generate assets for |
 | `profile` | `string` | `"generic"` | Industry profile (generic, cpg, saas, ecommerce, blog) |
 | `model` | `string` | `null` | LLM model to use (auto-detected from env if not set) |
-| `output_dir` | `string` | `"./aeo-output"` | Directory to write generated files |
+| `output_dir` | `string` | `"./context-output"` | Directory to write generated files |
 
 **Returns:** `GenerateResult` as dict.
 
 ### `compare`
 
-Compare AEO audit results between two URLs.
+Compare lint results between two URLs.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `url1` | `string` | (required) | First URL to audit |
-| `url2` | `string` | (required) | Second URL to audit |
+| `url1` | `string` | (required) | First URL to lint |
+| `url2` | `string` | (required) | Second URL to lint |
 
 **Returns:** `CompareReport` as dict, including per-pillar deltas and a winner summary.
 
 ### `history`
 
-Retrieve audit history for a URL from local SQLite storage.
+Retrieve lint history for a URL from local SQLite storage.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `url` | `string` | (required) | URL to look up history for |
 | `limit` | `integer` | `10` | Maximum number of history entries to return |
 
-**Returns:** List of historical audit reports as dicts.
+**Returns:** List of historical lint reports as dicts.
 
 ### `recommend`
 
-Audit a URL and generate actionable recommendations to improve its AEO score.
+Lint a URL and generate actionable recommendations to improve its score.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `url` | `string` | (required) | URL to audit and generate recommendations for |
+| `url` | `string` | (required) | URL to lint and generate recommendations for |
 
 **Returns:** List of `Recommendation` objects as dicts, sorted by estimated impact. Each recommendation includes: pillar, action, estimated_impact, priority, and detail.
 
-## Example: Single Page Audit
+## Example: Single Page Lint
 
 **Request** (from an AI agent):
 ```
@@ -178,11 +178,11 @@ Call the recommend tool with url="https://example.com"
 
 ## Use Cases
 
-- **Content teams**: Ask Claude to "audit our blog for AEO readiness" -- it calls the tool automatically
-- **SEO monitoring**: Build an AI agent that periodically audits your site and flags regressions
+- **Content teams**: Ask Claude to "lint our blog for LLM readiness" -- it calls the tool automatically
+- **SEO monitoring**: Build an AI agent that periodically lints your site and flags regressions
 - **Competitive analysis**: Use `compare` to pit two URLs against each other
 - **Score improvement**: Use `recommend` to get actionable suggestions sorted by impact
-- **CI/CD integration**: Use the MCP tool in automated pipelines to gate deployments on AEO thresholds
+- **CI/CD integration**: Use the MCP tool in automated pipelines to gate deployments on score thresholds
 - **Trend tracking**: Use `history` to track score changes over time
 
 ## Technical Details
