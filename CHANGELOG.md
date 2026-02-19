@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-19
+
+### Added
+
+- **Recommendation engine (`core/recommend.py`)**: Analyzes audit reports and generates actionable recommendations sorted by estimated impact (e.g., "Add FAQ schema to boost +8 points")
+- **MCP server expansion**: 3 new tools — `compare(url1, url2)`, `history(url, limit)`, `recommend(url)` — enabling AI agents to compare audits, view history, and get improvement suggestions
+- **Webhook notifications (`--webhook URL`)**: POST audit results to Slack, Discord, or custom webhook URLs after each audit; graceful error handling (warns but never fails the audit)
+- **HTML report export (`--format html`)**: Lighthouse-style self-contained HTML report with circular score gauge, per-pillar color-coded breakdown, and responsive layout
+- **Watch command (`aeo-cli watch <url>`)**: Continuous monitoring mode with configurable `--interval`, supports `--save`, `--webhook`, `--fail-under`, and graceful Ctrl+C handling
+- **Plugin architecture (`core/plugin.py`)**: Abstract `AuditPlugin` base class with registry, entry point discovery (`aeo_cli.plugins` group), and built-in `MetaTagsPlugin` example
+- **`.aeorc.yml` configuration file**: Load defaults from CWD or home directory for timeout, max-pages, single, verbose, save, bots, format, and regression-threshold
+- **New Pydantic models**: `Recommendation`, `WebhookPayload`, `PluginResult`
+- **New output format**: `OutputFormat.html` added to format enum
+
+### Changed
+
+- Test suite expanded from 669 to 777 tests, maintaining **100% code coverage**
+- MCP server now exposes 5 tools (audit, generate, compare, history, recommend)
+
 ## [0.4.0] - 2026-02-19
 
 ### Added

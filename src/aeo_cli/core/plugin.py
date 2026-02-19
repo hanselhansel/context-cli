@@ -59,7 +59,7 @@ def clear_plugins() -> None:
 def discover_plugins() -> None:
     """Load plugins from the 'aeo_cli.plugins' entry point group."""
     eps = entry_points()
-    plugin_eps = eps.get("aeo_cli.plugins", [])
+    plugin_eps = list(eps.get("aeo_cli.plugins", []))
     for ep in plugin_eps:
         try:
             plugin_cls = ep.load()
