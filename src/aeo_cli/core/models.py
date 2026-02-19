@@ -126,6 +126,9 @@ class ContentReport(BaseModel):
     heading_hierarchy_valid: bool = Field(
         default=True, description="Whether heading levels follow proper hierarchy"
     )
+    answer_first_ratio: float = Field(
+        default=0.0, description="Fraction of sections starting with a direct statement (0.0-1.0)"
+    )
     score: float = Field(default=0, description="Content pillar score (0-40)")
     detail: str = Field(default="", description="Summary of content density findings")
 

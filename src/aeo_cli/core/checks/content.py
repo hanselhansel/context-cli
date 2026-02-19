@@ -49,6 +49,28 @@ def _analyze_headings(markdown: str) -> tuple[int, bool]:
     return len(levels), valid
 
 
+def _answer_first_ratio(markdown: str) -> float:
+    """Calculate fraction of sections where the first sentence is a statement.
+
+    Sections are split by headings. A question is any sentence ending with '?'.
+    Returns 0.0 if there are no sections with text.
+    """
+    if not markdown.strip():
+        return 0.0
+    sections = re.split(r"^#{1,6}\s.*$", markdown, flags=re.MULTILINE)
+    non_empty = [s.strip() for s in sections if s.strip()]
+    if not non_empty:
+        return 0.0
+    answer_first = 0
+    for section in non_empty:
+        # Extract first sentence: split on sentence-ending punctuation
+        sentences = re.split(r"(?<=[.!?])\s", section, maxsplit=1)
+        first = sentences[0].strip()
+        if first and not first.rstrip().endswith("?"):
+            answer_first += 1
+    return round(answer_first / len(non_empty), 2)
+
+
 def _analyze_chunks(markdown: str) -> tuple[int, int, int]:
     """Split markdown by headings and analyze chunk sizes.
 
@@ -79,6 +101,7 @@ def check_content(markdown: str) -> ContentReport:
     chunk_count, avg_chunk_words, chunks_in_sweet_spot = _analyze_chunks(markdown)
     readability_grade = _readability_grade(markdown)
     heading_count, heading_hierarchy_valid = _analyze_headings(markdown)
+    answer_first = _answer_first_ratio(markdown)
 
     detail = f"{word_count} words"
     if has_headings:
@@ -100,5 +123,6 @@ def check_content(markdown: str) -> ContentReport:
         readability_grade=readability_grade,
         heading_count=heading_count,
         heading_hierarchy_valid=heading_hierarchy_valid,
+        answer_first_ratio=answer_first,
         detail=detail,
     )
