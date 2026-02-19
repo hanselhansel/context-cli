@@ -3,7 +3,8 @@
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: B0 (Shared Infrastructure — core/llm.py, core/cost.py)
+CURRENT PHASE: B1 (CI/CD Enhancement — per-pillar thresholds, baselines)
+AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section below.
 
 ## Session Workflow (MANDATORY — enforced by hooks)
 1. **TEST** — Write comprehensive tests FIRST (TDD, 100% coverage)
@@ -142,8 +143,8 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 | A2 | 0.4.0 | DONE | Intelligence: RSL, IETF, E-E-A-T, compare, SQLite history, regression |
 | A3 | 0.5.0 | DONE | Ecosystem: config file, MCP expansion, plugin arch, webhooks, HTML report, watch |
 | A4 | 0.6.0 | DONE | Polish: docs, CHANGELOG, benchmarks, Docker |
-| B0 | 0.7.0 | — | Shared infra: core/llm.py, core/cost.py |
-| B1 | 0.8.0 | — | CI/CD: per-pillar thresholds, baselines, webhooks |
+| B0 | 0.7.0 | DONE | Shared infra: core/llm.py, core/cost.py |
+| B1 | 0.8.0 | NEXT | CI/CD: per-pillar thresholds, baselines, webhooks |
 | B2 | 0.9.0 | — | Batch generate: llms.txt + JSON-LD generation |
 | B3 | 0.10.0 | — | Citation radar: multi-model citation extraction |
 | B4 | 0.11.0 | — | Benchmark: Share-of-Recommendation tracking |
@@ -152,16 +153,23 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 
 Details: `docs/long-running-session-plan.md`
 
-## Agent Teams (per phase)
+## Agent Teams (MANDATORY for ALL phases — NO EXCEPTIONS)
+Every phase MUST use agent teams with git worktree isolation. Never go solo.
+Decompose work into 2+ independent file domains per phase. If work seems too small
+for a team, split it further — the coordination overhead is worth the consistency.
+
 | Phase | Team Size | Division |
 |-------|-----------|----------|
 | A1 | 3 | bots+llms, schema+content, batch+config |
 | A2 | 2-3 | citation+compare, history+regression, RSL+IETF |
 | A3 | 2-3 | config+plugin, MCP+webhooks, report+watch |
+| A4 | 2 | docs+dockerfile, scoring-docs+ci-docs |
+| B0 | 2 | core/llm.py+tests, core/cost.py+tests |
+| B1 | 2 | ci/thresholds+tests, ci/baseline+action.yml+tests |
+| B2 | 2 | batch-generation+tests, batch-cli+integration |
 | B3 | 3 | query+parser, analyzer+domains, CLI+MCP |
 | B4 | 3 | loader+dispatcher, judge+metrics, cost+CLI |
 | B5 | 4 | 2 parsers each, scoring+auditor, CLI+MCP |
-| B0, B1, B2, A4 | Solo | Too small or needs coherent voice |
 
 ## Agent Team Worktree Protocol
 When spawning agent teams, ALWAYS use git worktrees for isolation:

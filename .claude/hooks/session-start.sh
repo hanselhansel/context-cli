@@ -36,5 +36,12 @@ if [[ -n "$CHANGES" ]]; then
     echo ""
 fi
 
+# Agent team reminder (MANDATORY for ALL phases)
+echo "## AGENT TEAMS: MANDATORY for ALL phases"
+echo "   - Decompose into 2+ agents with git worktree isolation"
+echo "   - NEVER implement a phase solo"
+echo "   - See CLAUDE.md 'Agent Teams' section for team sizes per phase"
+echo ""
+
 echo "=== Ready to work ==="
 exit 0

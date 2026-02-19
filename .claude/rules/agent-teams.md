@@ -1,5 +1,11 @@
 # Agent Team Rules
 
+## MANDATORY: Agent Teams for ALL Phases
+Agent teams are REQUIRED for every phase of the roadmap. No exceptions.
+Even phases that seem "too small" (e.g., B0, A4) MUST use 2+ agents.
+If the work seems too small for a team, split it into finer-grained file domains.
+The consistency of always using teams outweighs any per-phase coordination overhead.
+
 ## Isolation Strategy: Git Worktrees (PRIMARY)
 Each agent gets its own git worktree = own branch + own working directory.
 No two agents ever touch the same filesystem. Merge happens under leader control.
@@ -67,12 +73,7 @@ SHARED FILES (may also touch — merge handled by leader):
 - Push to remote: `git push origin {agent-name}/{feature}`
 - Leader merges to main after all agents complete
 
-## When NOT to Use Agent Teams
-- Tasks that all touch the same 2-3 files → solo
-- Tasks with heavy cross-file dependencies → solo
-- Fewer than 3 independent file domains → overhead exceeds benefit
-
-## When to Use Teams vs Subagents vs Solo
-- **Teams (3+ agents, worktrees)**: Work on DIFFERENT files, true isolation needed
-- **Subagents**: Quick research, verification, read-only exploration
-- **Solo**: Tasks touching shared files (main.py, models.py, auditor.py)
+## When to Use Teams vs Subagents
+- **Teams (2+ agents, worktrees)**: ALWAYS for phase implementation. Decompose to 2+ independent file domains.
+- **Subagents**: Quick research, verification, read-only exploration within a session.
+- **Solo**: NEVER for phase implementation. Only for single-file hotfixes or urgent patches.

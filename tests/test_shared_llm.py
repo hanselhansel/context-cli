@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
+from aeo_cli.core.cost import MODEL_COSTS, estimate_cost, format_cost
 from aeo_cli.core.llm import (
     LLMError,
     call_llm_structured,
@@ -176,12 +177,6 @@ def test_is_format_error_false():
 
 
 # ── cost.py ──────────────────────────────────────────────────────────────────
-
-from aeo_cli.core.cost import (
-    MODEL_COSTS,
-    estimate_cost,
-    format_cost,
-)
 
 
 def test_model_costs_has_common_models():
