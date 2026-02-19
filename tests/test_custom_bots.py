@@ -182,7 +182,7 @@ async def test_batch_audit_passes_bots(mock_audit_url):
 # ── CLI --bots flag ──────────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.main._run_audit")
+@patch("aeo_cli.cli.audit._run_audit")
 def test_cli_bots_flag_parsed(mock_run_audit):
     """CLI --bots flag should parse comma-separated string into a list."""
     from aeo_cli.core.models import (
@@ -209,7 +209,7 @@ def test_cli_bots_flag_parsed(mock_run_audit):
     assert kwargs.get("bots") == ["BotA", "BotB"]
 
 
-@patch("aeo_cli.main._run_audit")
+@patch("aeo_cli.cli.audit._run_audit")
 def test_cli_no_bots_flag_passes_none(mock_run_audit):
     """Without --bots flag, bots=None should be passed."""
     from aeo_cli.core.models import (

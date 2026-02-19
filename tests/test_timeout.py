@@ -98,7 +98,7 @@ def test_timeout_flag_single_page():
         calls.append(kwargs)
         return _report()
 
-    with patch("aeo_cli.main.audit_url", side_effect=_capture):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--timeout", "30", "--json"]
         )
@@ -116,7 +116,7 @@ def test_timeout_flag_shorthand():
         calls.append(kwargs)
         return _report()
 
-    with patch("aeo_cli.main.audit_url", side_effect=_capture):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "-t", "20", "--json"]
         )
@@ -133,7 +133,7 @@ def test_timeout_default_value():
         calls.append(kwargs)
         return _report()
 
-    with patch("aeo_cli.main.audit_url", side_effect=_capture):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--json"]
         )
@@ -150,7 +150,7 @@ def test_timeout_flag_multipage():
         calls.append(kwargs)
         return _site_report()
 
-    with patch("aeo_cli.main.audit_site", side_effect=_capture):
+    with patch("aeo_cli.cli.audit.audit_site", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--timeout", "45", "--json"]
         )
@@ -167,7 +167,7 @@ def test_timeout_flag_quiet_mode_single():
         calls.append(kwargs)
         return _report(score=60.0)
 
-    with patch("aeo_cli.main.audit_url", side_effect=_capture):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--quiet", "--timeout", "25"]
         )
@@ -184,7 +184,7 @@ def test_timeout_flag_quiet_mode_multipage():
         calls.append(kwargs)
         return _site_report(score=60.0)
 
-    with patch("aeo_cli.main.audit_site", side_effect=_capture):
+    with patch("aeo_cli.cli.audit.audit_site", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--quiet", "--timeout", "25"]
         )

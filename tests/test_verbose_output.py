@@ -772,7 +772,7 @@ async def _fake_site_audit(url: str, **kwargs) -> SiteAuditReport:
 
 def test_verbose_shows_bot_details():
     """--verbose should show per-bot allowed/blocked status via CLI."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
 
     assert result.exit_code == 0
@@ -782,7 +782,7 @@ def test_verbose_shows_bot_details():
 
 def test_verbose_shows_schema_types():
     """--verbose should show @type for each JSON-LD block via CLI."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
 
     assert "Organization" in result.output
@@ -790,7 +790,7 @@ def test_verbose_shows_schema_types():
 
 def test_verbose_shows_content_details():
     """--verbose should show word count and structure flags via CLI."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
 
     assert "800" in result.output
@@ -799,7 +799,7 @@ def test_verbose_shows_content_details():
 
 def test_verbose_shows_scoring_methodology():
     """--verbose should include the scoring methodology line via CLI."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
 
     assert "Scoring Methodology" in result.output
@@ -807,7 +807,7 @@ def test_verbose_shows_scoring_methodology():
 
 def test_non_verbose_omits_panels():
     """Without --verbose, the detailed panels should not appear."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--single"])
 
     assert "Scoring Methodology" not in result.output
@@ -815,7 +815,7 @@ def test_non_verbose_omits_panels():
 
 def test_verbose_does_not_affect_json_output():
     """--verbose with --json should still produce valid JSON, no panels."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--json", "--verbose"]
         )
@@ -827,7 +827,7 @@ def test_verbose_does_not_affect_json_output():
 
 def test_verbose_does_not_affect_csv_output():
     """--verbose with --format csv should still produce CSV, no panels."""
-    with patch("aeo_cli.main.audit_url", side_effect=_fake_audit):
+    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--format", "csv", "--verbose"],
@@ -839,7 +839,7 @@ def test_verbose_does_not_affect_csv_output():
 
 def test_site_verbose_via_cli():
     """--verbose should work for multi-page site audits via CLI."""
-    with patch("aeo_cli.main.audit_site", side_effect=_fake_site_audit):
+    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_site_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--verbose"])
 
     assert result.exit_code == 0
@@ -849,7 +849,7 @@ def test_site_verbose_via_cli():
 
 def test_site_verbose_shows_per_page():
     """Multi-page --verbose should show per-page detail."""
-    with patch("aeo_cli.main.audit_site", side_effect=_fake_site_audit):
+    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_site_audit):
         result = runner.invoke(app, ["audit", "https://example.com", "--verbose"])
 
     assert result.exit_code == 0
