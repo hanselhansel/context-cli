@@ -51,3 +51,9 @@ refactor: extract retry logic into core/retry.py
 - If refactoring is substantial (splitting a 500-line file), it MAY be a separate commit BEFORE the feature commit
 - Format: `refactor: split auditor.py into per-pillar check modules`
 - Never commit unrefactored code that violates the 300-line guideline
+
+## Agent Team Commits
+- Each agent commits ONLY files in its ownership set
+- `git add` specific files by name (never `git add .` or `git add -A`)
+- Always `git pull --rebase` before committing to avoid conflicts
+- If rebase conflicts, STOP and notify the leader — do not force-push
