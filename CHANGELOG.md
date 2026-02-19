@@ -8,10 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2026-02-19
 
 ### Changed
-- Rebranded from aeo-cli to context-cli
+- **Rebranded** from aeo-cli to context-cli (LLM Readiness Linter)
 - Renamed primary command from `audit` to `lint`
-- Hidden retail command from CLI
-- Updated all documentation for LLM-readiness focus
+- Hidden retail command from CLI surface
+- Replaced marketing jargon with engineering-focused terminology
+
+### Added
+- **Token Waste metric**: Hero metric replacing the 0-100 score as primary output (`context_waste_pct`, `raw_tokens`, `clean_tokens`)
+- **Pass/Fail lint checks**: AI Primitives, Bot Access, Data Structuring, Token Efficiency
+- **Diagnostic codes**: WARN-001 (DOM bloat), WARN-002 (no code blocks), WARN-003 (no headings), WARN-004 (bots blocked), INFO-001 (readability grade), INFO-002 (JSON-LD blocks)
+- **Linter-style terminal output**: Ruff/ESLint aesthetic with `[PASS]`/`[WARN]`/`[FAIL]` badges, Token Analysis section, Diagnostics section
+- **CI/CD Token Waste thresholds**: `--max-context-waste`, `--require-llms-txt`, `--require-bot-access` CLI flags
+- **Baseline token waste tracking**: `context_waste_pct` saved in baseline files, waste regression detection
+- **GitHub Action updates**: `max-context-waste`, `require-llms-txt`, `require-bot-access` inputs; `token-waste` output
+- **Leaderboard command**: `context-cli leaderboard urls.txt` for batch URL comparison, sorted by token efficiency
+- Diagnostics in all formatters: CSV, Markdown, HTML, CI Summary, Compare
+- **1,702 tests at 100% coverage** across 85 source files
 
 ## [1.0.0] - 2026-02-19
 

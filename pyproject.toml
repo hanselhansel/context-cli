@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "context-cli"
-version = "1.0.0"
-description = "Agentic Engine Optimization CLI — audit URLs for AI crawler readiness"
+version = "2.0.0"
+description = "Context CLI — LLM Readiness Linter for token efficiency and RAG readiness"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
     { name = "Hansel Wahjono" },
 ]
-keywords = ["aeo", "seo", "ai", "llm", "crawler", "audit", "robots-txt", "schema-org"]
+keywords = ["llm", "ai", "linter", "token-waste", "rag", "robots-txt", "schema-org", "llms-txt"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
