@@ -36,6 +36,18 @@ if [[ -n "$CHANGES" ]]; then
     echo ""
 fi
 
+# Check for existing worktrees (agent recovery)
+WORKTREE_COUNT=$(git worktree list 2>/dev/null | wc -l | tr -d ' ')
+if [[ "$WORKTREE_COUNT" -gt 1 ]]; then
+    echo "## ACTIVE WORKTREES DETECTED ($WORKTREE_COUNT)"
+    echo "   Previous agent work may need merging."
+    git worktree list 2>/dev/null | grep -v "\[main\]" | while read -r line; do
+        echo "   - $line"
+    done
+    echo "   Check: git log {branch} --not main --oneline"
+    echo ""
+fi
+
 # Agent team reminder (MANDATORY for ALL phases)
 echo "## AGENT TEAMS: MANDATORY for ALL phases"
 echo "   - Decompose into 2+ agents with git worktree isolation"

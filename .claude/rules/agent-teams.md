@@ -73,6 +73,17 @@ SHARED FILES (may also touch — merge handled by leader):
 - Push to remote: `git push origin {agent-name}/{feature}`
 - Leader merges to main after all agents complete
 
+## Recovery Protocol (Session Interruption)
+If a session is interrupted while agents are running in worktrees:
+1. Check worktrees: `git worktree list`
+2. For each worktree, check if agent committed: `git log {branch} --not main --oneline`
+3. If committed: merge to main (`git merge {branch} --no-ff`), clean up worktree
+4. If not committed: check for uncommitted changes in worktree (`git -C ../aeo-cli-{name} status`), complete manually
+5. Run `make ci` after all merges
+6. Clean up: `git worktree remove ../aeo-cli-{name}` + `git worktree prune`
+
+**Key insight**: Agents in worktrees are independent — their work persists even if the leader session dies. The stop hook skips CI when worktrees are active (main hasn't changed).
+
 ## When to Use Teams vs Subagents
 - **Teams (2+ agents, worktrees)**: ALWAYS for phase implementation. Decompose to 2+ independent file domains.
 - **Subagents**: Quick research, verification, read-only exploration within a session.
