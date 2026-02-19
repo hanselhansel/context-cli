@@ -9,8 +9,11 @@ from urllib.parse import urlparse
 import httpx
 
 from aeo_cli.core.checks.content import check_content
+from aeo_cli.core.checks.content_usage import check_content_usage
+from aeo_cli.core.checks.eeat import check_eeat
 from aeo_cli.core.checks.llms_txt import check_llms_txt
 from aeo_cli.core.checks.robots import DEFAULT_TIMEOUT, check_robots
+from aeo_cli.core.checks.rsl import check_rsl
 from aeo_cli.core.checks.schema import check_schema_org
 from aeo_cli.core.crawler import CrawlResult, extract_page, extract_pages
 from aeo_cli.core.discovery import discover_pages
@@ -136,15 +139,19 @@ async def audit_url(
 ) -> AuditReport:
     """Run a full AEO audit on a single URL. Returns AuditReport with all pillar scores."""
     errors: list[str] = []
+    raw_robots: str | None = None
+    content_usage_result = None
 
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         # Run HTTP checks and browser crawl concurrently
         robots_task = check_robots(url, client, bots=bots)
         llms_task = check_llms_txt(url, client)
+        content_usage_task = check_content_usage(url, client)
         crawl_task = extract_page(url)
 
-        robots_result, llms_txt, crawl_result = await asyncio.gather(
-            robots_task, llms_task, crawl_task, return_exceptions=True
+        robots_result, llms_txt, cu_result, crawl_result = await asyncio.gather(
+            robots_task, llms_task, content_usage_task, crawl_task,
+            return_exceptions=True,
         )
 
     # Handle exceptions from gather
@@ -152,11 +159,17 @@ async def audit_url(
         errors.append(f"Robots check failed: {robots_result}")
         robots = RobotsReport(found=False, detail="Check failed")
     else:
-        robots, _raw_robots = robots_result  # destructure tuple
+        robots, raw_robots = robots_result  # destructure tuple
 
     if isinstance(llms_txt, BaseException):
         errors.append(f"llms.txt check failed: {llms_txt}")
         llms_txt = LlmsTxtReport(found=False, detail="Check failed")
+
+    if isinstance(cu_result, BaseException):
+        errors.append(f"Content-Usage check failed: {cu_result}")
+    else:
+        content_usage_result = cu_result
+
     crawl: CrawlResult | None = None
     if isinstance(crawl_result, BaseException):
         errors.append(f"Crawl failed: {crawl_result}")
@@ -173,6 +186,11 @@ async def audit_url(
     schema_org = check_schema_org(html)
     content = check_content(markdown)
 
+    # Informational signals (not scored)
+    rsl_report = check_rsl(raw_robots)
+    domain = urlparse(url).netloc
+    eeat_report = check_eeat(html, base_domain=domain)
+
     # Compute scores
     robots, llms_txt, schema_org, content, overall = compute_scores(
         robots, llms_txt, schema_org, content
@@ -185,6 +203,9 @@ async def audit_url(
         llms_txt=llms_txt,
         schema_org=schema_org,
         content=content,
+        rsl=rsl_report,
+        content_usage=content_usage_result,
+        eeat=eeat_report,
         errors=errors,
     )
 
@@ -247,14 +268,18 @@ async def _audit_site_inner(
     """Inner implementation of audit_site, wrapped with a timeout by the caller."""
     progress("Running site-wide checks...")
 
+    content_usage_result = None
+
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         # Phase 1: Site-wide checks + seed crawl in parallel
         robots_task = check_robots(url, client, bots=bots)
         llms_task = check_llms_txt(url, client)
+        content_usage_task = check_content_usage(url, client)
         crawl_task = extract_page(url)
 
-        robots_result, llms_txt, seed_crawl = await asyncio.gather(
-            robots_task, llms_task, crawl_task, return_exceptions=True
+        robots_result, llms_txt, cu_result, seed_crawl = await asyncio.gather(
+            robots_task, llms_task, content_usage_task, crawl_task,
+            return_exceptions=True,
         )
 
         # Unpack results
@@ -268,6 +293,11 @@ async def _audit_site_inner(
         if isinstance(llms_txt, BaseException):
             errors.append(f"llms.txt check failed: {llms_txt}")
             llms_txt = LlmsTxtReport(found=False, detail="Check failed")
+
+        if isinstance(cu_result, BaseException):
+            errors.append(f"Content-Usage check failed: {cu_result}")
+        else:
+            content_usage_result = cu_result
 
         seed: CrawlResult | None = None
         if isinstance(seed_crawl, BaseException):
@@ -336,6 +366,11 @@ async def _audit_site_inner(
     pages_failed = sum(1 for p in pages if p.errors)
     agg_schema, agg_content, overall = aggregate_page_scores(pages, robots, llms_txt)
 
+    # Informational signals from seed page
+    rsl_report = check_rsl(raw_robots)
+    seed_html = seed.html if seed and seed.success else ""
+    eeat_report = check_eeat(seed_html, base_domain=domain)
+
     return SiteAuditReport(
         url=url,
         domain=domain,
@@ -344,6 +379,9 @@ async def _audit_site_inner(
         llms_txt=llms_txt,
         schema_org=agg_schema,
         content=agg_content,
+        rsl=rsl_report,
+        content_usage=content_usage_result,
+        eeat=eeat_report,
         discovery=discovery,
         pages=pages,
         pages_audited=len(pages),
