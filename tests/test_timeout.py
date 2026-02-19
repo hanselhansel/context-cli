@@ -100,7 +100,7 @@ def test_timeout_flag_single_page():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--timeout", "30", "--json"]
+            app, ["lint", "https://example.com", "--single", "--timeout", "30", "--json"]
         )
 
     assert result.exit_code == 0
@@ -118,7 +118,7 @@ def test_timeout_flag_shorthand():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "-t", "20", "--json"]
+            app, ["lint", "https://example.com", "--single", "-t", "20", "--json"]
         )
 
     assert result.exit_code == 0
@@ -135,7 +135,7 @@ def test_timeout_default_value():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--json"]
+            app, ["lint", "https://example.com", "--single", "--json"]
         )
 
     assert result.exit_code == 0
@@ -152,7 +152,7 @@ def test_timeout_flag_multipage():
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_capture):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--timeout", "45", "--json"]
+            app, ["lint", "https://example.com", "--timeout", "45", "--json"]
         )
 
     assert result.exit_code == 0
@@ -169,7 +169,7 @@ def test_timeout_flag_quiet_mode_single():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--quiet", "--timeout", "25"]
+            app, ["lint", "https://example.com", "--single", "--quiet", "--timeout", "25"]
         )
 
     assert result.exit_code == 0
@@ -186,7 +186,7 @@ def test_timeout_flag_quiet_mode_multipage():
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_capture):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--quiet", "--timeout", "25"]
+            app, ["lint", "https://example.com", "--quiet", "--timeout", "25"]
         )
 
     assert result.exit_code == 0

@@ -779,7 +779,7 @@ async def _fake_site_audit(url: str, **kwargs) -> SiteAuditReport:
 def test_verbose_shows_bot_details():
     """--verbose should show per-bot allowed/blocked status via CLI."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single", "--verbose"])
 
     assert result.exit_code == 0
     assert "GPTBot" in result.output
@@ -789,7 +789,7 @@ def test_verbose_shows_bot_details():
 def test_verbose_shows_schema_types():
     """--verbose should show @type for each JSON-LD block via CLI."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single", "--verbose"])
 
     assert "Organization" in result.output
 
@@ -797,7 +797,7 @@ def test_verbose_shows_schema_types():
 def test_verbose_shows_content_details():
     """--verbose should show word count and structure flags via CLI."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single", "--verbose"])
 
     assert "800" in result.output
     assert "Headings" in result.output
@@ -806,7 +806,7 @@ def test_verbose_shows_content_details():
 def test_verbose_shows_scoring_methodology():
     """--verbose should include the scoring methodology line via CLI."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single", "--verbose"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single", "--verbose"])
 
     assert "Scoring Methodology" in result.output
 
@@ -814,7 +814,7 @@ def test_verbose_shows_scoring_methodology():
 def test_non_verbose_omits_panels():
     """Without --verbose, the detailed panels should not appear."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
 
     assert "Scoring Methodology" not in result.output
 
@@ -823,7 +823,7 @@ def test_verbose_does_not_affect_json_output():
     """--verbose with --json should still produce valid JSON, no panels."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--json", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--json", "--verbose"]
         )
 
     assert result.exit_code == 0
@@ -836,7 +836,7 @@ def test_verbose_does_not_affect_csv_output():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--format", "csv", "--verbose"],
+            ["lint", "https://example.com", "--single", "--format", "csv", "--verbose"],
         )
 
     assert result.exit_code == 0
@@ -846,7 +846,7 @@ def test_verbose_does_not_affect_csv_output():
 def test_site_verbose_via_cli():
     """--verbose should work for multi-page site audits via CLI."""
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake_site_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--verbose"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--verbose"])
 
     assert result.exit_code == 0
     assert "Scoring Methodology" in result.output
@@ -856,7 +856,7 @@ def test_site_verbose_via_cli():
 def test_site_verbose_shows_per_page():
     """Multi-page --verbose should show per-page detail."""
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake_site_audit):
-        result = runner.invoke(app, ["audit", "https://example.com", "--verbose"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--verbose"])
 
     assert result.exit_code == 0
     assert "Per-Page Detail" in result.output

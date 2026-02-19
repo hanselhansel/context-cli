@@ -202,7 +202,7 @@ def test_cli_bots_flag_parsed(mock_run_audit):
         content=ContentReport(detail="ok"),
     )
 
-    result = runner.invoke(app, ["audit", "https://example.com", "--bots", "BotA,BotB"])
+    result = runner.invoke(app, ["lint", "https://example.com", "--bots", "BotA,BotB"])
     assert result.exit_code == 0
 
     _, kwargs = mock_run_audit.call_args
@@ -229,7 +229,7 @@ def test_cli_no_bots_flag_passes_none(mock_run_audit):
         content=ContentReport(detail="ok"),
     )
 
-    result = runner.invoke(app, ["audit", "https://example.com"])
+    result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
 
     _, kwargs = mock_run_audit.call_args

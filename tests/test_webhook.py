@@ -278,7 +278,7 @@ def test_cli_webhook_flag_single():
         ) as mock_build,
     ):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single",
+            app, ["lint", "https://example.com", "--single",
                   "--webhook", "https://hooks.example.com"]
         )
 
@@ -313,7 +313,7 @@ def test_cli_webhook_flag_site():
         ),
     ):
         result = runner.invoke(
-            app, ["audit", "https://example.com",
+            app, ["lint", "https://example.com",
                   "--webhook", "https://hooks.example.com"]
         )
 
@@ -347,7 +347,7 @@ def test_cli_webhook_failure_does_not_crash():
         ),
     ):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single",
+            app, ["lint", "https://example.com", "--single",
                   "--webhook", "https://hooks.example.com"]
         )
 
@@ -369,7 +369,7 @@ def test_cli_webhook_exception_does_not_crash():
         ),
     ):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single",
+            app, ["lint", "https://example.com", "--single",
                   "--webhook", "https://hooks.example.com"]
         )
 

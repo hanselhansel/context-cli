@@ -64,7 +64,7 @@ def test_summary_contains_heading_with_score():
     """Summary should include the URL heading and score."""
     report = _mock_report(score=55.0)
     md = format_ci_summary(report)
-    assert "## AEO Audit: https://example.com" in md
+    assert "## Context Lint: https://example.com" in md
     assert "**Score: 55.0/100**" in md
 
 

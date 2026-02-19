@@ -70,7 +70,7 @@ async def _fake_audit_site(url: str, *, max_pages: int = 10, **kwargs) -> SiteAu
 def test_audit_single_json_output():
     """--single --json should emit valid AuditReport JSON."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single", "--json"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single", "--json"])
 
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -85,7 +85,7 @@ def test_audit_single_json_output():
 def test_audit_single_rich_output():
     """--single flag should produce Rich table output with score."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
 
     assert result.exit_code == 0
     assert "example.com" in result.output
@@ -104,7 +104,7 @@ def _extract_json(output: str) -> dict:
 def test_audit_default_multipage_json():
     """Default (no --single) with --json should call audit_site and output SiteAuditReport JSON."""
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
-        result = runner.invoke(app, ["audit", "https://example.com", "--json"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--json"])
 
     assert result.exit_code == 0
     data = _extract_json(result.output)
@@ -119,7 +119,7 @@ def test_audit_default_multipage_json():
 def test_audit_default_multipage_rich():
     """Default (no --single) should render the site report and exit cleanly."""
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
 
     assert result.exit_code == 0
     assert "example.com" in result.output
@@ -135,7 +135,7 @@ def test_audit_max_pages_flag():
         return _mock_site_report()
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_capture_audit_site):
-        result = runner.invoke(app, ["audit", "https://example.com", "--max-pages", "5", "--json"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--max-pages", "5", "--json"])
 
     assert result.exit_code == 0
     assert calls == [5]

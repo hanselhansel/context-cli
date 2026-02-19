@@ -302,7 +302,7 @@ def test_cli_robots_min_fails():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--robots-min", "15"],
+            ["lint", "https://example.com", "--single", "--robots-min", "15"],
         )
     assert result.exit_code == 1
     assert "robots" in result.output.lower()
@@ -313,7 +313,7 @@ def test_cli_content_min_fails():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--content-min", "25"],
+            ["lint", "https://example.com", "--single", "--content-min", "25"],
         )
     assert result.exit_code == 1
     assert "content" in result.output.lower()
@@ -324,7 +324,7 @@ def test_cli_schema_min_fails():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--schema-min", "25"],
+            ["lint", "https://example.com", "--single", "--schema-min", "25"],
         )
     assert result.exit_code == 1
     assert "schema" in result.output.lower()
@@ -335,7 +335,7 @@ def test_cli_llms_min_fails():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--llms-min", "10"],
+            ["lint", "https://example.com", "--single", "--llms-min", "10"],
         )
     assert result.exit_code == 1
     assert "llms" in result.output.lower()
@@ -346,7 +346,7 @@ def test_cli_overall_min_fails():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--overall-min", "70"],
+            ["lint", "https://example.com", "--single", "--overall-min", "70"],
         )
     assert result.exit_code == 1
     assert "overall" in result.output.lower()
@@ -358,7 +358,7 @@ def test_cli_thresholds_all_pass():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--robots-min", "15",
                 "--content-min", "25",
                 "--schema-min", "10",
@@ -375,7 +375,7 @@ def test_cli_multiple_threshold_failures():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--robots-min", "15",
                 "--content-min", "25",
             ],
@@ -392,7 +392,7 @@ def test_cli_thresholds_with_site_audit():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com",
+                "lint", "https://example.com",
                 "--robots-min", "15",
                 "--overall-min", "70",
             ],
@@ -405,7 +405,7 @@ def test_cli_no_thresholds_no_exit():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single"],
+            ["lint", "https://example.com", "--single"],
         )
     assert result.exit_code == 0
 
@@ -416,7 +416,7 @@ def test_cli_thresholds_with_json_output():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--json", "--robots-min", "15",
             ],
         )

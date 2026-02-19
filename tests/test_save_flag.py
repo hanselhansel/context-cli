@@ -166,7 +166,7 @@ def test_save_to_history_no_warning_when_score_improves(mock_db_cls, mock_regres
 def test_cli_save_flag_triggers_save(mock_run, mock_save):
     """--save triggers _save_to_history for single-page audit."""
     mock_run.return_value = _report()
-    result = runner.invoke(app, ["audit", _URL, "--save", "--json"])
+    result = runner.invoke(app, ["lint", _URL, "--save", "--json"])
     assert result.exit_code == 0
     mock_save.assert_called_once()
 
@@ -176,7 +176,7 @@ def test_cli_save_flag_triggers_save(mock_run, mock_save):
 def test_cli_no_save_without_flag(mock_run, mock_save):
     """Without --save, _save_to_history is not called."""
     mock_run.return_value = _report()
-    result = runner.invoke(app, ["audit", _URL, "--json"])
+    result = runner.invoke(app, ["lint", _URL, "--json"])
     assert result.exit_code == 0
     mock_save.assert_not_called()
 
@@ -186,7 +186,7 @@ def test_cli_no_save_without_flag(mock_run, mock_save):
 def test_cli_save_site_audit_shows_note(mock_run, mock_save):
     """--save with multi-page audit prints a note and skips save."""
     mock_run.return_value = _site_report()
-    result = runner.invoke(app, ["audit", _URL, "--save", "--json"])
+    result = runner.invoke(app, ["lint", _URL, "--save", "--json"])
     assert result.exit_code == 0
     mock_save.assert_not_called()
     assert "--single" in result.output
@@ -197,7 +197,7 @@ def test_cli_save_site_audit_shows_note(mock_run, mock_save):
 def test_cli_save_works_with_rich_output(mock_run, mock_save):
     """--save works with default Rich output (no --json)."""
     mock_run.return_value = _report()
-    result = runner.invoke(app, ["audit", _URL, "--save"])
+    result = runner.invoke(app, ["lint", _URL, "--save"])
     assert result.exit_code == 0
     mock_save.assert_called_once()
 
@@ -207,7 +207,7 @@ def test_cli_save_works_with_rich_output(mock_run, mock_save):
 def test_cli_regression_threshold_flag(mock_run, mock_save):
     """--regression-threshold passes custom threshold to _save_to_history."""
     mock_run.return_value = _report()
-    runner.invoke(app, ["audit", _URL, "--save", "--regression-threshold", "10", "--json"])
+    runner.invoke(app, ["lint", _URL, "--save", "--regression-threshold", "10", "--json"])
     mock_save.assert_called_once()
     _, kwargs = mock_save.call_args
     assert kwargs["threshold"] == 10.0
