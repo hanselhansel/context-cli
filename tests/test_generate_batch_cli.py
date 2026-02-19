@@ -60,7 +60,7 @@ def _mock_batch_result(
         results=results[:total],
         model_used="gpt-4o-mini",
         profile=ProfileType.generic,
-        output_dir="./aeo-output",
+        output_dir="./context-output",
     )
 
 
@@ -369,5 +369,5 @@ async def test_mcp_generate_batch_default_params():
     config = mock_gen.call_args[0][0]
     assert config.profile == ProfileType.generic
     assert config.model is None
-    assert config.output_dir == "./aeo-output"
+    assert config.output_dir == "./context-output"
     assert config.concurrency == 3

@@ -55,8 +55,8 @@ def _mock_generate_result() -> GenerateResult:
                 "name": "Example",
             },
         ),
-        llms_txt_path="./aeo-output/llms.txt",
-        schema_jsonld_path="./aeo-output/schema.jsonld",
+        llms_txt_path="./context-output/llms.txt",
+        schema_jsonld_path="./context-output/schema.jsonld",
     )
 
 

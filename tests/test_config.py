@@ -1,18 +1,18 @@
-"""Tests for .aeorc.yml configuration file support."""
+"""Tests for .contextrc.yml configuration file support."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import patch
 
-from context_cli.core.config import AeoConfig, load_config
+from context_cli.core.config import ContextConfig, load_config
 
-# ── AeoConfig model ────────────────────────────────────────────────────────
+# ── ContextConfig model ────────────────────────────────────────────────────────
 
 
 def test_default_config():
     """Default config should have sensible defaults."""
-    cfg = AeoConfig()
+    cfg = ContextConfig()
     assert cfg.timeout == 15
     assert cfg.max_pages == 10
     assert cfg.single is False
@@ -25,7 +25,7 @@ def test_default_config():
 
 def test_config_with_values():
     """Config should accept custom values."""
-    cfg = AeoConfig(timeout=30, bots=["GPTBot", "ClaudeBot"], save=True)
+    cfg = ContextConfig(timeout=30, bots=["GPTBot", "ClaudeBot"], save=True)
     assert cfg.timeout == 30
     assert cfg.bots == ["GPTBot", "ClaudeBot"]
     assert cfg.save is True
@@ -33,7 +33,7 @@ def test_config_with_values():
 
 def test_config_serializable():
     """Config should be serializable."""
-    cfg = AeoConfig(timeout=30)
+    cfg = ContextConfig(timeout=30)
     data = cfg.model_dump()
     assert data["timeout"] == 30
 
@@ -42,8 +42,8 @@ def test_config_serializable():
 
 
 def test_load_config_from_cwd(tmp_path: Path):
-    """Config loads from .aeorc.yml in CWD."""
-    config_file = tmp_path / ".aeorc.yml"
+    """Config loads from .contextrc.yml in CWD."""
+    config_file = tmp_path / ".contextrc.yml"
     config_file.write_text("timeout: 30\nsave: true\n")
 
     cfg = load_config(search_dirs=[tmp_path])
@@ -52,8 +52,8 @@ def test_load_config_from_cwd(tmp_path: Path):
 
 
 def test_load_config_from_home(tmp_path: Path):
-    """Config loads from ~/.aeorc.yml when CWD has none."""
-    home_config = tmp_path / ".aeorc.yml"
+    """Config loads from ~/.contextrc.yml when CWD has none."""
+    home_config = tmp_path / ".contextrc.yml"
     home_config.write_text("verbose: true\nmax_pages: 5\n")
 
     cfg = load_config(search_dirs=[tmp_path])
@@ -68,8 +68,8 @@ def test_load_config_cwd_overrides_home(tmp_path: Path):
     home_dir = tmp_path / "home"
     home_dir.mkdir()
 
-    (home_dir / ".aeorc.yml").write_text("timeout: 60\nverbose: true\n")
-    (cwd_dir / ".aeorc.yml").write_text("timeout: 10\n")
+    (home_dir / ".contextrc.yml").write_text("timeout: 60\nverbose: true\n")
+    (cwd_dir / ".contextrc.yml").write_text("timeout: 10\n")
 
     cfg = load_config(search_dirs=[cwd_dir, home_dir])
     assert cfg.timeout == 10
@@ -84,35 +84,35 @@ def test_load_config_no_file(tmp_path: Path):
 
 def test_load_config_empty_file(tmp_path: Path):
     """Empty YAML file returns default config."""
-    (tmp_path / ".aeorc.yml").write_text("")
+    (tmp_path / ".contextrc.yml").write_text("")
     cfg = load_config(search_dirs=[tmp_path])
     assert cfg.timeout == 15
 
 
 def test_load_config_invalid_yaml(tmp_path: Path):
     """Invalid YAML returns default config without crashing."""
-    (tmp_path / ".aeorc.yml").write_text(": : : invalid yaml [")
+    (tmp_path / ".contextrc.yml").write_text(": : : invalid yaml [")
     cfg = load_config(search_dirs=[tmp_path])
     assert cfg.timeout == 15
 
 
 def test_load_config_bots_list(tmp_path: Path):
     """Bots should be parsed as a list."""
-    (tmp_path / ".aeorc.yml").write_text("bots:\n  - GPTBot\n  - ClaudeBot\n")
+    (tmp_path / ".contextrc.yml").write_text("bots:\n  - GPTBot\n  - ClaudeBot\n")
     cfg = load_config(search_dirs=[tmp_path])
     assert cfg.bots == ["GPTBot", "ClaudeBot"]
 
 
 def test_load_config_format_string(tmp_path: Path):
     """Format should be parsed as a string."""
-    (tmp_path / ".aeorc.yml").write_text("format: json\n")
+    (tmp_path / ".contextrc.yml").write_text("format: json\n")
     cfg = load_config(search_dirs=[tmp_path])
     assert cfg.format == "json"
 
 
 def test_load_config_unknown_keys_ignored(tmp_path: Path):
     """Unknown keys in config should be ignored."""
-    (tmp_path / ".aeorc.yml").write_text("timeout: 20\nunknown_key: value\n")
+    (tmp_path / ".contextrc.yml").write_text("timeout: 20\nunknown_key: value\n")
     cfg = load_config(search_dirs=[tmp_path])
     assert cfg.timeout == 20
 
@@ -123,7 +123,7 @@ def test_load_config_default_search_dirs():
         with patch("context_cli.core.config.Path.home", return_value=Path("/mock/home")):
             # This just tests the function runs without error with default dirs
             cfg = load_config()
-            assert isinstance(cfg, AeoConfig)
+            assert isinstance(cfg, ContextConfig)
 
 
 # ── CLI integration ────────────────────────────────────────────────────────
@@ -137,11 +137,11 @@ def test_cli_config_timeout_applies(mock_load, mock_run):
 
     from context_cli.main import app
 
-    mock_load.return_value = AeoConfig(timeout=45)
+    mock_load.return_value = ContextConfig(timeout=45)
     mock_run.return_value = _make_report()
 
     runner = CliRunner()
-    runner.invoke(app, ["audit", "https://example.com", "--json"])
+    runner.invoke(app, ["lint", "https://example.com", "--json"])
     _, kwargs = mock_run.call_args
     assert kwargs.get("timeout") == 45 or mock_run.call_args[0][3] == 45
 
@@ -155,11 +155,11 @@ def test_cli_config_save_applies(mock_load, mock_run, mock_save):
 
     from context_cli.main import app
 
-    mock_load.return_value = AeoConfig(save=True)
+    mock_load.return_value = ContextConfig(save=True)
     mock_run.return_value = _make_report()
 
     runner = CliRunner()
-    runner.invoke(app, ["audit", "https://example.com", "--json"])
+    runner.invoke(app, ["lint", "https://example.com", "--json"])
     mock_save.assert_called_once()
 
 
@@ -171,11 +171,11 @@ def test_cli_config_format_applies(mock_load, mock_run):
 
     from context_cli.main import app
 
-    mock_load.return_value = AeoConfig(format="json")
+    mock_load.return_value = ContextConfig(format="json")
     mock_run.return_value = _make_report()
 
     runner = CliRunner()
-    result = runner.invoke(app, ["audit", "https://example.com"])
+    result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
     assert '"url"' in result.output  # JSON output
 
@@ -188,11 +188,11 @@ def test_cli_config_format_invalid_ignored(mock_load, mock_run):
 
     from context_cli.main import app
 
-    mock_load.return_value = AeoConfig(format="nonexistent")
+    mock_load.return_value = ContextConfig(format="nonexistent")
     mock_run.return_value = _make_report()
 
     runner = CliRunner()
-    result = runner.invoke(app, ["audit", "https://example.com"])
+    result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
 
 
@@ -204,11 +204,11 @@ def test_cli_config_bots_applies(mock_load, mock_run):
 
     from context_cli.main import app
 
-    mock_load.return_value = AeoConfig(bots=["BotA", "BotB"])
+    mock_load.return_value = ContextConfig(bots=["BotA", "BotB"])
     mock_run.return_value = _make_report()
 
     runner = CliRunner()
-    runner.invoke(app, ["audit", "https://example.com", "--json"])
+    runner.invoke(app, ["lint", "https://example.com", "--json"])
     _, kwargs = mock_run.call_args
     assert kwargs.get("bots") == ["BotA", "BotB"]
 

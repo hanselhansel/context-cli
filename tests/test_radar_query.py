@@ -49,7 +49,7 @@ class TestQueryModel:
         with patch(
             "litellm.acompletion", new_callable=AsyncMock, return_value=mock_response
         ) as mock_call:
-            await query_model("What is AEO?", "gpt-4o-mini")
+            await query_model("What is LLM Readiness?", "gpt-4o-mini")
 
         # Verify system prompt was sent
         call_args = mock_call.call_args
@@ -58,7 +58,7 @@ class TestQueryModel:
         assert messages[0]["role"] == "system"
         assert "cite" in messages[0]["content"].lower()
         assert messages[1]["role"] == "user"
-        assert messages[1]["content"] == "What is AEO?"
+        assert messages[1]["content"] == "What is LLM Readiness?"
 
     @pytest.mark.asyncio
     async def test_citations_extracted(self) -> None:
