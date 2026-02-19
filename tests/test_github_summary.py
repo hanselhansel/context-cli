@@ -44,12 +44,12 @@ def test_writes_to_file_when_env_set(tmp_path):
         patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary_file)}),
     ):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single"]
+            app, ["lint", "https://example.com", "--single"]
         )
 
     assert result.exit_code == 0
     content = summary_file.read_text()
-    assert "AEO Audit" in content
+    assert "Context Lint" in content
     assert "55.0/100" in content
 
 
@@ -64,7 +64,7 @@ def test_skips_when_env_unset(tmp_path):
         # Make sure GITHUB_STEP_SUMMARY is not set
         os.environ.pop("GITHUB_STEP_SUMMARY", None)
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single"]
+            app, ["lint", "https://example.com", "--single"]
         )
 
     assert result.exit_code == 0
@@ -81,11 +81,11 @@ def test_appends_not_overwrites(tmp_path):
         patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary_file)}),
     ):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single"]
+            app, ["lint", "https://example.com", "--single"]
         )
 
     assert result.exit_code == 0
     content = summary_file.read_text()
     # Both the existing content and the new summary should be present
     assert "# Existing content" in content
-    assert "AEO Audit" in content
+    assert "Context Lint" in content

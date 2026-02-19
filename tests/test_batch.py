@@ -285,7 +285,7 @@ def test_cli_file_flag_json(tmp_path):
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "--file", str(url_file), "--json"]
+            app, ["lint", "--file", str(url_file), "--json"]
         )
 
     assert result.exit_code == 0
@@ -306,7 +306,7 @@ def test_cli_file_flag_rich(tmp_path):
         )
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "--file", str(url_file)])
+        result = runner.invoke(app, ["lint", "--file", str(url_file)])
 
     assert result.exit_code == 0
     assert "a.com" in result.output
@@ -326,7 +326,7 @@ def test_cli_file_flag_with_errors(tmp_path):
         )
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "--file", str(url_file)])
+        result = runner.invoke(app, ["lint", "--file", str(url_file)])
 
     assert result.exit_code == 0
     assert "bad.com" in result.output
@@ -345,7 +345,7 @@ def test_cli_concurrency_flag(tmp_path):
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "--file", str(url_file), "--concurrency", "5", "--json"]
+            app, ["lint", "--file", str(url_file), "--concurrency", "5", "--json"]
         )
 
     assert result.exit_code == 0
@@ -355,14 +355,14 @@ def test_cli_concurrency_flag(tmp_path):
 def test_cli_file_not_found(tmp_path):
     """--file with non-existent path should show error."""
     result = runner.invoke(
-        app, ["audit", "--file", str(tmp_path / "nonexistent.txt")]
+        app, ["lint", "--file", str(tmp_path / "nonexistent.txt")]
     )
     assert result.exit_code == 1
 
 
 def test_cli_no_url_no_file():
     """Neither URL nor --file should show usage error."""
-    result = runner.invoke(app, ["audit"])
+    result = runner.invoke(app, ["lint"])
     assert result.exit_code != 0
 
 
@@ -376,7 +376,7 @@ def test_cli_file_flag_csv_format(tmp_path):
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "--file", str(url_file), "--format", "csv"]
+            app, ["lint", "--file", str(url_file), "--format", "csv"]
         )
 
     assert result.exit_code == 0
@@ -394,11 +394,11 @@ def test_cli_file_flag_markdown_format(tmp_path):
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "--file", str(url_file), "--format", "markdown"]
+            app, ["lint", "--file", str(url_file), "--format", "markdown"]
         )
 
     assert result.exit_code == 0
-    assert "AEO" in result.output or "a.com" in result.output
+    assert "Context" in result.output or "a.com" in result.output
 
 
 def test_cli_file_flag_passes_single(tmp_path):
@@ -413,7 +413,7 @@ def test_cli_file_flag_passes_single(tmp_path):
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "--file", str(url_file), "--single", "--json"]
+            app, ["lint", "--file", str(url_file), "--single", "--json"]
         )
 
     assert result.exit_code == 0
@@ -432,7 +432,7 @@ def test_cli_file_flag_passes_timeout(tmp_path):
 
     with patch("context_cli.core.batch.run_batch_audit", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "--file", str(url_file), "--timeout", "30", "--json"]
+            app, ["lint", "--file", str(url_file), "--timeout", "30", "--json"]
         )
 
     assert result.exit_code == 0
@@ -444,7 +444,7 @@ def test_cli_file_empty_urls(tmp_path):
     url_file = tmp_path / "urls.txt"
     url_file.write_text("# just a comment\n\n   \n")
 
-    result = runner.invoke(app, ["audit", "--file", str(url_file)])
+    result = runner.invoke(app, ["lint", "--file", str(url_file)])
 
     assert result.exit_code == 0
     assert "No URLs found" in result.output

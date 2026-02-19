@@ -86,7 +86,7 @@ def test_fail_under_exits_1_below_threshold():
     """--fail-under exits 1 when score is below the threshold."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--fail-under", "70"]
+            app, ["lint", "https://example.com", "--single", "--fail-under", "70"]
         )
     assert result.exit_code == 1
 
@@ -95,7 +95,7 @@ def test_fail_under_exits_0_above_threshold():
     """--fail-under exits 0 when score is at or above the threshold."""
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--fail-under", "50"]
+            app, ["lint", "https://example.com", "--single", "--fail-under", "50"]
         )
     assert result.exit_code == 0
 
@@ -105,14 +105,14 @@ def test_quiet_backwards_compat_default_threshold():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         # score=55, threshold=50 → exit 0
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--quiet"]
+            app, ["lint", "https://example.com", "--single", "--quiet"]
         )
     assert result.exit_code == 0
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_low):
         # score=30, threshold=50 → exit 1
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--quiet"]
+            app, ["lint", "https://example.com", "--single", "--quiet"]
         )
     assert result.exit_code == 1
 
@@ -122,7 +122,7 @@ def test_fail_under_with_json_outputs_before_exit():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--json", "--fail-under", "70"],
+            ["lint", "https://example.com", "--single", "--json", "--fail-under", "70"],
         )
     assert result.exit_code == 1
     # JSON should still be present in the output
@@ -136,12 +136,12 @@ def test_fail_under_with_markdown():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--format", "markdown", "--fail-under", "70",
             ],
         )
     assert result.exit_code == 1
-    assert "AEO Audit" in result.output
+    assert "Context Lint" in result.output
     assert "55.0" in result.output
 
 
@@ -153,7 +153,7 @@ def test_fail_on_blocked_bots_exits_2():
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_blocked):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--single", "--fail-on-blocked-bots"],
+            ["lint", "https://example.com", "--single", "--fail-on-blocked-bots"],
         )
     assert result.exit_code == 2
 
@@ -164,7 +164,7 @@ def test_blocked_bots_priority_over_score_failure():
         result = runner.invoke(
             app,
             [
-                "audit", "https://example.com", "--single",
+                "lint", "https://example.com", "--single",
                 "--fail-under", "70", "--fail-on-blocked-bots",
             ],
         )
@@ -180,6 +180,6 @@ def test_fail_under_with_site_audit():
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site_low):
         result = runner.invoke(
             app,
-            ["audit", "https://example.com", "--json", "--fail-under", "60"],
+            ["lint", "https://example.com", "--json", "--fail-under", "60"],
         )
     assert result.exit_code == 1

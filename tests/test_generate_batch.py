@@ -24,7 +24,7 @@ class TestBatchGenerateConfig:
         cfg = BatchGenerateConfig(urls=["https://example.com"])
         assert cfg.profile == ProfileType.generic
         assert cfg.model is None
-        assert cfg.output_dir == "./aeo-output"
+        assert cfg.output_dir == "./context-output"
         assert cfg.concurrency == 3
 
     def test_all_fields(self):

@@ -87,7 +87,7 @@ def test_site_report_green_score():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
     assert "75.0" in result.output
 
@@ -100,7 +100,7 @@ def test_site_report_red_score():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
     assert "20.0" in result.output
 
@@ -128,7 +128,7 @@ def test_site_report_with_pages():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
     assert "example.com/about" in result.output
 
@@ -144,7 +144,7 @@ def test_site_report_with_errors():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
     assert "Timeout" in result.output
 
@@ -160,7 +160,7 @@ def test_quiet_multipage_pass():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com", "--quiet"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--quiet"])
     assert result.exit_code == 0
 
 
@@ -172,7 +172,7 @@ def test_quiet_multipage_fail():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com", "--quiet"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--quiet"])
     assert result.exit_code == 1
 
 
@@ -189,7 +189,7 @@ def test_quiet_blocked_bots():
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--quiet", "--fail-on-blocked-bots"]
+            app, ["lint", "https://example.com", "--quiet", "--fail-on-blocked-bots"]
         )
     assert result.exit_code == 2
 
@@ -205,7 +205,7 @@ def test_audit_csv_single():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--format", "csv"]
+            app, ["lint", "https://example.com", "--single", "--format", "csv"]
         )
     assert result.exit_code == 0
     assert "url" in result.output
@@ -219,7 +219,7 @@ def test_audit_csv_site():
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--format", "csv"]
+            app, ["lint", "https://example.com", "--format", "csv"]
         )
     assert result.exit_code == 0
 
@@ -232,10 +232,10 @@ def test_audit_markdown_single():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--format", "markdown"]
+            app, ["lint", "https://example.com", "--single", "--format", "markdown"]
         )
     assert result.exit_code == 0
-    assert "AEO Audit" in result.output
+    assert "Context Lint" in result.output
 
 
 def test_audit_markdown_site():
@@ -246,10 +246,10 @@ def test_audit_markdown_site():
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--format", "markdown"]
+            app, ["lint", "https://example.com", "--format", "markdown"]
         )
     assert result.exit_code == 0
-    assert "AEO" in result.output
+    assert "Context" in result.output
 
 
 # ── Verbose mode — lines 268-310 ────────────────────────────────────────────
@@ -264,7 +264,7 @@ def test_verbose_robots_not_found():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
     assert "inaccessible" in result.output
@@ -279,7 +279,7 @@ def test_verbose_llms_not_found():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
     assert "Not found" in result.output
@@ -299,7 +299,7 @@ def test_verbose_with_bots():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
     assert "GPTBot" in result.output
@@ -318,7 +318,7 @@ def test_verbose_llms_found():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
     assert "Found at" in result.output
@@ -340,7 +340,7 @@ def test_verbose_schema_detail():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
     assert "Organization" in result.output
@@ -364,7 +364,7 @@ def test_verbose_content_detail():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--verbose"]
+            app, ["lint", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
     assert "Word count" in result.output or "500" in result.output
@@ -381,7 +381,7 @@ def test_single_page_with_errors():
         return report
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
     assert result.exit_code == 0
     assert "Crawl failed" in result.output
 
@@ -443,7 +443,7 @@ def test_site_audit_progress_callback():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
 
 
@@ -458,7 +458,7 @@ def test_site_report_pages_failed():
         return report
 
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
-        result = runner.invoke(app, ["audit", "https://example.com"])
+        result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
     assert "failed" in result.output
 
@@ -474,7 +474,7 @@ def test_fail_under_triggers_exit():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--fail-under", "50"]
+            app, ["lint", "https://example.com", "--single", "--fail-under", "50"]
         )
     assert result.exit_code == 1
 
@@ -492,7 +492,7 @@ def test_fail_on_blocked_bots_nonquiet():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--fail-on-blocked-bots"]
+            app, ["lint", "https://example.com", "--single", "--fail-on-blocked-bots"]
         )
     assert result.exit_code == 2
 
@@ -510,10 +510,10 @@ def test_github_step_summary(tmp_path):
     env = {**os.environ, "GITHUB_STEP_SUMMARY": str(summary_file)}
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake), \
          patch.dict(os.environ, env, clear=True):
-        result = runner.invoke(app, ["audit", "https://example.com", "--single"])
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
     assert result.exit_code == 0
     assert summary_file.exists()
-    assert "AEO" in summary_file.read_text()
+    assert "Context" in summary_file.read_text()
 
 
 # ── _audit_quiet single — line 351 ──────────────────────────────────────────
@@ -527,7 +527,7 @@ def test_quiet_single_pass():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--quiet"]
+            app, ["lint", "https://example.com", "--single", "--quiet"]
         )
     assert result.exit_code == 0
 
@@ -540,6 +540,6 @@ def test_quiet_single_fail():
 
     with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
         result = runner.invoke(
-            app, ["audit", "https://example.com", "--single", "--quiet"]
+            app, ["lint", "https://example.com", "--single", "--quiet"]
         )
     assert result.exit_code == 1
