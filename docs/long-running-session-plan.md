@@ -15,11 +15,12 @@
 2. [Research & Trends Shaping AEO](#2-research--trends-shaping-aeo)
 3. [Current State of aeo-cli](#3-current-state-of-aeo-cli)
 4. [Strategic Roadmap (Feature Phases)](#4-strategic-roadmap-feature-phases)
-5. [Long-Running Session Architecture](#5-long-running-session-architecture)
-6. [Anti-Hallucination Framework](#6-anti-hallucination-framework)
-7. [Hooks Configuration](#7-hooks-configuration)
-8. [Workflow Cadence & Checkpoints](#8-workflow-cadence--checkpoints)
-9. [Appendix: Competitive Landscape Detail](#9-appendix-competitive-landscape-detail)
+5. [Detailed Implementation Plans](#5-detailed-implementation-plans)
+6. [Long-Running Session Architecture](#6-long-running-session-architecture)
+7. [Anti-Hallucination Framework](#7-anti-hallucination-framework)
+8. [Hooks Configuration](#8-hooks-configuration)
+9. [Workflow Cadence & Checkpoints](#9-workflow-cadence--checkpoints)
+10. [Appendix: Competitive Landscape Detail](#10-appendix-competitive-landscape-detail)
 
 ---
 
@@ -284,9 +285,11 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 
 ## 4. Strategic Roadmap (Feature Phases)
 
-### Phase 1: Strengthen the Core (Days 1-3)
+### Track A: Core Audit Improvements (Days 1-8)
 
-**Goal**: Make the existing 4 pillars best-in-class based on research findings.
+**Goal**: Make the existing 4 pillars best-in-class, then add intelligence and ecosystem features.
+
+#### Phase A1: Strengthen the Core (Days 1-3)
 
 | # | Task | Research Basis | Priority | Complexity |
 |---|------|----------------|----------|------------|
@@ -301,9 +304,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 | 9 | Configurable crawl4ai timeout via `--timeout` flag | Quality-of-life improvement | Medium | Low |
 | 10 | Custom bot list via `--bots` flag or config file | Enterprise need | Medium | Low |
 
-### Phase 2: Intelligence Layer (Days 3-5)
-
-**Goal**: Move beyond basic auditing to actionable intelligence.
+#### Phase A2: Intelligence Layer (Days 3-5)
 
 | # | Task | Research Basis | Priority | Complexity |
 |---|------|----------------|----------|------------|
@@ -316,9 +317,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 | 17 | Regression detection (score dropped since last audit) | Quarterly audit cadence now recommended | Medium | Medium |
 | 18 | E-E-A-T signal detection (authorship, expertise markers) | 96% of AI Overview citations come from E-E-A-T content | Medium | Medium |
 
-### Phase 3: Ecosystem Expansion (Days 5-7)
-
-**Goal**: Make aeo-cli the hub of AEO workflows.
+#### Phase A3: Ecosystem Expansion (Days 5-7)
 
 | # | Task | Research Basis | Priority | Complexity |
 |---|------|----------------|----------|------------|
@@ -329,9 +328,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 | 23 | HTML report export (Lighthouse-style) | Profound/Goodie provide visual reports; CLI needs parity | Medium | High |
 | 24 | `aeo-cli watch` — continuous monitoring mode | 65% of AI bot traffic targets recent content; freshness matters | Medium | Medium |
 
-### Phase 4: Polish & Ship (Days 7-8)
-
-**Goal**: Production-ready release.
+#### Phase A4: Polish & Ship (Days 7-8)
 
 | Task | Priority | Est. Complexity |
 |------|----------|----------------|
@@ -341,9 +338,322 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 | Performance benchmarking | Medium | Medium |
 | Docker image | Low | Low |
 
+### Track B: New Capabilities (Days 9-38)
+
+**Goal**: Transform aeo-cli from "URL auditor" into a **brand intelligence platform** with 5 new capabilities solving distinct CPG/enterprise pain points. No open-source tool does any of these today.
+
+**User decisions**: Users provide their own API keys. All capabilities are new subcommands within aeo-cli. Both SEA and global marketplaces supported from day one.
+
+| Phase | Capability | CLI Command | Days | Key Deliverable |
+|-------|-----------|-------------|------|-----------------|
+| B0 | Shared Infrastructure | — | 1-2 | `core/llm.py`, `core/cost.py` — shared LLM calling layer |
+| B1 | CI/CD Enhancement | `audit --robots-min --baseline --webhook` | 2-3 | Per-pillar thresholds, regression detection, webhooks |
+| B2 | AEO Compiler Batch | `generate --batch` | 3-4 | Batch llms.txt + JSON-LD generation for 5K+ pages |
+| B3 | Citation Radar | `radar` | 5-7 | Multi-model citation extraction + brand/source analysis |
+| B4 | Share-of-Model Benchmark | `benchmark` | 6-8 | LLM-as-judge Share-of-Recommendation % tracking |
+| B5 | Retail-RAG Auditor | `retail` | 7-10 | 8 marketplace parsers, 5-pillar retail AI-readiness scoring |
+
+**Execution order**: All phases in sequence: B0 → B1 → B2 → B3 → B4 → B5. No skipping.
+
+See [Section 5: Detailed Implementation Plans](#5-detailed-implementation-plans) for full specs.
+
 ---
 
-## 5. Long-Running Session Architecture
+## 5. Detailed Implementation Plans
+
+### 5.1 Phase B0: Shared Infrastructure (1-2 days)
+
+**What**: Extract common LLM calling layer and cost estimation so `generate`, `radar`, and `benchmark` all share it.
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `src/aeo_cli/core/llm.py` | Create (move from `generate/llm.py`) | Shared LiteLLM wrapper: `call_llm_structured()`, `detect_model()`, `ensure_litellm()` |
+| `src/aeo_cli/core/cost.py` | Create | Model-to-price lookup, token estimation, cost formatting |
+| `src/aeo_cli/core/generate/llm.py` | Modify | Re-export from `core/llm.py` for backward compatibility |
+
+Reuse: `core/generate/llm.py` already has the right abstractions. `core/retry.py` already handles HTTP retry with backoff.
+
+### 5.2 Phase B1: CI/CD Enhancement (2-3 days)
+
+**Pain**: Junior dev pushes update that blocks ClaudeBot, breaks JSON-LD. Nobody notices for months.
+
+**CLI changes** (modify `src/aeo_cli/main.py`):
+```
+aeo-cli audit <url> --robots-min 20 --schema-min 15 --content-min 30
+aeo-cli audit <url> --baseline scores.json --regression-threshold 5
+aeo-cli audit <url> --save-baseline scores.json
+aeo-cli audit <url> --webhook https://hooks.slack.com/...
+```
+
+**New files**:
+
+| File | Purpose |
+|------|---------|
+| `src/aeo_cli/core/ci/__init__.py` | Package exports |
+| `src/aeo_cli/core/ci/thresholds.py` | Per-pillar threshold checking |
+| `src/aeo_cli/core/ci/baseline.py` | Baseline JSON read/write/comparison |
+| `src/aeo_cli/core/ci/webhook.py` | Async httpx POST to webhook URL |
+
+**New models**: `PillarThresholds`, `BaselineComparison`, `WebhookPayload`
+
+**action.yml changes**: Add inputs `robots-min`, `schema-min`, `content-min`, `llms-min`, `baseline-file`, `save-baseline`, `webhook-url`, `regression-threshold`
+
+**Tests**: `test_ci_thresholds.py`, `test_ci_baseline.py`, `test_ci_webhook.py`
+
+### 5.3 Phase B2: AEO Compiler Batch Mode (3-4 days)
+
+**Pain**: CPG brand needs llms.txt + JSON-LD for 5,000 SKUs. Manual = 8 months, $500K. Auto-generate = 30 seconds per page.
+
+**CLI**: `aeo-cli generate --batch urls.txt --profile cpg --model gpt-4o-mini`
+
+**New file**: `src/aeo_cli/core/generate/batch.py` — Batch orchestrator: URL discovery from sitemap/file, concurrency loop with `asyncio.Semaphore`, cost estimation upfront, aggregated site-wide `llms.txt` + per-page `schema.jsonld`.
+
+**Key design**: Reuses existing `generate_assets()` per URL. Uses `discovery.py` for sitemap parsing (already exists). Cost displayed before proceeding.
+
+**New models**: `BatchGenerateConfig`, `BatchPageResult`, `BatchGenerateResult`
+
+**MCP tool**: `@mcp.tool generate_batch(urls, profile, model, ...) -> dict`
+
+**Tests**: `test_generate_batch.py`, `test_generate_batch_cli.py`
+
+### 5.4 Phase B3: Citation Radar — `aeo-cli radar` (5-7 days)
+
+**Pain**: Brand achieves 100/100 AEO score but AI still recommends competitors. LLMs weight Reddit, Wirecutter, blogs over corporate sites. Brand has no visibility into what AI is citing.
+
+**CLI**:
+```
+aeo-cli radar "best body wash for eczema" --brand Dove --brand CeraVe
+aeo-cli radar "best running shoes" --model perplexity/sonar-pro --model gpt-4o
+```
+
+**Citation extraction differs per model**:
+
+| Model Type | How Citations Work |
+|-----------|-------------------|
+| Perplexity | Structured citations in API response metadata — extract directly |
+| ChatGPT (web search) | Inline `[1]`, `[2]` markers — regex parse + URL extraction |
+| Claude, Gemini | No citations — extract brand/domain mentions from text only |
+
+**New files**:
+
+| File | Purpose |
+|------|---------|
+| `src/aeo_cli/core/radar/__init__.py` | Package exports |
+| `src/aeo_cli/core/radar/query.py` | Multi-model query dispatcher via LiteLLM |
+| `src/aeo_cli/core/radar/parser.py` | Citation extraction: Perplexity metadata, inline refs, plain text |
+| `src/aeo_cli/core/radar/analyzer.py` | Brand mention detection + LLM-as-judge for sentiment |
+| `src/aeo_cli/core/radar/domains.py` | Domain classification registry (reddit, news, review_site, marketplace, etc.) |
+
+**New models**: `RadarConfig`, `CitationSource`, `BrandMention`, `ModelRadarResult`, `RadarReport`
+
+**MCP tool**: `@mcp.tool radar(prompt, models, brands) -> dict`
+
+**Tests**: `test_radar_query.py`, `test_radar_parser.py`, `test_radar_analyzer.py`, `test_radar_domains.py`, `test_radar_cli.py`
+
+**Risks**: Perplexity API format changes (mitigate: abstract parser), models without citations (mitigate: label clearly), rate limits (mitigate: reuse `RetryConfig`)
+
+### 5.5 Phase B4: Share-of-Model Benchmark — `aeo-cli benchmark` (6-8 days)
+
+**Pain**: CMO asks "We spent $50K optimizing for AI. Are we getting recommended more?" No "Google Analytics" for AI models exists.
+
+**CLI**:
+```
+aeo-cli benchmark prompts.csv --brand "Dove" --competitor "CeraVe" --competitor "Aveeno" --runs 3
+# Output: "This will make ~450 API calls (~$3.20). Proceed? [y/N]"
+```
+
+**Architecture — LLM-as-Judge pipeline**:
+```
+prompts.csv -> Loader -> Query Dispatcher (multi-model, N runs each)
+                                 |
+                         Response Collector
+                                 |
+                         LLM-as-Judge (gpt-4o-mini, structured JSON output)
+                         - brands_mentioned: list[str]
+                         - recommended_brand: str | null
+                         - target_brand_position: int | null
+                         - sentiment: positive/neutral/negative
+                                 |
+                         Metrics Aggregator
+                         - Share of Recommendation: 12%
+                         - Mention Rate: 45%
+                         - Avg Position: 2.3
+                         - Competitor comparison table
+```
+
+**Statistical design**: Each prompt runs N times per model (default 3). Metrics averaged, std deviation reported. Cost estimation mandatory (`--yes` to skip in CI).
+
+**CSV input**: `prompt,category,intent` columns. Also accepts plain text (one prompt per line).
+
+**New files**:
+
+| File | Purpose |
+|------|---------|
+| `src/aeo_cli/core/benchmark/__init__.py` | Package exports |
+| `src/aeo_cli/core/benchmark/loader.py` | CSV prompt parser + validation |
+| `src/aeo_cli/core/benchmark/dispatcher.py` | Async multi-model query dispatcher |
+| `src/aeo_cli/core/benchmark/judge.py` | LLM-as-judge: structured JSON output classification |
+| `src/aeo_cli/core/benchmark/metrics.py` | Statistical aggregation: SoR %, mention rates, position |
+| `src/aeo_cli/core/benchmark/cost.py` | Per-model cost estimation with upfront display |
+
+**Cost estimation**: `MODEL_COSTS = {"gpt-4o": 0.005, "gpt-4o-mini": 0.0003, ...}`. Formula: `prompts × models × runs × (query_cost + judge_cost)`.
+
+**New models**: `BenchmarkConfig`, `PromptEntry`, `JudgeResult`, `PromptBenchmarkResult`, `ModelBenchmarkSummary`, `BenchmarkReport`
+
+**MCP tool**: `@mcp.tool benchmark(prompts, brand, competitors, models, runs_per_prompt) -> dict`
+
+**Tests**: `test_benchmark_loader.py`, `test_benchmark_dispatcher.py`, `test_benchmark_judge.py`, `test_benchmark_metrics.py`, `test_benchmark_cost.py`, `test_benchmark_cli.py`
+
+**Risks**: LLM-as-judge inconsistency (mitigate: structured `response_format`), high cost (mitigate: mandatory estimation), non-determinism (mitigate: report std dev)
+
+### 5.6 Phase B5: Retail-RAG Auditor — `aeo-cli retail` (7-10 days)
+
+**Pain**: CPG brands care about Amazon/Shopee listings, not dove.com. Amazon Rufus asks "Is this safe for colored hair?" and if the listing is not optimized, AI says "I don't know" and the brand loses a sale.
+
+**CLI**:
+```
+aeo-cli retail "https://www.amazon.com/dp/B07L123456" --verbose
+aeo-cli retail "https://shopee.sg/product/123" --json
+```
+
+**Retail AI-Readiness Score (0-100)**:
+
+| Pillar | Max | What It Checks | Research Basis |
+|--------|-----|----------------|----------------|
+| Product Schema | 25 | Product/Offer/AggregateRating JSON-LD completeness | GPT-4 accuracy 16%→54% with structured data |
+| Content Quality | 30 | Bullet points, description length, A+ content, spec charts | 80% of shoppers don't go past page 1 |
+| Visual Assets | 15 | Image count, alt text, video presence | OpenAI Feed Spec includes images, video, 3D models |
+| Social Proof | 20 | Review count, rating, Q&A section presence | ChatGPT Shopping ranks by "availability, price, quality" |
+| Feed Compliance | 10 | Alignment with OpenAI Product Feed Spec fields | OpenAI published exact spec; checking alignment tells brands what ChatGPT expects |
+
+**Marketplace parser registry** — auto-detect marketplace from URL, dispatch to specific parser:
+
+| Marketplace | Parser | Notes |
+|-------------|--------|-------|
+| Amazon (all TLDs) | `AmazonParser` | Most structured HTML |
+| Shopee (all regions) | `ShopeeParser` | JS-heavy, needs Playwright |
+| Lazada (all regions) | `LazadaParser` | Alibaba-owned, similar to Shopee |
+| Tokopedia | `TokopediaParser` | Indonesian marketplace |
+| TikTok Shop | `TiktokShopParser` | Social commerce, dynamic content |
+| Blibli | `BlibliParser` | Indonesian marketplace |
+| Zalora | `ZaloraParser` | Fashion-focused SEA marketplace |
+| Generic | `GenericParser` | Fallback: Schema.org/OpenGraph |
+
+**OpenAI Product Feed Spec fields**:
+- Required: title, description, url, price, currency, availability, image_url, brand
+- Recommended: reviews_count, average_rating, variants, shipping_info, category, gtin
+
+**New files**:
+
+| File | Purpose |
+|------|---------|
+| `src/aeo_cli/core/retail/__init__.py` | Package exports |
+| `src/aeo_cli/core/retail/auditor.py` | Main orchestrator: crawl → detect marketplace → parse → score |
+| `src/aeo_cli/core/retail/scoring.py` | 5-pillar retail scoring logic |
+| `src/aeo_cli/core/retail/feed_spec.py` | OpenAI Product Feed Spec field checklist |
+| `src/aeo_cli/core/retail/parsers/__init__.py` | Parser registry + marketplace detection |
+| `src/aeo_cli/core/retail/parsers/base.py` | Abstract base parser interface |
+| `src/aeo_cli/core/retail/parsers/amazon.py` | Amazon HTML parser |
+| `src/aeo_cli/core/retail/parsers/shopee.py` | Shopee HTML parser |
+| `src/aeo_cli/core/retail/parsers/lazada.py` | Lazada HTML parser |
+| `src/aeo_cli/core/retail/parsers/tokopedia.py` | Tokopedia HTML parser |
+| `src/aeo_cli/core/retail/parsers/tiktok_shop.py` | TikTok Shop HTML parser |
+| `src/aeo_cli/core/retail/parsers/blibli.py` | Blibli HTML parser |
+| `src/aeo_cli/core/retail/parsers/zalora.py` | Zalora HTML parser |
+| `src/aeo_cli/core/retail/parsers/generic.py` | Fallback Schema.org/OpenGraph parser |
+
+**New models**: `MarketplaceType` enum, `ProductSchemaReport`, `ContentQualityReport`, `VisualAssetsReport`, `SocialProofReport`, `FeedComplianceReport`, `RetailAuditReport`
+
+**MCP tool**: `@mcp.tool retail_audit(url, marketplace) -> dict`
+
+**Tests**: `test_retail_auditor.py`, `test_retail_parsers.py` (saved HTML snapshots in `tests/fixtures/retail/`), `test_retail_scoring.py`, `test_retail_feed_spec.py`, `test_retail_marketplace_detection.py`, `test_retail_cli.py`
+
+**Risks**: Anti-bot protection (mitigate: crawl4ai Playwright), HTML structure changes (mitigate: isolated parsers, generic fallback), regional variations (mitigate: URL detection handles all TLDs)
+
+### 5.7 Complete New File Tree
+
+```
+src/aeo_cli/core/
+  llm.py                            # NEW: Shared LLM layer
+  cost.py                           # NEW: Shared cost estimation
+  ci/
+    __init__.py                     # NEW
+    thresholds.py                   # NEW: Per-pillar thresholds
+    baseline.py                     # NEW: Baseline comparison
+    webhook.py                      # NEW: Webhook notifications
+  generate/
+    batch.py                        # NEW: Batch generation
+  radar/
+    __init__.py                     # NEW
+    query.py                        # NEW: Multi-model dispatcher
+    parser.py                       # NEW: Citation extraction
+    analyzer.py                     # NEW: Brand analysis
+    domains.py                      # NEW: Domain classification
+  benchmark/
+    __init__.py                     # NEW
+    loader.py                       # NEW: CSV parser
+    dispatcher.py                   # NEW: Query dispatcher
+    judge.py                        # NEW: LLM-as-judge
+    metrics.py                      # NEW: Statistics
+    cost.py                         # NEW: Cost estimation
+  retail/
+    __init__.py                     # NEW
+    auditor.py                      # NEW: Retail audit orchestrator
+    scoring.py                      # NEW: 5-pillar scoring
+    feed_spec.py                    # NEW: Feed spec fields
+    parsers/
+      __init__.py                   # NEW: Registry
+      base.py                       # NEW: Abstract interface
+      amazon.py                     # NEW: Amazon parser
+      shopee.py                     # NEW: Shopee parser
+      lazada.py                     # NEW: Lazada parser
+      tokopedia.py                  # NEW: Tokopedia parser
+      tiktok_shop.py                # NEW: TikTok Shop parser
+      blibli.py                     # NEW: Blibli parser
+      zalora.py                     # NEW: Zalora parser
+      generic.py                    # NEW: Fallback parser
+```
+
+**Modified files**: `main.py` (3 new commands + mods to audit/generate), `models.py` (~40 new Pydantic classes), `server.py` (4 new MCP tools), `action.yml` (new inputs), `pyproject.toml` (new dep groups)
+
+### 5.8 MCP Server Extensions
+
+```python
+# Existing (unchanged):
+@mcp.tool audit(url, single_page, max_pages) -> dict
+@mcp.tool generate(url, profile, model, output_dir) -> dict
+
+# New:
+@mcp.tool generate_batch(urls, profile, model, ...) -> dict
+@mcp.tool radar(prompt, models, brands) -> dict
+@mcp.tool benchmark(prompts, brand, competitors, ...) -> dict
+@mcp.tool retail_audit(url, marketplace) -> dict
+```
+
+### 5.9 Verification Plan
+
+**Per-phase**: `make ci` passes (ruff + mypy + pytest with 100% coverage) after each phase. Manual smoke test each new command. MCP tools tested via integration tests.
+
+**End-to-end smoke tests**:
+```bash
+# Phase B1
+aeo-cli audit https://example.com --robots-min 10 --save-baseline baseline.json
+aeo-cli audit https://example.com --baseline baseline.json --webhook https://httpbin.org/post
+# Phase B2
+aeo-cli generate --batch urls.txt --profile cpg --model gpt-4o-mini
+# Phase B3
+aeo-cli radar "best body wash for eczema" --brand Dove --brand CeraVe
+# Phase B4
+aeo-cli benchmark prompts.csv --brand Dove --competitor CeraVe --runs 3
+# Phase B5
+aeo-cli retail "https://www.amazon.com/dp/B07L123456" --verbose
+```
+
+**Total effort**: Track A (~8 days) + Track B (~28-38 days) = ~36-46 working days
+
+---
+
+## 6. Long-Running Session Architecture
 
 ### Session Structure (Not One Giant Session)
 
@@ -411,7 +721,7 @@ Day 3 Session: Phase 2b + Phase 3a
 
 ---
 
-## 6. Anti-Hallucination Framework
+## 7. Anti-Hallucination Framework
 
 ### Layer 1: Static Grounding (Always Present)
 
@@ -491,7 +801,7 @@ This prevents hallucinated implementations — the test is the source of truth.
 
 ---
 
-## 7. Hooks Configuration
+## 8. Hooks Configuration
 
 ### Recommended `.claude/settings.json`
 
@@ -596,7 +906,7 @@ This prevents hallucinated implementations — the test is the source of truth.
 
 ---
 
-## 8. Workflow Cadence & Checkpoints
+## 9. Workflow Cadence & Checkpoints
 
 ### Daily Workflow
 
@@ -655,7 +965,7 @@ This prevents hallucinated implementations — the test is the source of truth.
 
 ---
 
-## 9. Appendix: Competitive Landscape Detail
+## 10. Appendix: Competitive Landscape Detail
 
 ### Tier 1: Market Leaders (Full-Stack AEO Platforms)
 
@@ -721,6 +1031,68 @@ This prevents hallucinated implementations — the test is the source of truth.
 | **Lily Ray** | Real-time AI Overviews analysis, LLM manipulation experiments |
 | **Kevin Indig** (Growth Memo) | First usability study of Google AI Overviews |
 
+### LLM Share-of-Voice Competitors
+
+No open-source CLI tool exists for LLM share-of-voice tracking. aeo-cli would be the first.
+
+| Company | Funding | Approach | Scale |
+|---------|---------|----------|-------|
+| **Evertune** | $15M (Felicis) | API sampling, 1M+ custom prompts/month/brand | ChatGPT, Gemini, Claude, Perplexity, DeepSeek, MetaAI, Google AI Mode |
+| **Profound** | $58.5M (Sequoia) | Live front-end answers + server-log data | 400M+ real user prompts, 10+ engines |
+| **Otterly.AI** | Bootstrapped (Vienna) | Gartner Cool Vendor 2025, 10K+ users | Google AI Overviews, ChatGPT, Perplexity, Gemini, Copilot |
+| **Goodie AI** | Unfunded (NYC) | Coined "AEO" at SXSW, Agentic Commerce Optimizer | ChatGPT, Gemini, Claude, Perplexity, DeepSeek, Rufus |
+| **LLMrefs** | — | SEO rank-tracking style for AI search | All major models |
+| **Answer Socrates** | — | Free tier (ChatGPT + Gemini), $15/mo for all models | ChatGPT, Gemini, Claude, Perplexity, DeepSeek, Grok |
+| **Peec AI** | $29M | Berlin-based, 1,500+ marketing teams, from EUR89/mo | 6+ models |
+
+**Technical approach** (how they build it):
+- Evertune auto-generates tailored prompts per brand/category, runs 1M+ monthly, uses statistical confidence over spot-checking
+- Profound combines live front-end answers with server-log data; critics say API outputs differ from real user experience
+- All use "AI Brand Score" or "Share of Recommendation" as primary metric
+- Key challenge: LLM non-determinism requires 1000+ prompts for statistical significance
+
+### Ecommerce Marketplace Monitoring
+
+| Company | Funding / Scale | Markets | Key Capabilities |
+|---------|----------------|---------|-----------------|
+| **Pacvue** | $1B+ (Assembly acquisition) | Amazon, Walmart, Instacart, TikTok Shop | Share of Search, Digital Shelf optimization, 100+ retailers |
+| **DataHawk** | $7M Series A | 11 Amazon marketplaces | Keyword ranking, SOV tracking, AI-powered insights |
+| **42Signals** | — | Multi-marketplace | Digital shelf analytics, Organic Share of Voice |
+| **Profitero** | Acquired by Publicis | Global | Content scoring, pricing, competitive intelligence |
+| **Helium 10** | Part of Pacvue/Assembly | Amazon | Product research, keyword tracking, listing optimization |
+
+**Key metrics in ecommerce SOV**:
+- SOV = # brand items on search term / total items on page 1
+- 70% of Amazon shoppers never go past page 1
+- Even 10% excess SOV can drive 0.5% annual market share boost
+- Continuous monitoring (daily/weekly) is non-negotiable
+
+**Open-source scrapers** (available on GitHub):
+- Shopee: `pfreitag/shopee-scraper` (Selenium), `namle133/shopping_online_scrape` (multi-platform)
+- Lazada: `nicholaswong-ts/Lazada-Data-Scraper` (Selenium + BeautifulSoup)
+- Cross-platform: Multiple projects using Playwright, proxy rotation, undetected-chromedriver
+- All use Python + Selenium/Playwright + BeautifulSoup
+
+### AI Shopping Agent Protocols
+
+| Protocol | Owner | Status | How Products Surface |
+|----------|-------|--------|---------------------|
+| **OpenAI Product Feed** | OpenAI | Production | Merchants push structured feeds (CSV/TSV/XML/JSON) to OpenAI endpoint |
+| **ChatGPT Shopping** | OpenAI | Production | Ranked on feed accuracy, relevance, trust signals — NOT ads |
+| **Agentic Commerce Protocol (ACP)** | OpenAI (open-sourced) | Production | Instant checkout via Stripe; free to be discovered |
+| **Shopify UCP** | Shopify | In development | Universal Commerce Protocol |
+| **Google Agent Payments** | Google | In development | Agent-mediated payments |
+| **Visa Trusted Agent Protocol** | Visa | In development | AI agent payment authentication |
+| **Amazon Rufus** | Amazon | Production | AI shopping assistant using product listing data |
+
+**ChatGPT Shopping details**:
+- Products ranked purely on relevance — organic, unsponsored
+- Ranking factors: feed freshness (updates every 15 min), completeness, trust signals (reviews, return policy), conversational context
+- Merchants can apply via chatgpt.com/merchants
+- Shopify and Etsy merchants are already eligible
+- Required feed fields: title, description, url, price, currency, availability, image_url, brand
+- Bluefish AI found: 95% of AI citations come from non-paid sources during 2025 holidays
+
 ---
 
 ## Summary
@@ -728,11 +1100,19 @@ This prevents hallucinated implementations — the test is the source of truth.
 This plan provides:
 
 1. **Market context** — aeo-cli occupies a genuinely unique niche (CLI + MCP + OSS + 4-pillar scoring)
-2. **Research-backed feature roadmap** — aligned with GEO academic research and industry trends
-3. **4-phase development plan** — Core → Intelligence → Ecosystem → Ship
-4. **Anti-hallucination framework** — 5 layers from static CLAUDE.md to human checkpoints
-5. **Hooks configuration** — deterministic quality enforcement (auto-lint, test gates, git checks)
-6. **Workflow cadence** — daily sessions with micro/minor/major checkpoints
-7. **Context management** — proactive compaction, subagent delegation, session boundaries
+2. **Research-backed feature roadmap** — aligned with GEO academic research, citation data (680M+ analyzed), and industry trends
+3. **Two-track development plan** — Track A (core improvements, 8 days) + Track B (5 new capabilities, 28-38 days)
+4. **5 new capabilities** solving real CPG/enterprise pain points:
+   - **CI/CD Enhancement** — per-pillar thresholds, regression detection, webhooks
+   - **AEO Compiler Batch** — auto-generate llms.txt + JSON-LD for 5K+ pages
+   - **Citation Radar** — reverse-engineer what AI models cite and recommend
+   - **Share-of-Model Benchmark** — LLM-as-judge Share-of-Recommendation % tracking
+   - **Retail-RAG Auditor** — 8 marketplace parsers, 5-pillar retail AI-readiness scoring
+5. **Anti-hallucination framework** — 5 layers from static CLAUDE.md to human checkpoints
+6. **Hooks configuration** — deterministic quality enforcement (auto-lint, test gates, git checks)
+7. **Workflow cadence** — daily sessions with micro/minor/major checkpoints
+8. **Competitive intelligence** — LLM SoV competitors, ecommerce monitoring landscape, AI shopping protocols
 
 The key insight: **don't run one giant session**. Run daily sessions with committed checkpoints, hooks for automated quality enforcement, and human review at phase boundaries. CLAUDE.md + rules + hooks provide the grounding; TDD provides the verification; git provides the rollback safety net.
+
+**Total estimated effort**: ~36-46 working days across both tracks.
