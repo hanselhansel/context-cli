@@ -15,6 +15,8 @@ from aeo_cli.core.scoring import compute_scores
 AI_BOT_NAMES = [
     "GPTBot", "ChatGPT-User", "Google-Extended",
     "ClaudeBot", "PerplexityBot", "Amazonbot", "OAI-SearchBot",
+    "DeepSeek-AI", "Grok", "Meta-ExternalAgent",
+    "cohere-ai", "AI2Bot", "ByteSpider",
 ]
 
 
@@ -66,10 +68,10 @@ def test_zero_score():
 
 
 def test_half_bots_allowed():
-    """4 of 7 bots allowed should score proportionally: round(25 * 4/7, 1)."""
+    """7 of 13 bots allowed should score proportionally: round(25 * 7/13, 1)."""
     bots = [
-        BotAccessResult(bot=AI_BOT_NAMES[i], allowed=(i < 4), detail="test")
-        for i in range(7)
+        BotAccessResult(bot=AI_BOT_NAMES[i], allowed=(i < 7), detail="test")
+        for i in range(13)
     ]
     robots = RobotsReport(found=True, bots=bots)
 
@@ -77,7 +79,7 @@ def test_half_bots_allowed():
         robots, LlmsTxtReport(found=False), SchemaReport(), ContentReport()
     )
 
-    assert r.score == round(25 * 4 / 7, 1)
+    assert r.score == round(25 * 7 / 13, 1)
 
 
 def test_schema_score_capped_at_25():

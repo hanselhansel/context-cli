@@ -17,6 +17,12 @@ AI_BOTS: list[str] = [
     "PerplexityBot",
     "Amazonbot",
     "OAI-SearchBot",
+    "DeepSeek-AI",
+    "Grok",
+    "Meta-ExternalAgent",
+    "cohere-ai",
+    "AI2Bot",
+    "ByteSpider",
 ]
 
 DEFAULT_TIMEOUT: int = 15
