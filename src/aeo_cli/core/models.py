@@ -412,3 +412,39 @@ class PluginResult(BaseModel):
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional plugin-specific data"
     )
+
+
+# ── CI Baseline models ──────────────────────────────────────────────────────
+
+
+class BaselineScores(BaseModel):
+    """Saved baseline scores for CI regression comparison."""
+
+    url: str = Field(description="The audited URL")
+    overall: float = Field(description="Overall AEO score (0-100)")
+    robots: float = Field(description="Robots pillar score (0-25)")
+    schema_org: float = Field(description="Schema.org pillar score (0-25)")
+    content: float = Field(description="Content pillar score (0-40)")
+    llms_txt: float = Field(description="llms.txt pillar score (0-10)")
+    timestamp: str = Field(description="ISO 8601 timestamp when baseline was saved")
+
+
+class BaselineRegression(BaseModel):
+    """A single pillar that regressed beyond the threshold."""
+
+    pillar: str = Field(description="Pillar name (robots, llms_txt, schema_org, content, overall)")
+    previous_score: float = Field(description="Score from the saved baseline")
+    current_score: float = Field(description="Score from the current audit")
+    delta: float = Field(description="current - previous (negative = regression)")
+
+
+class BaselineComparison(BaseModel):
+    """Result of comparing current audit scores against a saved baseline."""
+
+    url: str = Field(description="The audited URL")
+    previous: BaselineScores = Field(description="Saved baseline scores")
+    current: BaselineScores = Field(description="Current audit scores")
+    regressions: list[BaselineRegression] = Field(
+        default_factory=list, description="Pillars that regressed beyond threshold"
+    )
+    passed: bool = Field(description="Whether the comparison passed (no regressions)")
