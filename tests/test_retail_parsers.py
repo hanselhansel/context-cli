@@ -1,4 +1,4 @@
-"""Tests for retail marketplace parsers: registry, base, and 4 parsers."""
+"""Tests for retail marketplace parsers: registry, base, and 7 parsers."""
 
 from __future__ import annotations
 
@@ -10,9 +10,12 @@ from aeo_cli.core.models import MarketplaceType, ProductData
 from aeo_cli.core.retail.parsers import detect_marketplace, get_parser
 from aeo_cli.core.retail.parsers.amazon import AmazonParser
 from aeo_cli.core.retail.parsers.base import BaseParser
+from aeo_cli.core.retail.parsers.blibli import BlibliParser
 from aeo_cli.core.retail.parsers.lazada import LazadaParser
 from aeo_cli.core.retail.parsers.shopee import ShopeeParser
+from aeo_cli.core.retail.parsers.tiktok_shop import TiktokShopParser
 from aeo_cli.core.retail.parsers.tokopedia import TokopediaParser
+from aeo_cli.core.retail.parsers.zalora import ZaloraParser
 
 # ── ProductData model tests ──────────────────────────────────────────────────
 
@@ -153,6 +156,46 @@ class TestDetectMarketplace:
     def test_tokopedia_urls(self, url: str) -> None:
         assert detect_marketplace(url) == MarketplaceType.TOKOPEDIA
 
+    # TikTok Shop
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.tiktok.com/shop/product/123",
+            "https://tiktok.com/shop/product/123",
+        ],
+    )
+    def test_tiktok_shop_urls(self, url: str) -> None:
+        assert detect_marketplace(url) == MarketplaceType.TIKTOK_SHOP
+
+    # Blibli
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.blibli.com/p/product-123",
+            "https://blibli.com/p/product-123",
+        ],
+    )
+    def test_blibli_urls(self, url: str) -> None:
+        assert detect_marketplace(url) == MarketplaceType.BLIBLI
+
+    # Zalora
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.zalora.sg/product/123",
+            "https://www.zalora.co.id/product/123",
+            "https://www.zalora.com.my/product/123",
+            "https://www.zalora.co.th/product/123",
+            "https://www.zalora.vn/product/123",
+            "https://www.zalora.com.ph/product/123",
+            "https://www.zalora.com.hk/product/123",
+            "https://www.zalora.com.tw/product/123",
+            "https://www.zalora.com/product/123",
+        ],
+    )
+    def test_zalora_urls(self, url: str) -> None:
+        assert detect_marketplace(url) == MarketplaceType.ZALORA
+
     # Unknown/Generic
     @pytest.mark.parametrize(
         "url",
@@ -194,10 +237,17 @@ class TestGetParser:
         parser = get_parser(MarketplaceType.GENERIC)
         assert isinstance(parser, BaseParser)
 
-    def test_unregistered_marketplace_returns_base(self) -> None:
-        """Marketplaces not yet implemented should return BaseParser."""
+    def test_tiktok_shop_parser(self) -> None:
         parser = get_parser(MarketplaceType.TIKTOK_SHOP)
-        assert isinstance(parser, BaseParser)
+        assert isinstance(parser, TiktokShopParser)
+
+    def test_blibli_parser(self) -> None:
+        parser = get_parser(MarketplaceType.BLIBLI)
+        assert isinstance(parser, BlibliParser)
+
+    def test_zalora_parser(self) -> None:
+        parser = get_parser(MarketplaceType.ZALORA)
+        assert isinstance(parser, ZaloraParser)
 
     def test_parser_is_subclass_of_base(self) -> None:
         for mp_type in [
@@ -205,6 +255,9 @@ class TestGetParser:
             MarketplaceType.SHOPEE,
             MarketplaceType.LAZADA,
             MarketplaceType.TOKOPEDIA,
+            MarketplaceType.TIKTOK_SHOP,
+            MarketplaceType.BLIBLI,
+            MarketplaceType.ZALORA,
         ]:
             parser = get_parser(mp_type)
             assert isinstance(parser, BaseParser)
@@ -890,7 +943,10 @@ class TestParserEdgeCases:
         html = """<html><head>
         <script type="application/ld+json">NOT JSON AT ALL</script>
         </head><body></body></html>"""
-        for parser_cls in [AmazonParser, ShopeeParser, LazadaParser, TokopediaParser]:
+        for parser_cls in [
+            AmazonParser, ShopeeParser, LazadaParser, TokopediaParser,
+            TiktokShopParser, BlibliParser, ZaloraParser,
+        ]:
             result = parser_cls().parse(html)
             assert isinstance(result, ProductData)
             assert result.schema_org == {}
@@ -926,14 +982,20 @@ class TestParserEdgeCases:
 
     def test_completely_empty_html(self) -> None:
         """Completely empty string should not crash any parser."""
-        for parser_cls in [AmazonParser, ShopeeParser, LazadaParser, TokopediaParser]:
+        for parser_cls in [
+            AmazonParser, ShopeeParser, LazadaParser, TokopediaParser,
+            TiktokShopParser, BlibliParser, ZaloraParser,
+        ]:
             result = parser_cls().parse("")
             assert isinstance(result, ProductData)
 
     def test_html_with_only_doctype(self) -> None:
         """Minimal HTML should not crash parsers."""
         html = "<!DOCTYPE html><html><head></head><body></body></html>"
-        for parser_cls in [AmazonParser, ShopeeParser, LazadaParser, TokopediaParser]:
+        for parser_cls in [
+            AmazonParser, ShopeeParser, LazadaParser, TokopediaParser,
+            TiktokShopParser, BlibliParser, ZaloraParser,
+        ]:
             result = parser_cls().parse(html)
             assert isinstance(result, ProductData)
 

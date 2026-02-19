@@ -35,6 +35,24 @@ inputs:
     description: 'Minimum score drop to flag as regression (default: 5 points)'
     required: false
     default: '5'
+  robots-min:
+    description: 'Minimum robots.txt pillar score (0-25)'
+    required: false
+  schema-min:
+    description: 'Minimum Schema.org pillar score (0-25)'
+    required: false
+  content-min:
+    description: 'Minimum content density pillar score (0-40)'
+    required: false
+  llms-min:
+    description: 'Minimum llms.txt pillar score (0-10)'
+    required: false
+  overall-min:
+    description: 'Minimum overall AEO score (0-100, alternative to fail-under)'
+    required: false
+  webhook-url:
+    description: 'Webhook URL to POST audit results to (Slack, Discord, etc.)'
+    required: false
   python-version:
     description: 'Python version to use'
     required: false
@@ -116,6 +134,30 @@ runs:
 
         if [ -n "${{ inputs.save-baseline }}" ]; then
           SUMMARY_CMD="$SUMMARY_CMD --save-baseline '${{ inputs.save-baseline }}'"
+        fi
+
+        if [ -n "${{ inputs.robots-min }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --robots-min ${{ inputs.robots-min }}"
+        fi
+
+        if [ -n "${{ inputs.schema-min }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --schema-min ${{ inputs.schema-min }}"
+        fi
+
+        if [ -n "${{ inputs.content-min }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --content-min ${{ inputs.content-min }}"
+        fi
+
+        if [ -n "${{ inputs.llms-min }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --llms-min ${{ inputs.llms-min }}"
+        fi
+
+        if [ -n "${{ inputs.overall-min }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --overall-min ${{ inputs.overall-min }}"
+        fi
+
+        if [ -n "${{ inputs.webhook-url }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --webhook '${{ inputs.webhook-url }}'"
         fi
 
         eval $SUMMARY_CMD
