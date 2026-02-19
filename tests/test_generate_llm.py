@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.generate.llm import (
+from context_cli.core.generate.llm import (
     LLMError,
     _build_response_format,
     _check_ollama_running,
@@ -16,7 +16,7 @@ from aeo_cli.core.generate.llm import (
     detect_model,
     ensure_litellm,
 )
-from aeo_cli.core.models import LlmsTxtContent
+from context_cli.core.models import LlmsTxtContent
 
 
 class TestEnsureLitellm:
@@ -66,14 +66,14 @@ class TestDetectModel:
     def test_ollama_fallback(self):
         with patch.dict("os.environ", {}, clear=True):
             with patch(
-                "aeo_cli.core.llm._check_ollama_running", return_value=True
+                "context_cli.core.llm._check_ollama_running", return_value=True
             ):
                 assert detect_model() == "ollama/llama3.2"
 
     def test_no_provider_raises(self):
         with patch.dict("os.environ", {}, clear=True):
             with patch(
-                "aeo_cli.core.llm._check_ollama_running", return_value=False
+                "context_cli.core.llm._check_ollama_running", return_value=False
             ):
                 with pytest.raises(LLMError, match="No LLM provider found"):
                     detect_model()

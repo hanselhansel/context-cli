@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -21,7 +21,7 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.server import audit, generate
+from context_cli.server import audit, generate
 
 # FastMCP 2.x wraps @mcp.tool functions in a FunctionTool object.
 # The underlying async function is accessible via .fn
@@ -56,7 +56,7 @@ def _mock_site_report() -> SiteAuditReport:
 @pytest.mark.asyncio
 async def test_audit_tool_single_page():
     """MCP audit tool with single_page=True should call audit_url."""
-    with patch("aeo_cli.server.audit_url", new_callable=AsyncMock) as mock_audit:
+    with patch("context_cli.server.audit_url", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_single_report()
 
         result = await _audit_fn("https://example.com", single_page=True)
@@ -71,7 +71,7 @@ async def test_audit_tool_single_page():
 @pytest.mark.asyncio
 async def test_audit_tool_site_audit():
     """MCP audit tool with default params should call audit_site."""
-    with patch("aeo_cli.server.audit_site", new_callable=AsyncMock) as mock_audit:
+    with patch("context_cli.server.audit_site", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_site_report()
 
         result = await _audit_fn("https://example.com")
@@ -85,7 +85,7 @@ async def test_audit_tool_site_audit():
 @pytest.mark.asyncio
 async def test_audit_tool_custom_max_pages():
     """MCP audit tool should pass max_pages to audit_site."""
-    with patch("aeo_cli.server.audit_site", new_callable=AsyncMock) as mock_audit:
+    with patch("context_cli.server.audit_site", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_site_report()
 
         await _audit_fn("https://example.com", max_pages=5)
@@ -96,7 +96,7 @@ async def test_audit_tool_custom_max_pages():
 @pytest.mark.asyncio
 async def test_audit_tool_returns_dict():
     """MCP audit tool should return a plain dict (not Pydantic model)."""
-    with patch("aeo_cli.server.audit_url", new_callable=AsyncMock) as mock_audit:
+    with patch("context_cli.server.audit_url", new_callable=AsyncMock) as mock_audit:
         mock_audit.return_value = _mock_single_report()
 
         result = await _audit_fn("https://example.com", single_page=True)
@@ -137,7 +137,7 @@ def _mock_generate_result() -> GenerateResult:
 async def test_generate_tool_returns_dict():
     """MCP generate tool should return a plain dict."""
     with patch(
-        "aeo_cli.core.generate.generate_assets", new_callable=AsyncMock
+        "context_cli.core.generate.generate_assets", new_callable=AsyncMock
     ) as mock_gen:
         mock_gen.return_value = _mock_generate_result()
         result = await _generate_fn("https://example.com")

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from aeo_cli.core.checks.robots import check_robots
+from context_cli.core.checks.robots import check_robots
 
 
 @pytest.mark.asyncio

@@ -75,9 +75,9 @@ runs:
         python-version: ${{ inputs.python-version }}
         cache: 'pip'
 
-    - name: Install aeo-cli
+    - name: Install context-cli
       shell: bash
-      run: pip install aeo-cli
+      run: pip install context-cli
 
     - name: Install crawl4ai browser
       shell: bash
@@ -89,7 +89,7 @@ runs:
       shell: bash
       run: |
         # Build command
-        CMD="aeo-cli audit '${{ inputs.url }}'"
+        CMD="context-cli audit '${{ inputs.url }}'"
 
         if [ "${{ inputs.single-page }}" = "true" ]; then
           CMD="$CMD --single"
@@ -111,7 +111,7 @@ runs:
         echo "REPORT_EOF" >> $GITHUB_OUTPUT
 
         # Now run with formatting for the step summary
-        SUMMARY_CMD="aeo-cli audit '${{ inputs.url }}'"
+        SUMMARY_CMD="context-cli audit '${{ inputs.url }}'"
 
         if [ "${{ inputs.single-page }}" = "true" ]; then
           SUMMARY_CMD="$SUMMARY_CMD --single"

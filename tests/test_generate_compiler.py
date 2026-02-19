@@ -6,13 +6,13 @@ import json
 import os
 from unittest.mock import AsyncMock, patch
 
-from aeo_cli.core.crawler import CrawlResult
-from aeo_cli.core.generate.compiler import (
+from context_cli.core.crawler import CrawlResult
+from context_cli.core.generate.compiler import (
     generate_assets,
     render_llms_txt,
     render_schema_jsonld,
 )
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     GenerateConfig,
     LlmsTxtContent,
     LlmsTxtLink,
@@ -181,12 +181,12 @@ class TestGenerateAssets:
 
         with (
             patch(
-                "aeo_cli.core.crawler.extract_page",
+                "context_cli.core.crawler.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.generate.llm.call_llm_structured",
+                "context_cli.core.generate.llm.call_llm_structured",
                 side_effect=mock_call_llm,
             ),
         ):
@@ -219,7 +219,7 @@ class TestGenerateAssets:
         config = GenerateConfig(url="https://bad.com", model="gpt-4o-mini")
 
         with patch(
-            "aeo_cli.core.crawler.extract_page",
+            "context_cli.core.crawler.extract_page",
             new_callable=AsyncMock,
             return_value=mock_crawl,
         ):
@@ -251,16 +251,16 @@ class TestGenerateAssets:
 
         with (
             patch(
-                "aeo_cli.core.crawler.extract_page",
+                "context_cli.core.crawler.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.generate.llm.call_llm_structured",
+                "context_cli.core.generate.llm.call_llm_structured",
                 side_effect=mock_call_llm,
             ),
             patch(
-                "aeo_cli.core.generate.llm.detect_model",
+                "context_cli.core.generate.llm.detect_model",
                 return_value="gpt-4o-mini",
             ),
         ):

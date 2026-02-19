@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.ci.thresholds import check_thresholds
-from aeo_cli.core.models import (
+from context_cli.core.ci.thresholds import check_thresholds
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -19,7 +19,7 @@ from aeo_cli.core.models import (
     ThresholdFailure,
     ThresholdResult,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -299,7 +299,7 @@ async def _fake_audit_site(url: str, *, max_pages: int = 10, **kwargs) -> SiteAu
 
 def test_cli_robots_min_fails():
     """--robots-min triggers exit 1 when robots score is below threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--robots-min", "15"],
@@ -310,7 +310,7 @@ def test_cli_robots_min_fails():
 
 def test_cli_content_min_fails():
     """--content-min triggers exit 1 when content score is below threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--content-min", "25"],
@@ -321,7 +321,7 @@ def test_cli_content_min_fails():
 
 def test_cli_schema_min_fails():
     """--schema-min triggers exit 1 when schema score is below threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--schema-min", "25"],
@@ -332,7 +332,7 @@ def test_cli_schema_min_fails():
 
 def test_cli_llms_min_fails():
     """--llms-min triggers exit 1 when llms score is below threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--llms-min", "10"],
@@ -343,7 +343,7 @@ def test_cli_llms_min_fails():
 
 def test_cli_overall_min_fails():
     """--overall-min triggers exit 1 when overall score is below threshold."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single", "--overall-min", "70"],
@@ -354,7 +354,7 @@ def test_cli_overall_min_fails():
 
 def test_cli_thresholds_all_pass():
     """When all pillar scores meet thresholds, exit code is 0."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
         result = runner.invoke(
             app,
             [
@@ -371,7 +371,7 @@ def test_cli_thresholds_all_pass():
 
 def test_cli_multiple_threshold_failures():
     """Multiple threshold failures are all reported."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             [
@@ -388,7 +388,7 @@ def test_cli_multiple_threshold_failures():
 
 def test_cli_thresholds_with_site_audit():
     """Per-pillar thresholds work with multi-page site audits."""
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_fake_audit_site):
         result = runner.invoke(
             app,
             [
@@ -402,7 +402,7 @@ def test_cli_thresholds_with_site_audit():
 
 def test_cli_no_thresholds_no_exit():
     """Without any threshold flags, audit exits cleanly."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_passing):
         result = runner.invoke(
             app,
             ["audit", "https://example.com", "--single"],
@@ -412,7 +412,7 @@ def test_cli_no_thresholds_no_exit():
 
 def test_cli_thresholds_with_json_output():
     """Threshold failures still print after JSON output."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url):
         result = runner.invoke(
             app,
             [

@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.models import ModelRadarResult, RadarConfig
-from aeo_cli.core.radar.query import query_model, query_models
+from context_cli.core.models import ModelRadarResult, RadarConfig
+from context_cli.core.radar.query import query_model, query_models
 
 
 class TestQueryModel:

@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.crawler import CrawlResult
-from aeo_cli.core.models import (
+from context_cli.core.crawler import CrawlResult
+from context_cli.core.models import (
     MarketplaceType,
     ProductData,
     RetailAuditReport,
 )
-from aeo_cli.core.retail.auditor import retail_audit
+from context_cli.core.retail.auditor import retail_audit
 
 
 @pytest.mark.asyncio
@@ -36,16 +36,16 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.get_parser",
+                "context_cli.core.retail.auditor.get_parser",
                 return_value=mock_parser,
             ),
         ):
@@ -67,16 +67,16 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.get_parser",
+                "context_cli.core.retail.auditor.get_parser",
                 return_value=mock_parser,
             ),
         ):
@@ -99,16 +99,16 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.SHOPEE,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.get_parser",
+                "context_cli.core.retail.auditor.get_parser",
                 return_value=mock_parser,
             ),
         ):
@@ -132,16 +132,16 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.get_parser",
+                "context_cli.core.retail.auditor.get_parser",
                 return_value=mock_parser,
             ),
         ):
@@ -161,12 +161,12 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
         ):
@@ -189,16 +189,16 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.get_parser",
+                "context_cli.core.retail.auditor.get_parser",
                 return_value=mock_parser,
             ),
         ):
@@ -227,16 +227,16 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.get_parser",
+                "context_cli.core.retail.auditor.get_parser",
                 return_value=mock_parser,
             ),
         ):
@@ -258,12 +258,12 @@ class TestRetailAudit:
 
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 return_value=mock_crawl,
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.AMAZON,
             ),
         ):
@@ -276,12 +276,12 @@ class TestRetailAudit:
         """If extract_page raises, auditor should handle gracefully."""
         with (
             patch(
-                "aeo_cli.core.retail.auditor.extract_page",
+                "context_cli.core.retail.auditor.extract_page",
                 new_callable=AsyncMock,
                 side_effect=RuntimeError("Network error"),
             ),
             patch(
-                "aeo_cli.core.retail.auditor.detect_marketplace",
+                "context_cli.core.retail.auditor.detect_marketplace",
                 return_value=MarketplaceType.GENERIC,
             ),
         ):

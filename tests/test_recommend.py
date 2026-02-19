@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,
@@ -12,7 +12,7 @@ from aeo_cli.core.models import (
     SchemaOrgResult,
     SchemaReport,
 )
-from aeo_cli.core.recommend import generate_recommendations
+from context_cli.core.recommend import generate_recommendations
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

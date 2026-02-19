@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     FeedComplianceReport,
     MarketplaceType,
     ProductData,
 )
-from aeo_cli.core.retail.feed_spec import (
+from context_cli.core.retail.feed_spec import (
     RECOMMENDED_FIELDS,
     REQUIRED_FIELDS,
     check_feed_compliance,

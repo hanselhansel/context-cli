@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from aeo_cli.core.config import AeoConfig, load_config
+from context_cli.core.config import AeoConfig, load_config
 
 # ── AeoConfig model ────────────────────────────────────────────────────────
 
@@ -119,8 +119,8 @@ def test_load_config_unknown_keys_ignored(tmp_path: Path):
 
 def test_load_config_default_search_dirs():
     """Default search dirs include CWD and home."""
-    with patch("aeo_cli.core.config.Path.cwd", return_value=Path("/mock/cwd")):
-        with patch("aeo_cli.core.config.Path.home", return_value=Path("/mock/home")):
+    with patch("context_cli.core.config.Path.cwd", return_value=Path("/mock/cwd")):
+        with patch("context_cli.core.config.Path.home", return_value=Path("/mock/home")):
             # This just tests the function runs without error with default dirs
             cfg = load_config()
             assert isinstance(cfg, AeoConfig)
@@ -129,13 +129,13 @@ def test_load_config_default_search_dirs():
 # ── CLI integration ────────────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.audit._run_audit")
-@patch("aeo_cli.cli.audit.load_config")
+@patch("context_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit.load_config")
 def test_cli_config_timeout_applies(mock_load, mock_run):
     """Config file timeout is used when CLI flag not explicitly set."""
     from typer.testing import CliRunner
 
-    from aeo_cli.main import app
+    from context_cli.main import app
 
     mock_load.return_value = AeoConfig(timeout=45)
     mock_run.return_value = _make_report()
@@ -146,14 +146,14 @@ def test_cli_config_timeout_applies(mock_load, mock_run):
     assert kwargs.get("timeout") == 45 or mock_run.call_args[0][3] == 45
 
 
-@patch("aeo_cli.cli.audit._save_to_history")
-@patch("aeo_cli.cli.audit._run_audit")
-@patch("aeo_cli.cli.audit.load_config")
+@patch("context_cli.cli.audit._save_to_history")
+@patch("context_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit.load_config")
 def test_cli_config_save_applies(mock_load, mock_run, mock_save):
     """Config save=true auto-saves without --save flag."""
     from typer.testing import CliRunner
 
-    from aeo_cli.main import app
+    from context_cli.main import app
 
     mock_load.return_value = AeoConfig(save=True)
     mock_run.return_value = _make_report()
@@ -163,13 +163,13 @@ def test_cli_config_save_applies(mock_load, mock_run, mock_save):
     mock_save.assert_called_once()
 
 
-@patch("aeo_cli.cli.audit._run_audit")
-@patch("aeo_cli.cli.audit.load_config")
+@patch("context_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit.load_config")
 def test_cli_config_format_applies(mock_load, mock_run):
     """Config format is used when CLI --format not specified."""
     from typer.testing import CliRunner
 
-    from aeo_cli.main import app
+    from context_cli.main import app
 
     mock_load.return_value = AeoConfig(format="json")
     mock_run.return_value = _make_report()
@@ -180,13 +180,13 @@ def test_cli_config_format_applies(mock_load, mock_run):
     assert '"url"' in result.output  # JSON output
 
 
-@patch("aeo_cli.cli.audit._run_audit")
-@patch("aeo_cli.cli.audit.load_config")
+@patch("context_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit.load_config")
 def test_cli_config_format_invalid_ignored(mock_load, mock_run):
     """Invalid config format string is silently ignored."""
     from typer.testing import CliRunner
 
-    from aeo_cli.main import app
+    from context_cli.main import app
 
     mock_load.return_value = AeoConfig(format="nonexistent")
     mock_run.return_value = _make_report()
@@ -196,13 +196,13 @@ def test_cli_config_format_invalid_ignored(mock_load, mock_run):
     assert result.exit_code == 0
 
 
-@patch("aeo_cli.cli.audit._run_audit")
-@patch("aeo_cli.cli.audit.load_config")
+@patch("context_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit.load_config")
 def test_cli_config_bots_applies(mock_load, mock_run):
     """Config bots list is used when --bots not passed."""
     from typer.testing import CliRunner
 
-    from aeo_cli.main import app
+    from context_cli.main import app
 
     mock_load.return_value = AeoConfig(bots=["BotA", "BotB"])
     mock_run.return_value = _make_report()
@@ -214,7 +214,7 @@ def test_cli_config_bots_applies(mock_load, mock_run):
 
 
 def _make_report():
-    from aeo_cli.core.models import (
+    from context_cli.core.models import (
         AuditReport,
         ContentReport,
         LlmsTxtReport,

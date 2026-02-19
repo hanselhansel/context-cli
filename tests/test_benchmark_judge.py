@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from aeo_cli.core.benchmark.judge import judge_all, judge_response
-from aeo_cli.core.models import JudgeResult, PromptBenchmarkResult, PromptEntry
+from context_cli.core.benchmark.judge import judge_all, judge_response
+from context_cli.core.models import JudgeResult, PromptBenchmarkResult, PromptEntry
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 

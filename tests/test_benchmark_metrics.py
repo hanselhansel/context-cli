@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.benchmark.metrics import compute_model_summary, compute_report
-from aeo_cli.core.models import (
+from context_cli.core.benchmark.metrics import compute_model_summary, compute_report
+from context_cli.core.models import (
     BenchmarkConfig,
     BenchmarkReport,
     JudgeResult,

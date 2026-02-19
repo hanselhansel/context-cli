@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from aeo_cli.core.checks.content import check_content
-from aeo_cli.core.checks.robots import check_robots
-from aeo_cli.core.checks.schema import check_schema_org
-from aeo_cli.core.models import (
+from context_cli.core.checks.content import check_content
+from context_cli.core.checks.robots import check_robots
+from context_cli.core.checks.schema import check_schema_org
+from context_cli.core.models import (
     BotAccessResult,
     ContentReport,
     LlmsTxtReport,
@@ -18,7 +18,7 @@ from aeo_cli.core.models import (
     SchemaOrgResult,
     SchemaReport,
 )
-from aeo_cli.core.scoring import compute_scores
+from context_cli.core.scoring import compute_scores
 
 # -- check_schema_org ----------------------------------------------------------
 

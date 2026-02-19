@@ -6,14 +6,14 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     LlmsTxtReport,
     RobotsReport,
     SchemaReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -41,7 +41,7 @@ async def _fake_audit_url_exception(url: str, **kwargs) -> AuditReport:
 
 def test_cli_displays_errors():
     """CLI should display errors from the audit report."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error):
         result = runner.invoke(app, ["audit", "https://unreachable.test", "--single"])
 
     assert result.exit_code == 0
@@ -50,7 +50,7 @@ def test_cli_displays_errors():
 
 def test_cli_json_includes_errors():
     """JSON output should include the errors list."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error):
         result = runner.invoke(app, ["audit", "https://unreachable.test", "--single", "--json"])
 
     assert result.exit_code == 0
@@ -60,7 +60,7 @@ def test_cli_json_includes_errors():
 
 def test_cli_auto_adds_https():
     """CLI should auto-prepend https:// to URLs without a scheme."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error) as mock:
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error) as mock:
         runner.invoke(app, ["audit", "example.com", "--single"])
 
     # The mock should have been called with https://example.com
@@ -71,7 +71,7 @@ def test_cli_auto_adds_https():
 
 def test_cli_zero_score_display():
     """A zero-score result should still render without crashing."""
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake_audit_url_error):
         result = runner.invoke(app, ["audit", "https://empty.test", "--single"])
 
     assert result.exit_code == 0

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.discovery import _parse_sitemap_xml, normalize_url, select_diverse_pages
+from context_cli.core.discovery import _parse_sitemap_xml, normalize_url, select_diverse_pages
 
 # -- _parse_sitemap_xml --------------------------------------------------------
 

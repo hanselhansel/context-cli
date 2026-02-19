@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 from rich.console import Console
 from typer.testing import CliRunner
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     DiscoveryResult,
@@ -17,8 +17,8 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.core.regression import RegressionReport
-from aeo_cli.main import app
+from context_cli.core.regression import RegressionReport
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -64,11 +64,11 @@ def _regression(has_regression: bool = True, delta: float = -20.0) -> Regression
 # ── _save_to_history unit tests ────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.audit.detect_regression")
-@patch("aeo_cli.cli.audit.HistoryDB")
+@patch("context_cli.cli.audit.detect_regression")
+@patch("context_cli.cli.audit.HistoryDB")
 def test_save_to_history_saves_report(mock_db_cls, mock_regress):
     """_save_to_history saves the report and closes the DB."""
-    from aeo_cli.cli.audit import _save_to_history
+    from context_cli.cli.audit import _save_to_history
 
     mock_db = MagicMock()
     mock_db_cls.return_value = mock_db
@@ -83,11 +83,11 @@ def test_save_to_history_saves_report(mock_db_cls, mock_regress):
     assert "Saved" in buf.getvalue()
 
 
-@patch("aeo_cli.cli.audit.detect_regression")
-@patch("aeo_cli.cli.audit.HistoryDB")
+@patch("context_cli.cli.audit.detect_regression")
+@patch("context_cli.cli.audit.HistoryDB")
 def test_save_to_history_closes_on_error(mock_db_cls, mock_regress):
     """DB is closed even when an error occurs."""
-    from aeo_cli.cli.audit import _save_to_history
+    from context_cli.cli.audit import _save_to_history
 
     mock_db = MagicMock()
     mock_db_cls.return_value = mock_db
@@ -101,11 +101,11 @@ def test_save_to_history_closes_on_error(mock_db_cls, mock_regress):
     assert "error" in buf.getvalue().lower()
 
 
-@patch("aeo_cli.cli.audit.detect_regression")
-@patch("aeo_cli.cli.audit.HistoryDB")
+@patch("context_cli.cli.audit.detect_regression")
+@patch("context_cli.cli.audit.HistoryDB")
 def test_save_to_history_no_regression_first_audit(mock_db_cls, mock_regress):
     """First audit for a URL — no previous, no regression check."""
-    from aeo_cli.cli.audit import _save_to_history
+    from context_cli.cli.audit import _save_to_history
 
     mock_db = MagicMock()
     mock_db_cls.return_value = mock_db
@@ -118,11 +118,11 @@ def test_save_to_history_no_regression_first_audit(mock_db_cls, mock_regress):
     mock_regress.assert_not_called()
 
 
-@patch("aeo_cli.cli.audit.detect_regression")
-@patch("aeo_cli.cli.audit.HistoryDB")
+@patch("context_cli.cli.audit.detect_regression")
+@patch("context_cli.cli.audit.HistoryDB")
 def test_save_to_history_detects_regression(mock_db_cls, mock_regress):
     """Shows warning when score dropped beyond threshold."""
-    from aeo_cli.cli.audit import _save_to_history
+    from context_cli.cli.audit import _save_to_history
 
     mock_db = MagicMock()
     mock_db_cls.return_value = mock_db
@@ -138,11 +138,11 @@ def test_save_to_history_detects_regression(mock_db_cls, mock_regress):
     assert "regression" in output
 
 
-@patch("aeo_cli.cli.audit.detect_regression")
-@patch("aeo_cli.cli.audit.HistoryDB")
+@patch("context_cli.cli.audit.detect_regression")
+@patch("context_cli.cli.audit.HistoryDB")
 def test_save_to_history_no_warning_when_score_improves(mock_db_cls, mock_regress):
     """No regression warning when score improves."""
-    from aeo_cli.cli.audit import _save_to_history
+    from context_cli.cli.audit import _save_to_history
 
     mock_db = MagicMock()
     mock_db_cls.return_value = mock_db
@@ -161,8 +161,8 @@ def test_save_to_history_no_warning_when_score_improves(mock_db_cls, mock_regres
 # ── CLI integration tests ──────────────────────────────────────────────────
 
 
-@patch("aeo_cli.cli.audit._save_to_history")
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._save_to_history")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_save_flag_triggers_save(mock_run, mock_save):
     """--save triggers _save_to_history for single-page audit."""
     mock_run.return_value = _report()
@@ -171,8 +171,8 @@ def test_cli_save_flag_triggers_save(mock_run, mock_save):
     mock_save.assert_called_once()
 
 
-@patch("aeo_cli.cli.audit._save_to_history")
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._save_to_history")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_no_save_without_flag(mock_run, mock_save):
     """Without --save, _save_to_history is not called."""
     mock_run.return_value = _report()
@@ -181,8 +181,8 @@ def test_cli_no_save_without_flag(mock_run, mock_save):
     mock_save.assert_not_called()
 
 
-@patch("aeo_cli.cli.audit._save_to_history")
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._save_to_history")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_save_site_audit_shows_note(mock_run, mock_save):
     """--save with multi-page audit prints a note and skips save."""
     mock_run.return_value = _site_report()
@@ -192,8 +192,8 @@ def test_cli_save_site_audit_shows_note(mock_run, mock_save):
     assert "--single" in result.output
 
 
-@patch("aeo_cli.cli.audit._save_to_history")
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._save_to_history")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_save_works_with_rich_output(mock_run, mock_save):
     """--save works with default Rich output (no --json)."""
     mock_run.return_value = _report()
@@ -202,8 +202,8 @@ def test_cli_save_works_with_rich_output(mock_run, mock_save):
     mock_save.assert_called_once()
 
 
-@patch("aeo_cli.cli.audit._save_to_history")
-@patch("aeo_cli.cli.audit._run_audit")
+@patch("context_cli.cli.audit._save_to_history")
+@patch("context_cli.cli.audit._run_audit")
 def test_cli_regression_threshold_flag(mock_run, mock_save):
     """--regression-threshold passes custom threshold to _save_to_history."""
     mock_run.return_value = _report()
@@ -213,11 +213,11 @@ def test_cli_regression_threshold_flag(mock_run, mock_save):
     assert kwargs["threshold"] == 10.0
 
 
-@patch("aeo_cli.cli.audit.detect_regression")
-@patch("aeo_cli.cli.audit.HistoryDB")
+@patch("context_cli.cli.audit.detect_regression")
+@patch("context_cli.cli.audit.HistoryDB")
 def test_save_to_history_passes_threshold(mock_db_cls, mock_regress):
     """Custom threshold is forwarded to detect_regression."""
-    from aeo_cli.cli.audit import _save_to_history
+    from context_cli.cli.audit import _save_to_history
 
     mock_db = MagicMock()
     mock_db_cls.return_value = mock_db

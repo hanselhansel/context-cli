@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aeo_cli.core.benchmark.dispatcher import dispatch_queries
-from aeo_cli.core.models import BenchmarkConfig, PromptBenchmarkResult, PromptEntry
+from context_cli.core.benchmark.dispatcher import dispatch_queries
+from context_cli.core.models import BenchmarkConfig, PromptBenchmarkResult, PromptEntry
 
 
 def _make_mock_response(content: str = "Test response") -> MagicMock:

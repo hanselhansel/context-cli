@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 
-from aeo_cli.core.models import MarketplaceType, ProductData
-from aeo_cli.core.retail.parsers.base import BaseParser
-from aeo_cli.core.retail.parsers.blibli import BlibliParser
-from aeo_cli.core.retail.parsers.generic import GenericParser
-from aeo_cli.core.retail.parsers.tiktok_shop import TiktokShopParser
-from aeo_cli.core.retail.parsers.zalora import ZaloraParser
+from context_cli.core.models import MarketplaceType, ProductData
+from context_cli.core.retail.parsers.base import BaseParser
+from context_cli.core.retail.parsers.blibli import BlibliParser
+from context_cli.core.retail.parsers.generic import GenericParser
+from context_cli.core.retail.parsers.tiktok_shop import TiktokShopParser
+from context_cli.core.retail.parsers.zalora import ZaloraParser
 
 # ---------------------------------------------------------------------------
 # Helpers to build synthetic HTML

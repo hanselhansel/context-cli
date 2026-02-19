@@ -7,10 +7,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from aeo_cli.core.auditor import _audit_site_inner, audit_site, audit_url
-from aeo_cli.core.checks.robots import DEFAULT_TIMEOUT
-from aeo_cli.core.crawler import CrawlResult
-from aeo_cli.core.models import (
+from context_cli.core.auditor import _audit_site_inner, audit_site, audit_url
+from context_cli.core.checks.robots import DEFAULT_TIMEOUT
+from context_cli.core.crawler import CrawlResult
+from context_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,
@@ -20,7 +20,7 @@ from aeo_cli.core.models import (
     SchemaReport,
     SiteAuditReport,
 )
-from aeo_cli.main import app
+from context_cli.main import app
 
 runner = CliRunner()
 
@@ -98,7 +98,7 @@ def test_timeout_flag_single_page():
         calls.append(kwargs)
         return _report()
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--timeout", "30", "--json"]
         )
@@ -116,7 +116,7 @@ def test_timeout_flag_shorthand():
         calls.append(kwargs)
         return _report()
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "-t", "20", "--json"]
         )
@@ -133,7 +133,7 @@ def test_timeout_default_value():
         calls.append(kwargs)
         return _report()
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--json"]
         )
@@ -150,7 +150,7 @@ def test_timeout_flag_multipage():
         calls.append(kwargs)
         return _site_report()
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_capture):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--timeout", "45", "--json"]
         )
@@ -167,7 +167,7 @@ def test_timeout_flag_quiet_mode_single():
         calls.append(kwargs)
         return _report(score=60.0)
 
-    with patch("aeo_cli.cli.audit.audit_url", side_effect=_capture):
+    with patch("context_cli.cli.audit.audit_url", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--single", "--quiet", "--timeout", "25"]
         )
@@ -184,7 +184,7 @@ def test_timeout_flag_quiet_mode_multipage():
         calls.append(kwargs)
         return _site_report(score=60.0)
 
-    with patch("aeo_cli.cli.audit.audit_site", side_effect=_capture):
+    with patch("context_cli.cli.audit.audit_site", side_effect=_capture):
         result = runner.invoke(
             app, ["audit", "https://example.com", "--quiet", "--timeout", "25"]
         )
@@ -197,16 +197,16 @@ def test_timeout_flag_quiet_mode_multipage():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_uses_custom_timeout(mock_robots, mock_llms, mock_crawl):
     """audit_url should pass timeout to httpx.AsyncClient."""
     mock_robots.return_value = _make_robots()
     mock_llms.return_value = _make_llms()
     mock_crawl.return_value = _make_crawl()
 
-    with patch("aeo_cli.core.auditor.httpx.AsyncClient") as mock_client_cls:
+    with patch("context_cli.core.auditor.httpx.AsyncClient") as mock_client_cls:
         mock_ctx = AsyncMock()
         mock_ctx.__aenter__ = AsyncMock(return_value=AsyncMock())
         mock_client_cls.return_value = mock_ctx
@@ -221,9 +221,9 @@ async def test_audit_url_uses_custom_timeout(mock_robots, mock_llms, mock_crawl)
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_default_timeout(mock_robots, mock_llms, mock_crawl):
     """audit_url without timeout uses DEFAULT_TIMEOUT."""
     mock_robots.return_value = _make_robots()
@@ -257,7 +257,7 @@ async def test_audit_site_passes_timeout_to_inner():
             discovery=DiscoveryResult(method="sitemap"),
         )
 
-    with patch("aeo_cli.core.auditor._audit_site_inner", side_effect=_capture_inner):
+    with patch("context_cli.core.auditor._audit_site_inner", side_effect=_capture_inner):
         await audit_site("https://example.com", timeout=45)
 
     # _audit_site_inner args: (url, domain, max_pages, delay_seconds, errors, progress, timeout)
@@ -283,7 +283,7 @@ async def test_audit_site_default_timeout():
             discovery=DiscoveryResult(method="sitemap"),
         )
 
-    with patch("aeo_cli.core.auditor._audit_site_inner", side_effect=_capture_inner):
+    with patch("context_cli.core.auditor._audit_site_inner", side_effect=_capture_inner):
         await audit_site("https://example.com")
 
     assert len(calls) == 1
@@ -294,11 +294,11 @@ async def test_audit_site_default_timeout():
 
 
 @pytest.mark.asyncio
-@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
-@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("context_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_site_inner_uses_timeout(
     mock_robots, mock_llms, mock_crawl, mock_discover, mock_batch
 ):

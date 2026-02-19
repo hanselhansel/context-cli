@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     BatchGenerateConfig,
     BatchGenerateResult,
     BatchPageResult,
@@ -97,7 +97,7 @@ class TestBatchGenerateResult:
 
 class TestSanitizeUrlToDirname:
     def _sanitize(self, url: str) -> str:
-        from aeo_cli.core.generate.batch import _sanitize_url_to_dirname
+        from context_cli.core.generate.batch import _sanitize_url_to_dirname
 
         return _sanitize_url_to_dirname(url)
 
@@ -156,7 +156,7 @@ def _make_generate_result(url: str, output_dir: str) -> GenerateResult:
 
 class TestGenerateBatch:
     async def test_all_succeed(self, tmp_path):
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         urls = ["https://a.com", "https://b.com"]
         config = BatchGenerateConfig(
@@ -169,7 +169,7 @@ class TestGenerateBatch:
             return _make_generate_result(cfg.url, cfg.output_dir)
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)
@@ -183,7 +183,7 @@ class TestGenerateBatch:
         assert all(r.success for r in result.results)
 
     async def test_some_fail(self, tmp_path):
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         urls = ["https://good.com", "https://bad.com", "https://also-good.com"]
         config = BatchGenerateConfig(
@@ -198,7 +198,7 @@ class TestGenerateBatch:
             return _make_generate_result(cfg.url, cfg.output_dir)
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)
@@ -213,7 +213,7 @@ class TestGenerateBatch:
         assert "Connection refused" in failed[0].error
 
     async def test_empty_url_list(self, tmp_path):
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=[],
@@ -228,7 +228,7 @@ class TestGenerateBatch:
         assert result.results == []
 
     async def test_single_url(self, tmp_path):
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=["https://only.com"],
@@ -240,7 +240,7 @@ class TestGenerateBatch:
             return _make_generate_result(cfg.url, cfg.output_dir)
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)
@@ -250,7 +250,7 @@ class TestGenerateBatch:
         assert result.results[0].url == "https://only.com"
 
     async def test_model_auto_detection(self, tmp_path):
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=["https://example.com"],
@@ -262,11 +262,11 @@ class TestGenerateBatch:
 
         with (
             patch(
-                "aeo_cli.core.generate.batch.generate_assets",
+                "context_cli.core.generate.batch.generate_assets",
                 side_effect=mock_generate,
             ),
             patch(
-                "aeo_cli.core.generate.batch.detect_model",
+                "context_cli.core.generate.batch.detect_model",
                 return_value="claude-sonnet-4-20250514",
             ),
         ):
@@ -278,7 +278,7 @@ class TestGenerateBatch:
         """Verify that semaphore limits concurrent executions."""
         import asyncio
 
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=[f"https://site{i}.com" for i in range(6)],
@@ -303,7 +303,7 @@ class TestGenerateBatch:
             return _make_generate_result(cfg.url, cfg.output_dir)
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)
@@ -314,7 +314,7 @@ class TestGenerateBatch:
 
     async def test_output_dir_per_url(self, tmp_path):
         """Each URL gets its own subdirectory in output_dir."""
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=["https://a.com/page1", "https://b.com/page2"],
@@ -329,7 +329,7 @@ class TestGenerateBatch:
             return _make_generate_result(cfg.url, cfg.output_dir)
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             await generate_batch(config)
@@ -342,7 +342,7 @@ class TestGenerateBatch:
             assert d.startswith(str(tmp_path))
 
     async def test_all_fail(self, tmp_path):
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=["https://bad1.com", "https://bad2.com"],
@@ -354,7 +354,7 @@ class TestGenerateBatch:
             raise RuntimeError(f"Failed: {cfg.url}")
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)
@@ -366,7 +366,7 @@ class TestGenerateBatch:
 
     async def test_profile_propagated(self, tmp_path):
         """Profile from batch config is passed to per-URL configs."""
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=["https://example.com"],
@@ -382,7 +382,7 @@ class TestGenerateBatch:
             return _make_generate_result(cfg.url, cfg.output_dir)
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)
@@ -392,7 +392,7 @@ class TestGenerateBatch:
 
     async def test_exception_type_captured(self, tmp_path):
         """Various exception types are all captured gracefully."""
-        from aeo_cli.core.generate.batch import generate_batch
+        from context_cli.core.generate.batch import generate_batch
 
         config = BatchGenerateConfig(
             urls=["https://timeout.com", "https://value-error.com"],
@@ -406,7 +406,7 @@ class TestGenerateBatch:
             raise ValueError("Invalid data")
 
         with patch(
-            "aeo_cli.core.generate.batch.generate_assets",
+            "context_cli.core.generate.batch.generate_assets",
             side_effect=mock_generate,
         ):
             result = await generate_batch(config)

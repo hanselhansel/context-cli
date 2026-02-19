@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.cache import RobotsCache
-from aeo_cli.core.models import RobotsReport
+from context_cli.core.cache import RobotsCache
+from context_cli.core.models import RobotsReport
 
 
 def test_cache_miss():

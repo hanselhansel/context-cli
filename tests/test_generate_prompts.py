@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.generate.profiles import GENERIC_PROFILE, SAAS_PROFILE
-from aeo_cli.core.generate.prompts import (
+from context_cli.core.generate.profiles import GENERIC_PROFILE, SAAS_PROFILE
+from context_cli.core.generate.prompts import (
     _MAX_CONTENT_CHARS,
     build_llms_txt_system_prompt,
     build_llms_txt_user_prompt,

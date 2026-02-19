@@ -6,8 +6,8 @@ import os
 
 import pytest
 
-from aeo_cli.core.benchmark.loader import load_prompts, validate_prompts
-from aeo_cli.core.models import PromptEntry
+from context_cli.core.benchmark.loader import load_prompts, validate_prompts
+from context_cli.core.models import PromptEntry
 
 
 class TestLoadPromptsCSV:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     ContentQualityReport,
     FeedComplianceReport,
     MarketplaceType,
@@ -12,7 +12,7 @@ from aeo_cli.core.models import (
     SocialProofReport,
     VisualAssetsReport,
 )
-from aeo_cli.core.retail.scoring import (
+from context_cli.core.retail.scoring import (
     compute_retail_score,
     score_content_quality,
     score_feed_compliance,

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from aeo_cli.core.crawler import _extract_internal_links_bs4, _normalize_links
-from aeo_cli.core.discovery import _filter_by_robots
+from context_cli.core.crawler import _extract_internal_links_bs4, _normalize_links
+from context_cli.core.discovery import _filter_by_robots
 
 # -- Internal link extraction (BeautifulSoup fallback) -------------------------
 

@@ -1,6 +1,6 @@
 """Tests for Pydantic data models."""
 
-from aeo_cli.core.models import (
+from context_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,

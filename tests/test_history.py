@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from aeo_cli.core.history import DEFAULT_DB_PATH, HistoryDB, HistoryEntry
-from aeo_cli.core.models import (
+from context_cli.core.history import DEFAULT_DB_PATH, HistoryDB, HistoryEntry
+from context_cli.core.models import (
     AuditReport,
     ContentReport,
     LlmsTxtReport,
