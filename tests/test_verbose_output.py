@@ -42,7 +42,7 @@ runner = CliRunner()
 
 
 def _verbose_report() -> AuditReport:
-    """Standard verbose test fixture with all 7 bots, detail strings, and char_count."""
+    """Standard verbose test fixture with all 13 bots, detail strings, and char_count."""
     return AuditReport(
         url="https://example.com",
         overall_score=65.0,
@@ -56,9 +56,15 @@ def _verbose_report() -> AuditReport:
                 BotAccessResult(bot="PerplexityBot", allowed=True, detail="Allowed"),
                 BotAccessResult(bot="Amazonbot", allowed=True, detail="Allowed"),
                 BotAccessResult(bot="OAI-SearchBot", allowed=False, detail="Blocked by robots.txt"),
+                BotAccessResult(bot="DeepSeek-AI", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="Grok", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="Meta-ExternalAgent", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="cohere-ai", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="AI2Bot", allowed=False, detail="Blocked by robots.txt"),
+                BotAccessResult(bot="ByteSpider", allowed=True, detail="Allowed"),
             ],
-            score=17.9,
-            detail="5/7 AI bots allowed",
+            score=19.2,
+            detail="10/13 AI bots allowed",
         ),
         llms_txt=LlmsTxtReport(
             found=True,
@@ -101,9 +107,15 @@ def _perfect_report() -> AuditReport:
                 BotAccessResult(bot="PerplexityBot", allowed=True, detail="Allowed"),
                 BotAccessResult(bot="Amazonbot", allowed=True, detail="Allowed"),
                 BotAccessResult(bot="OAI-SearchBot", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="DeepSeek-AI", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="Grok", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="Meta-ExternalAgent", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="cohere-ai", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="AI2Bot", allowed=True, detail="Allowed"),
+                BotAccessResult(bot="ByteSpider", allowed=True, detail="Allowed"),
             ],
             score=25,
-            detail="7/7 AI bots allowed",
+            detail="13/13 AI bots allowed",
         ),
         llms_txt=LlmsTxtReport(
             found=True,
@@ -301,7 +313,7 @@ def test_robots_verbose_shows_formula():
     """Robots panel should display the scoring formula."""
     report = _verbose_report()
     text = _panel_text(render_robots_verbose(report))
-    assert "5/7" in text
+    assert "10/13" in text
     assert "× 25" in text or "× 25" in text
 
 
@@ -316,7 +328,7 @@ def test_robots_verbose_shows_bot_detail_strings():
 
 
 def test_robots_verbose_all_bots_listed():
-    """All 7 bots should appear in the robots panel."""
+    """All 13 bots should appear in the robots panel."""
     report = _verbose_report()
     text = _panel_text(render_robots_verbose(report))
     for bot in report.robots.bots:
@@ -415,10 +427,11 @@ def test_schema_verbose_empty():
 
 
 def test_schema_verbose_multiple_types():
-    """Schema panel handles multiple types and shows capped score."""
-    report = _perfect_report()  # Has 4 types, score is capped at 25
+    """Schema panel handles multiple types with high-value/standard breakdown."""
+    report = _perfect_report()  # Has 4 types: 2 high-value + 2 standard
     text = _panel_text(render_schema_verbose(report))
-    assert "4 type" in text or "× 4" in text
+    assert "2 high-value" in text
+    assert "2 standard" in text
     assert "Organization" in text
     assert "Article" in text
 
@@ -513,6 +526,7 @@ def test_recommendations_for_blocked_bots():
     assert len(bot_rec) == 1
     assert "ClaudeBot" in bot_rec[0]
     assert "OAI-SearchBot" in bot_rec[0]
+    assert "AI2Bot" in bot_rec[0]
 
 
 def test_recommendations_for_missing_llms_txt():
@@ -748,7 +762,7 @@ def test_verbose_site_page_weight_depth_3_plus():
 # ── CLI Integration Tests ────────────────────────────────────────────────────
 
 
-async def _fake_audit(url: str) -> AuditReport:
+async def _fake_audit(url: str, **kwargs) -> AuditReport:
     return _verbose_report()
 
 

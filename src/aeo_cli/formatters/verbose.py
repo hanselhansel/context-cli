@@ -20,11 +20,13 @@ from aeo_cli.core.scoring import (
     CONTENT_LIST_BONUS,
     CONTENT_MAX,
     CONTENT_WORD_TIERS,
+    HIGH_VALUE_TYPES,
     LLMS_TXT_MAX,
     ROBOTS_MAX,
     SCHEMA_BASE_SCORE,
+    SCHEMA_HIGH_VALUE_BONUS,
     SCHEMA_MAX,
-    SCHEMA_PER_TYPE_BONUS,
+    SCHEMA_STANDARD_BONUS,
 )
 
 # ── Pillar max scores ────────────────────────────────────────────────────────
@@ -150,13 +152,20 @@ def render_schema_verbose(report: AuditReport | SiteAuditReport) -> Panel:
 
     if schema.blocks_found > 0:
         unique_types = {s.schema_type for s in schema.schemas}
-        n_types = len(unique_types)
-        raw = SCHEMA_BASE_SCORE + SCHEMA_PER_TYPE_BONUS * n_types
+        n_high = sum(1 for t in unique_types if t in HIGH_VALUE_TYPES)
+        n_std = len(unique_types) - n_high
+        raw = (
+            SCHEMA_BASE_SCORE
+            + SCHEMA_HIGH_VALUE_BONUS * n_high
+            + SCHEMA_STANDARD_BONUS * n_std
+        )
         capped = min(SCHEMA_MAX, raw)
         lines.append("")
         lines.append(
             f"  [dim]Formula:[/dim] base {SCHEMA_BASE_SCORE}"
-            f" + {SCHEMA_PER_TYPE_BONUS} × {n_types} type(s) = {raw}"
+            f" + {SCHEMA_HIGH_VALUE_BONUS} × {n_high} high-value"
+            f" + {SCHEMA_STANDARD_BONUS} × {n_std} standard"
+            f" = {raw}"
             + (f" → capped at {SCHEMA_MAX}" if raw > SCHEMA_MAX else "")
             + f" = {capped}"
         )
@@ -265,13 +274,12 @@ def generate_recommendations(report: AuditReport | SiteAuditReport) -> list[str]
     if report.schema_org.blocks_found == 0:
         recs.append("Add JSON-LD structured data (Schema.org) to your pages")
     elif report.schema_org.score < SCHEMA_MAX:
-        unique_types = {s.schema_type for s in report.schema_org.schemas}
-        types_needed = (SCHEMA_MAX - SCHEMA_BASE_SCORE) // SCHEMA_PER_TYPE_BONUS
-        if len(unique_types) < types_needed:
-            more = types_needed - len(unique_types)
+        remaining = SCHEMA_MAX - report.schema_org.score
+        if remaining > 0:
+            more = -(-remaining // SCHEMA_HIGH_VALUE_BONUS)  # ceil division
             recs.append(
-                f"Add {more} more Schema.org type(s) to reach max score"
-                f" (e.g., Article, FAQPage, Product)"
+                f"Add {more} more high-value Schema.org type(s) to reach max score"
+                f" (e.g., FAQPage, HowTo, Article, Product, Recipe)"
             )
 
     # Content recommendations
