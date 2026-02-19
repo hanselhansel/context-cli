@@ -21,7 +21,14 @@
       "Bash(make*)",
       "Bash(chmod*)",
       "Bash(mkdir*)",
-      "Bash(crawl4ai-setup*)"
+      "Bash(crawl4ai-setup*)",
+      "Bash(git worktree*)",
+      "Bash(git branch*)",
+      "Bash(git merge*)",
+      "Bash(git pull*)",
+      "Bash(git checkout*)",
+      "Bash(git remote*)",
+      "Bash(rm -rf ../aeo-cli-*)"
     ],
     "deny": []
   },

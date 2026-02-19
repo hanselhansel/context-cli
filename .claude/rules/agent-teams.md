@@ -1,51 +1,78 @@
 # Agent Team Rules
 
-## File Ownership (CRITICAL)
-- Before spawning agents, map EVERY task to the specific files it will modify
-- Assign file ownership so NO file is edited by more than one agent
-- If two tasks need the same file, either:
-  a. Assign both tasks to the same agent, OR
-  b. Make one task block the other (sequential, not parallel)
-- The leader MUST declare file ownership in each agent's spawn prompt
+## Isolation Strategy: Git Worktrees (PRIMARY)
+Each agent gets its own git worktree = own branch + own working directory.
+No two agents ever touch the same filesystem. Merge happens under leader control.
+
+### Worktree Setup (Leader does this BEFORE spawning agents)
+1. Create a worktree per agent:
+   `git worktree add ../aeo-cli-{agent-name} -b {agent-name}/{feature} main`
+2. Install deps in each worktree:
+   `cd ../aeo-cli-{agent-name} && pip install -e ".[dev]"`
+3. Verify each worktree: `cd ../aeo-cli-{agent-name} && make ci`
+
+### Agent Spawn Protocol
+- Each agent is a separate Claude Code session launched in its worktree dir
+- Agent's CWD is the worktree root (NOT the main repo)
+- Agent commits + pushes to its own branch
+- Agent runs ruff + pytest locally; leader runs mypy after merge
+
+### Merge Protocol (Leader does this AFTER all agents complete)
+1. Return to main repo: `cd /path/to/aeo-cli`
+2. For each agent branch:
+   `git merge {agent-name}/{feature} --no-ff`
+3. If conflicts: resolve manually or let Claude resolve
+4. Run full CI: `make ci`
+5. Cleanup worktrees:
+   `git worktree remove ../aeo-cli-{agent-name}`
+   `git worktree prune`
+
+### Worktree Cleanup
+- ALWAYS clean up after merging: `git worktree remove` + `git worktree prune`
+- List active worktrees: `git worktree list`
+- Remove stale entries: `git worktree prune`
+
+## File Ownership (SECONDARY defense — minimizes merge conflicts)
+Even with worktree isolation, assign file ownership to minimize merge pain:
+- Map every task to specific files BEFORE spawning
+- Assign ownership so minimal file overlap between agents
+- Shared files (models.py, main.py, auditor.py) → leader or one agent
+- This doesn't prevent conflicts (worktrees do that) but makes merges cleaner
 
 ## Task Description Format
-Every task MUST include:
+Every agent task MUST include:
 ```
-OWNED FILES (only these may be edited):
+WORKTREE: ../aeo-cli-{agent-name}
+BRANCH: {agent-name}/{feature}
+OWNED FILES (primary responsibility):
 - src/aeo_cli/core/checks/robots.py
 - tests/test_robots.py
-DO NOT EDIT: auditor.py, main.py, models.py (owned by lead)
+SHARED FILES (may also touch — merge handled by leader):
+- src/aeo_cli/core/models.py
 ```
 
 ## Task Decomposition Strategy
 - Decompose by MODULE/FILE, not by feature
-- Example (WRONG): Agent A = "add bots", Agent B = "add batch mode" (both touch main.py)
-- Example (RIGHT): Agent A = "all changes to robots.py + test_robots.py", Agent B = "all changes to batch.py + test_batch.py"
-- Shared files (models.py, auditor.py, main.py) should be assigned to ONE agent or the leader
-
-## Shared File Protocol
-- Files edited by multiple features (models.py, main.py, auditor.py) are "shared files"
-- Shared files MUST be edited by the leader AFTER all agents complete, OR assigned to exactly one agent
-- Agents must NEVER edit files outside their assigned ownership set
+- Example (WRONG): Agent A = "add bots", Agent B = "add batch" (both touch main.py)
+- Example (RIGHT): Agent A = "robots.py + test_robots.py", Agent B = "batch.py + test_batch.py"
 
 ## mypy Cache Safety
-- Only ONE agent (or the leader) should run mypy at a time
-- Agents should run `ruff check` and `pytest` but skip mypy in their verification
-- The leader runs the full CI gate (`make ci` including mypy) after merging all agent work
-- The stop-gate clears `.mypy_cache` before running mypy to prevent corruption
+- Each worktree has its own .mypy_cache (isolated by default)
+- Agents should still skip mypy (faster iteration)
+- Leader runs mypy after merge on main
 
 ## Commit Coordination
-- Each agent commits and pushes its own files immediately after green tests
+- Each agent commits ONLY to its own worktree branch
 - `git add` specific files by name (never `git add .` or `git add -A`)
-- Before editing, agents should `git pull --rebase` to get latest changes
-- If a rebase conflict occurs, the agent should stop and notify the leader
+- Push to remote: `git push origin {agent-name}/{feature}`
+- Leader merges to main after all agents complete
 
 ## When NOT to Use Agent Teams
-- Tasks that all touch the same 2-3 files -> use sequential subagents or do it solo
-- Tasks with heavy cross-file dependencies -> solo is faster
-- Fewer than 3 independent file domains -> overhead exceeds benefit
+- Tasks that all touch the same 2-3 files → solo
+- Tasks with heavy cross-file dependencies → solo
+- Fewer than 3 independent file domains → overhead exceeds benefit
 
 ## When to Use Teams vs Subagents vs Solo
-- **Teams (3+ agents)**: Work is on DIFFERENT files with no overlap
-- **Subagents**: Quick research, verification, or read-only exploration
-- **Solo**: Tasks that touch shared files (main.py, models.py, auditor.py)
+- **Teams (3+ agents, worktrees)**: Work on DIFFERENT files, true isolation needed
+- **Subagents**: Quick research, verification, read-only exploration
+- **Solo**: Tasks touching shared files (main.py, models.py, auditor.py)
