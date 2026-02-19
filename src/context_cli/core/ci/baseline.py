@@ -26,6 +26,9 @@ def save_baseline(report: AuditReport, path: Path) -> None:
         report: The audit report to extract scores from.
         path: File path to write the baseline JSON to.
     """
+    waste_pct = 0.0
+    if report.lint_result is not None:
+        waste_pct = report.lint_result.context_waste_pct
     scores = BaselineScores(
         url=report.url,
         overall=report.overall_score,
@@ -33,6 +36,7 @@ def save_baseline(report: AuditReport, path: Path) -> None:
         schema_org=report.schema_org.score,
         content=report.content.score,
         llms_txt=report.llms_txt.score,
+        context_waste_pct=waste_pct,
         timestamp=datetime.now(timezone.utc).isoformat(),
     )
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -72,6 +76,9 @@ def compare_baseline(
     Returns:
         BaselineComparison with regressions and pass/fail status.
     """
+    current_waste = 0.0
+    if report.lint_result is not None:
+        current_waste = report.lint_result.context_waste_pct
     current = BaselineScores(
         url=report.url,
         overall=report.overall_score,
@@ -79,6 +86,7 @@ def compare_baseline(
         schema_org=report.schema_org.score,
         content=report.content.score,
         llms_txt=report.llms_txt.score,
+        context_waste_pct=current_waste,
         timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
@@ -103,6 +111,18 @@ def compare_baseline(
                     delta=delta,
                 )
             )
+
+    # Context waste regression: an INCREASE in waste is bad
+    waste_delta = round(current.context_waste_pct - baseline.context_waste_pct, 1)
+    if waste_delta > threshold:
+        regressions.append(
+            BaselineRegression(
+                pillar="context_waste",
+                previous_score=baseline.context_waste_pct,
+                current_score=current.context_waste_pct,
+                delta=waste_delta,
+            )
+        )
 
     return BaselineComparison(
         url=report.url,
