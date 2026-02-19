@@ -21,7 +21,9 @@ CONTENT_CODE_BONUS: int = 3
 CONTENT_MAX: int = 40
 
 SCHEMA_BASE_SCORE: int = 8
-SCHEMA_PER_TYPE_BONUS: int = 5
+HIGH_VALUE_TYPES: set[str] = {"FAQPage", "HowTo", "Article", "Product", "Recipe"}
+SCHEMA_HIGH_VALUE_BONUS: int = 5
+SCHEMA_STANDARD_BONUS: int = 3
 SCHEMA_MAX: int = 25
 
 ROBOTS_MAX: int = 25
@@ -61,8 +63,11 @@ def compute_scores(
     # Schema: max SCHEMA_MAX — reward high-value types more
     if schema_org.blocks_found > 0:
         unique_types = {s.schema_type for s in schema_org.schemas}
+        high = sum(1 for t in unique_types if t in HIGH_VALUE_TYPES)
+        std = len(unique_types) - high
         schema_org.score = min(
-            SCHEMA_MAX, SCHEMA_BASE_SCORE + SCHEMA_PER_TYPE_BONUS * len(unique_types)
+            SCHEMA_MAX,
+            SCHEMA_BASE_SCORE + SCHEMA_HIGH_VALUE_BONUS * high + SCHEMA_STANDARD_BONUS * std,
         )
     else:
         schema_org.score = 0
