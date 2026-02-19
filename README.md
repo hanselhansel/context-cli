@@ -28,6 +28,7 @@ AEO-CLI checks how well a URL is prepared for AI consumption and returns a struc
 - **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation, with batch mode for multiple URLs
 - **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
 - **GitHub Action** — composite action for CI pipelines with baseline support
+- **Citation Radar** — query AI models to see what they cite and recommend, with brand tracking and domain classification
 
 ## Installation
 
@@ -262,6 +263,21 @@ aeo-cli generate example.com --profile ecommerce
 ```
 
 Available: `generic`, `cpg`, `saas`, `ecommerce`, `blog`.
+
+## Citation Radar
+
+Query AI models to see what they cite and recommend for any search prompt:
+
+```bash
+pip install aeo-cli[generate]
+aeo-cli radar "best project management tools" --brand Asana --brand Monday --model gpt-4o-mini
+```
+
+Options:
+- `--brand/-b`: Brand name to track (repeatable)
+- `--model/-m`: LLM model to query (repeatable, default: gpt-4o-mini)
+- `--runs/-r`: Runs per model for statistical significance
+- `--json`: Output as JSON
 
 ## GitHub Action
 

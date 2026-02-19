@@ -1,9 +1,9 @@
-# AEO-CLI v0.9.0 — CRITICAL CONTEXT
+# AEO-CLI v0.10.0 — CRITICAL CONTEXT
 
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: B3 (Citation Radar — multi-model citation extraction)
+CURRENT PHASE: B4 (Benchmark — Share-of-Recommendation tracking)
 AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section below.
 
 ## Session Workflow (MANDATORY — enforced by hooks)
@@ -147,7 +147,7 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 | B0 | 0.7.0 | DONE | Shared infra: core/llm.py, core/cost.py |
 | B1 | 0.8.0 | DONE | CI/CD: per-pillar thresholds, baselines, webhooks |
 | B2 | 0.9.0 | DONE | Batch generate: llms.txt + JSON-LD generation |
-| B3 | 0.10.0 | NEXT | Citation radar: multi-model citation extraction |
+| B3 | 0.10.0 | DONE | Citation radar: multi-model citation extraction |
 | B4 | 0.11.0 | — | Benchmark: Share-of-Recommendation tracking |
 | B5 | 0.12.0 | — | Retail: 8 marketplace parsers, retail scoring |
 | Final | 1.0.0 | — | All features complete, fully documented |
