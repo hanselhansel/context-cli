@@ -24,9 +24,12 @@ from aeo_cli.formatters.verbose_panels import (
     PILLAR_MAX,
     _border_color,
     overall_color,
+    render_content_usage_verbose,
     render_content_verbose,
+    render_eeat_verbose,
     render_llms_verbose,
     render_robots_verbose,
+    render_rsl_verbose,
     render_schema_verbose,
     score_color,
 )
@@ -36,10 +39,13 @@ __all__ = [
     "PILLAR_MAX",
     "generate_recommendations",
     "overall_color",
+    "render_content_usage_verbose",
     "render_content_verbose",
+    "render_eeat_verbose",
     "render_llms_verbose",
     "render_recommendations",
     "render_robots_verbose",
+    "render_rsl_verbose",
     "render_schema_verbose",
     "render_verbose_single",
     "render_verbose_site",
@@ -48,6 +54,23 @@ __all__ = [
 
 
 # ── Compositors ─────────────────────────────────────────────────────────────
+
+
+def _render_informational_panels(
+    report: AuditReport | SiteAuditReport, console: Console,
+) -> None:
+    """Render informational signal panels (RSL, Content-Usage, E-E-A-T) if present."""
+    rsl_panel = render_rsl_verbose(report)
+    if rsl_panel:
+        console.print(rsl_panel)
+
+    cu_panel = render_content_usage_verbose(report)
+    if cu_panel:
+        console.print(cu_panel)
+
+    eeat_panel = render_eeat_verbose(report)
+    if eeat_panel:
+        console.print(eeat_panel)
 
 
 def render_verbose_single(report: AuditReport, console: Console) -> None:
@@ -62,6 +85,8 @@ def render_verbose_single(report: AuditReport, console: Console) -> None:
     console.print(render_llms_verbose(report))
     console.print(render_schema_verbose(report))
     console.print(render_content_verbose(report))
+
+    _render_informational_panels(report, console)
 
     rec_panel = render_recommendations(report)
     if rec_panel:
@@ -122,6 +147,9 @@ def render_verbose_site(report: SiteAuditReport, console: Console) -> None:
 
     # Aggregation explanation
     _render_aggregation_explanation(report, console)
+
+    # Informational signal panels
+    _render_informational_panels(report, console)
 
     # Recommendations
     rec_panel = render_recommendations(report)

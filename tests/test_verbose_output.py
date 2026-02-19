@@ -12,10 +12,13 @@ from aeo_cli.core.models import (
     AuditReport,
     BotAccessResult,
     ContentReport,
+    ContentUsageReport,
     DiscoveryResult,
+    EeatReport,
     LlmsTxtReport,
     PageAudit,
     RobotsReport,
+    RslReport,
     SchemaOrgResult,
     SchemaReport,
     SiteAuditReport,
@@ -24,10 +27,13 @@ from aeo_cli.formatters.verbose import (
     PILLAR_MAX,
     generate_recommendations,
     overall_color,
+    render_content_usage_verbose,
     render_content_verbose,
+    render_eeat_verbose,
     render_llms_verbose,
     render_recommendations,
     render_robots_verbose,
+    render_rsl_verbose,
     render_schema_verbose,
     render_verbose_single,
     render_verbose_site,
@@ -855,3 +861,244 @@ def test_site_verbose_shows_per_page():
     assert result.exit_code == 0
     assert "Per-Page Detail" in result.output
     assert "example.com/about" in result.output
+
+
+# ── RSL Panel Tests ─────────────────────────────────────────────────────────
+
+
+def _rsl_report() -> AuditReport:
+    """Report with RSL signals populated."""
+    report = _verbose_report()
+    report.rsl = RslReport(
+        has_crawl_delay=True,
+        crawl_delay_value=10.0,
+        has_sitemap_directive=True,
+        sitemap_urls=["https://example.com/sitemap.xml"],
+        has_ai_specific_rules=True,
+        ai_specific_agents=["GPTBot", "ClaudeBot"],
+        detail="RSL signals found",
+    )
+    return report
+
+
+def test_rsl_verbose_shows_crawl_delay():
+    report = _rsl_report()
+    text = _panel_text(render_rsl_verbose(report))
+    assert "Crawl-delay" in text
+    assert "10" in text
+
+
+def test_rsl_verbose_shows_sitemap_urls():
+    report = _rsl_report()
+    text = _panel_text(render_rsl_verbose(report))
+    assert "sitemap.xml" in text
+
+
+def test_rsl_verbose_shows_ai_specific_agents():
+    report = _rsl_report()
+    text = _panel_text(render_rsl_verbose(report))
+    assert "GPTBot" in text
+    assert "ClaudeBot" in text
+
+
+def test_rsl_verbose_no_signals():
+    report = _verbose_report()
+    report.rsl = RslReport(detail="No RSL signals")
+    text = _panel_text(render_rsl_verbose(report))
+    assert "No RSL signals" in text
+
+
+def test_rsl_verbose_none_returns_none():
+    report = _verbose_report()
+    report.rsl = None
+    result = render_rsl_verbose(report)
+    assert result is None
+
+
+def test_rsl_verbose_border_is_blue():
+    report = _rsl_report()
+    panel = render_rsl_verbose(report)
+    assert panel is not None
+    assert panel.border_style == "blue"
+
+
+# ── Content-Usage Panel Tests ───────────────────────────────────────────────
+
+
+def _content_usage_report() -> AuditReport:
+    """Report with Content-Usage header populated."""
+    report = _verbose_report()
+    report.content_usage = ContentUsageReport(
+        header_found=True,
+        header_value="training=no; search=yes",
+        allows_training=False,
+        allows_search=True,
+        detail="Content-Usage header found",
+    )
+    return report
+
+
+def test_content_usage_verbose_shows_header_value():
+    report = _content_usage_report()
+    text = _panel_text(render_content_usage_verbose(report))
+    assert "training=no" in text
+
+
+def test_content_usage_verbose_shows_permissions():
+    report = _content_usage_report()
+    text = _panel_text(render_content_usage_verbose(report))
+    assert "Training" in text
+    assert "Search" in text
+
+
+def test_content_usage_verbose_not_found():
+    report = _verbose_report()
+    report.content_usage = ContentUsageReport(
+        header_found=False,
+        detail="No Content-Usage header",
+    )
+    text = _panel_text(render_content_usage_verbose(report))
+    assert "not found" in text.lower() or "No Content-Usage" in text
+
+
+def test_content_usage_verbose_none_returns_none():
+    report = _verbose_report()
+    report.content_usage = None
+    result = render_content_usage_verbose(report)
+    assert result is None
+
+
+def test_content_usage_verbose_border_is_blue():
+    report = _content_usage_report()
+    panel = render_content_usage_verbose(report)
+    assert panel is not None
+    assert panel.border_style == "blue"
+
+
+# ── E-E-A-T Panel Tests ────────────────────────────────────────────────────
+
+
+def _eeat_report() -> AuditReport:
+    """Report with E-E-A-T signals populated."""
+    report = _verbose_report()
+    report.eeat = EeatReport(
+        has_author=True,
+        author_name="Dr. Sarah Chen",
+        has_date=True,
+        has_about_page=True,
+        has_contact_info=True,
+        has_citations=True,
+        citation_count=5,
+        trust_signals=["privacy policy", "terms of service"],
+        detail="E-E-A-T signals found",
+    )
+    return report
+
+
+def test_eeat_verbose_shows_author():
+    report = _eeat_report()
+    text = _panel_text(render_eeat_verbose(report))
+    assert "Dr. Sarah Chen" in text
+
+
+def test_eeat_verbose_shows_date():
+    report = _eeat_report()
+    text = _panel_text(render_eeat_verbose(report))
+    assert "Date" in text or "date" in text
+
+
+def test_eeat_verbose_shows_citations():
+    report = _eeat_report()
+    text = _panel_text(render_eeat_verbose(report))
+    assert "5" in text
+    assert "citation" in text.lower()
+
+
+def test_eeat_verbose_shows_trust_signals():
+    report = _eeat_report()
+    text = _panel_text(render_eeat_verbose(report))
+    assert "privacy policy" in text.lower()
+    assert "terms of service" in text.lower()
+
+
+def test_eeat_verbose_no_signals():
+    report = _verbose_report()
+    report.eeat = EeatReport(detail="No E-E-A-T signals detected")
+    text = _panel_text(render_eeat_verbose(report))
+    assert "No E-E-A-T signals" in text
+
+
+def test_eeat_verbose_none_returns_none():
+    report = _verbose_report()
+    report.eeat = None
+    result = render_eeat_verbose(report)
+    assert result is None
+
+
+def test_eeat_verbose_border_is_blue():
+    report = _eeat_report()
+    panel = render_eeat_verbose(report)
+    assert panel is not None
+    assert panel.border_style == "blue"
+
+
+def test_eeat_verbose_partial_signals():
+    """E-E-A-T panel handles partial signal set (author but nothing else)."""
+    report = _verbose_report()
+    report.eeat = EeatReport(
+        has_author=True,
+        author_name="Jane",
+        detail="author: Jane",
+    )
+    text = _panel_text(render_eeat_verbose(report))
+    assert "Jane" in text
+
+
+def test_eeat_verbose_no_author_but_has_date():
+    """E-E-A-T panel shows 'not found' for author when only date is detected."""
+    report = _verbose_report()
+    report.eeat = EeatReport(
+        has_date=True,
+        detail="publication date",
+    )
+    text = _panel_text(render_eeat_verbose(report))
+    assert "not found" in text.lower()  # Author not found
+    assert "Yes" in text  # Date = Yes
+
+
+# ── Informational panels in compositor ──────────────────────────────────────
+
+
+def test_verbose_single_renders_informational_panels():
+    """render_verbose_single should render RSL/Content-Usage/E-E-A-T when present."""
+    report = _rsl_report()
+    report.content_usage = ContentUsageReport(
+        header_found=True, header_value="training=yes", detail="found",
+    )
+    report.eeat = EeatReport(has_author=True, author_name="Bob", detail="author: Bob")
+    output = _capture(render_verbose_single, report)
+    assert "RSL" in output
+    assert "Content-Usage" in output
+    assert "E-E-A-T" in output
+
+
+def test_verbose_single_skips_none_informational():
+    """render_verbose_single should skip informational panels when None."""
+    report = _verbose_report()
+    # All informational fields are None by default
+    output = _capture(render_verbose_single, report)
+    assert "RSL" not in output
+    assert "Content-Usage" not in output
+    assert "E-E-A-T" not in output
+
+
+def test_verbose_site_renders_informational_panels():
+    """render_verbose_site should render RSL/Content-Usage/E-E-A-T when present."""
+    report = _site_report()
+    report.rsl = RslReport(has_crawl_delay=True, crawl_delay_value=5, detail="RSL found")
+    report.content_usage = ContentUsageReport(header_found=True, detail="found")
+    report.eeat = EeatReport(has_author=True, detail="author found")
+    output = _capture(render_verbose_site, report)
+    assert "RSL" in output
+    assert "Content-Usage" in output
+    assert "E-E-A-T" in output

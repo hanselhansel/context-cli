@@ -2,6 +2,7 @@
 
 Each function renders a Rich Panel with detailed scoring breakdown,
 formulas, and per-item details for one audit pillar.
+Informational signal panels (RSL, Content-Usage, E-E-A-T) use blue borders.
 """
 
 from __future__ import annotations
@@ -247,3 +248,111 @@ def render_content_verbose(report: AuditReport | SiteAuditReport) -> Panel:
         title="Content Detail",
         border_style=color,
     )
+
+
+# ── Informational Signal Panels (not scored) ──────────────────────────────
+
+
+def render_rsl_verbose(report: AuditReport | SiteAuditReport) -> Panel | None:
+    """Render RSL (Robots Specification Language) informational panel."""
+    if report.rsl is None:
+        return None
+
+    rsl = report.rsl
+    lines: list[str] = ["[bold]RSL Analysis[/bold] [dim](informational — not scored)[/dim]"]
+
+    if not (rsl.has_crawl_delay or rsl.has_sitemap_directive or rsl.has_ai_specific_rules):
+        lines.append("")
+        lines.append(f"  {rsl.detail}")
+        return Panel("\n".join(lines), title="RSL Detail", border_style="blue")
+
+    lines.append("")
+    if rsl.has_crawl_delay:
+        lines.append(f"  Crawl-delay: [bold]{rsl.crawl_delay_value}s[/bold]")
+
+    if rsl.has_sitemap_directive:
+        lines.append(f"  Sitemap directives: {len(rsl.sitemap_urls)}")
+        for url in rsl.sitemap_urls:
+            lines.append(f"    {url}")
+
+    if rsl.has_ai_specific_rules:
+        agents = ", ".join(rsl.ai_specific_agents)
+        lines.append(f"  AI-specific User-agent blocks: {agents}")
+
+    return Panel("\n".join(lines), title="RSL Detail", border_style="blue")
+
+
+def render_content_usage_verbose(
+    report: AuditReport | SiteAuditReport,
+) -> Panel | None:
+    """Render IETF Content-Usage header informational panel."""
+    if report.content_usage is None:
+        return None
+
+    cu = report.content_usage
+    lines: list[str] = [
+        "[bold]Content-Usage Header[/bold] [dim](informational — not scored)[/dim]"
+    ]
+
+    if not cu.header_found:
+        lines.append("")
+        lines.append("  [dim]Content-Usage header not found[/dim]")
+        return Panel("\n".join(lines), title="Content-Usage Detail", border_style="blue")
+
+    lines.append("")
+    lines.append(f"  Header value: [bold]{cu.header_value}[/bold]")
+    lines.append("")
+
+    train_icon = "[green]Yes[/green]" if cu.allows_training else "[red]No[/red]"
+    search_icon = "[green]Yes[/green]" if cu.allows_search else "[red]No[/red]"
+    lines.append(f"  Training allowed: {train_icon}")
+    lines.append(f"  Search allowed: {search_icon}")
+
+    return Panel("\n".join(lines), title="Content-Usage Detail", border_style="blue")
+
+
+def render_eeat_verbose(report: AuditReport | SiteAuditReport) -> Panel | None:
+    """Render E-E-A-T (Experience, Expertise, Authority, Trust) informational panel."""
+    if report.eeat is None:
+        return None
+
+    eeat = report.eeat
+    lines: list[str] = [
+        "[bold]E-E-A-T Signals[/bold] [dim](informational — not scored)[/dim]"
+    ]
+
+    has_any = (
+        eeat.has_author or eeat.has_date or eeat.has_about_page
+        or eeat.has_contact_info or eeat.has_citations or eeat.trust_signals
+    )
+    if not has_any:
+        lines.append("")
+        lines.append(f"  {eeat.detail}")
+        return Panel("\n".join(lines), title="E-E-A-T Detail", border_style="blue")
+
+    lines.append("")
+    if eeat.has_author:
+        name = eeat.author_name or "(detected)"
+        lines.append(f"  Author: [bold]{name}[/bold]")
+    else:
+        lines.append("  Author: [dim]not found[/dim]")
+
+    date_icon = "[green]Yes[/green]" if eeat.has_date else "[red]No[/red]"
+    lines.append(f"  Publication date: {date_icon}")
+
+    about_icon = "[green]Yes[/green]" if eeat.has_about_page else "[red]No[/red]"
+    lines.append(f"  About page link: {about_icon}")
+
+    contact_icon = "[green]Yes[/green]" if eeat.has_contact_info else "[red]No[/red]"
+    lines.append(f"  Contact info: {contact_icon}")
+
+    if eeat.has_citations:
+        lines.append(f"  External citations: [bold]{eeat.citation_count}[/bold]")
+    else:
+        lines.append("  External citations: [dim]none[/dim]")
+
+    if eeat.trust_signals:
+        signals = ", ".join(eeat.trust_signals)
+        lines.append(f"  Trust signals: {signals}")
+
+    return Panel("\n".join(lines), title="E-E-A-T Detail", border_style="blue")
