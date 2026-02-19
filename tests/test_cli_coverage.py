@@ -549,7 +549,7 @@ def test_quiet_single_fail():
 
 
 def test_site_report_with_lint_result():
-    """Site report with lint_result should display Token Waste in Rich output."""
+    """Site report with lint_result should display linter-style output."""
     from context_cli.core.models import LintCheck, LintResult
     report = _site_report(
         lint_result=LintResult(
@@ -570,7 +570,297 @@ def test_site_report_with_lint_result():
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
-    assert "Token Waste" in result.output
-    assert "85%" in result.output
+    assert "Token Analysis" in result.output
+    assert "85.0%" in result.output
     assert "PASS" in result.output
     assert "FAIL" in result.output
+
+
+# ── Linter-style single-page output ─────────────────────────────────────────
+
+
+def test_single_page_linter_style_with_lint_result():
+    """Single-page with lint_result should show linter-style LINT header."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(
+                    name="AI Primitives", passed=True, severity="pass",
+                    detail="llms.txt found",
+                ),
+                LintCheck(
+                    name="Bot Access", passed=True, severity="pass",
+                    detail="7/7 AI bots allowed",
+                ),
+                LintCheck(
+                    name="Data Structuring", passed=True, severity="pass",
+                    detail="1 JSON-LD blocks (Organization)",
+                ),
+                LintCheck(
+                    name="Token Efficiency", passed=True, severity="warn",
+                    detail="50% Context Waste",
+                ),
+            ],
+            context_waste_pct=50.0,
+            raw_tokens=1000,
+            clean_tokens=500,
+            passed=True,
+        ),
+    )
+
+    async def _fake(url, **kwargs):
+        return report
+
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
+    assert result.exit_code == 0
+    assert "LINT" in result.output
+    assert "PASS" in result.output
+    assert "WARN" in result.output
+    assert "Token Analysis" in result.output
+    assert "Overall Score" in result.output
+
+
+def test_single_page_linter_style_with_diagnostics():
+    """Single-page linter output should show Diagnostics section."""
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    report = _report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(
+                    name="Token Efficiency", passed=False, severity="fail",
+                    detail="85% Context Waste",
+                ),
+            ],
+            context_waste_pct=85.0,
+            raw_tokens=10000,
+            clean_tokens=1500,
+            passed=False,
+            diagnostics=[
+                Diagnostic(
+                    code="WARN-001", severity="warn",
+                    message="Excessive DOM bloat. 85% of tokens are navigation/boilerplate.",
+                ),
+                Diagnostic(
+                    code="INFO-001", severity="info",
+                    message="Readability grade: 12.3 (college level)",
+                ),
+            ],
+        ),
+    )
+
+    async def _fake(url, **kwargs):
+        return report
+
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
+    assert result.exit_code == 0
+    assert "Diagnostics" in result.output
+    assert "WARN-001" in result.output
+    assert "INFO-001" in result.output
+    assert "1 warning" in result.output
+    assert "0 errors" in result.output
+
+
+def test_single_page_linter_style_with_errors():
+    """Single-page linter output should show errors section."""
+    from context_cli.core.models import LintCheck, LintResult
+    report = _report(
+        lint_result=LintResult(
+            checks=[LintCheck(name="Test", passed=True, severity="pass", detail="ok")],
+            context_waste_pct=10.0, raw_tokens=100, clean_tokens=90,
+        ),
+        errors=["Crawl timeout on subresource"],
+    )
+
+    async def _fake(url, **kwargs):
+        return report
+
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
+    assert result.exit_code == 0
+    assert "Crawl timeout" in result.output
+
+
+def test_single_page_fallback_table_without_lint_result():
+    """Single-page without lint_result should fall back to table output."""
+    report = _report()
+    assert report.lint_result is None
+
+    async def _fake(url, **kwargs):
+        return report
+
+    with patch("context_cli.cli.audit.audit_url", side_effect=_fake):
+        result = runner.invoke(app, ["lint", "https://example.com", "--single"])
+    assert result.exit_code == 0
+    # Table output uses "Readiness Score" not "Overall Score"
+    assert "Readiness Score" in result.output
+    assert "Robots.txt AI Access" in result.output
+
+
+# ── render_single_report direct tests ────────────────────────────────────────
+
+
+def test_render_single_report_lint_header():
+    """render_single_report should print LINT header with URL."""
+    from io import StringIO
+
+    from rich.console import Console as RichConsole
+
+    from context_cli.core.models import LintCheck, LintResult
+    from context_cli.formatters.rich_output import render_single_report
+
+    report = _report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(name="AI Primitives", passed=True, severity="pass", detail="found"),
+            ],
+            context_waste_pct=20.0,
+            raw_tokens=100,
+            clean_tokens=80,
+        ),
+    )
+    buf = StringIO()
+    con = RichConsole(file=buf, force_terminal=True, width=120)
+    render_single_report(report, con)
+    output = buf.getvalue()
+    assert "LINT" in output
+    assert "https://example.com" in output
+    assert "Overall Score" in output
+
+
+def test_render_single_report_no_lint_result():
+    """render_single_report should still show score when lint_result is None."""
+    from io import StringIO
+
+    from rich.console import Console as RichConsole
+
+    from context_cli.formatters.rich_output import render_single_report
+
+    report = _report()
+    report.lint_result = None
+    buf = StringIO()
+    con = RichConsole(file=buf, force_terminal=True, width=120)
+    render_single_report(report, con)
+    output = buf.getvalue()
+    assert "LINT" in output
+    assert "Overall Score" in output
+
+
+def test_render_single_report_zero_raw_tokens():
+    """render_single_report should handle 0 raw tokens gracefully."""
+    from io import StringIO
+
+    from rich.console import Console as RichConsole
+
+    from context_cli.core.models import LintCheck, LintResult
+    from context_cli.formatters.rich_output import render_single_report
+
+    report = _report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(name="Test", passed=True, severity="pass", detail="ok"),
+            ],
+            context_waste_pct=0.0,
+            raw_tokens=0,
+            clean_tokens=0,
+        ),
+    )
+    buf = StringIO()
+    con = RichConsole(file=buf, force_terminal=True, width=120)
+    render_single_report(report, con)
+    output = buf.getvalue()
+    assert "Token Analysis" in output
+    # Should not show "wasted tokens" when raw_tokens is 0
+    assert "wasted tokens" not in output
+
+
+# ── _check_status_markup tests ───────────────────────────────────────────────
+
+
+def test_check_status_markup_pass():
+    """_check_status_markup should return green PASS for passing checks."""
+    from context_cli.formatters.rich_output import _check_status_markup
+    result = _check_status_markup("pass", True)
+    assert "PASS" in result
+    assert "green" in result
+
+
+def test_check_status_markup_warn():
+    """_check_status_markup should return yellow WARN for warn severity."""
+    from context_cli.formatters.rich_output import _check_status_markup
+    result = _check_status_markup("warn", True)
+    assert "WARN" in result
+    assert "yellow" in result
+
+
+def test_check_status_markup_fail():
+    """_check_status_markup should return red FAIL for failing checks."""
+    from context_cli.formatters.rich_output import _check_status_markup
+    result = _check_status_markup("fail", False)
+    assert "FAIL" in result
+    assert "red" in result
+
+
+# ── Diagnostics summary line tests ───────────────────────────────────────────
+
+
+def test_diagnostics_summary_pluralization():
+    """Diagnostics summary should pluralize correctly (1 warning vs 2 warnings)."""
+    from io import StringIO
+
+    from rich.console import Console as RichConsole
+
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    from context_cli.formatters.rich_output import render_single_report
+
+    report = _report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(name="Test", passed=True, severity="pass", detail="ok"),
+            ],
+            context_waste_pct=20.0,
+            raw_tokens=100,
+            clean_tokens=80,
+            diagnostics=[
+                Diagnostic(code="WARN-001", severity="warn", message="test warn"),
+            ],
+        ),
+    )
+    buf = StringIO()
+    con = RichConsole(file=buf, no_color=True, width=120)
+    render_single_report(report, con)
+    output = buf.getvalue()
+    assert "1 warning," in output
+    assert "0 errors" in output
+
+
+def test_diagnostics_summary_multiple_warnings():
+    """Diagnostics summary should say 'warnings' (plural) for > 1."""
+    from io import StringIO
+
+    from rich.console import Console as RichConsole
+
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    from context_cli.formatters.rich_output import render_single_report
+
+    report = _report(
+        lint_result=LintResult(
+            checks=[
+                LintCheck(name="Test", passed=True, severity="pass", detail="ok"),
+            ],
+            context_waste_pct=20.0,
+            raw_tokens=100,
+            clean_tokens=80,
+            diagnostics=[
+                Diagnostic(code="WARN-001", severity="warn", message="warn 1"),
+                Diagnostic(code="WARN-002", severity="warn", message="warn 2"),
+            ],
+        ),
+    )
+    buf = StringIO()
+    con = RichConsole(file=buf, no_color=True, width=120)
+    render_single_report(report, con)
+    output = buf.getvalue()
+    assert "2 warnings," in output

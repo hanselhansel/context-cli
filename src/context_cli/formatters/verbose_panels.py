@@ -256,7 +256,7 @@ def render_content_verbose(report: AuditReport | SiteAuditReport) -> Panel:
 def render_token_analysis_verbose(
     report: AuditReport | SiteAuditReport,
 ) -> Panel | None:
-    """Render token analysis panel with waste metrics and lint checks."""
+    """Render token analysis panel with waste metrics, lint checks, and diagnostics."""
     if report.lint_result is None:
         return None
 
@@ -281,8 +281,23 @@ def render_token_analysis_verbose(
         lines.append("")
         lines.append("  [bold]Lint Checks:[/bold]")
         for check in lr.checks:
-            status = "[green]PASS[/green]" if check.passed else "[red]FAIL[/red]"
+            if check.severity == "warn":
+                status = "[yellow]WARN[/yellow]"
+            elif check.passed:
+                status = "[green]PASS[/green]"
+            else:
+                status = "[red]FAIL[/red]"
             lines.append(f"    {status} {check.name}: {check.detail}")
+
+    if lr.diagnostics:
+        lines.append("")
+        lines.append("  [bold]Diagnostics:[/bold]")
+        for d in lr.diagnostics:
+            d_color = (
+                "red" if d.severity == "error"
+                else ("yellow" if d.severity == "warn" else "cyan")
+            )
+            lines.append(f"    [{d_color}]{d.code}[/{d_color}]  {d.message}")
 
     return Panel(
         "\n".join(lines),

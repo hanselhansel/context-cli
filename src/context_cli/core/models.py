@@ -154,6 +154,17 @@ class LintCheck(BaseModel):
     name: str = Field(description="Check name (e.g., 'AI Primitives')")
     passed: bool = Field(description="Whether the check passed")
     detail: str = Field(default="", description="Human-readable detail")
+    severity: str = Field(
+        default="pass", description="Severity: pass, warn, or fail"
+    )
+
+
+class Diagnostic(BaseModel):
+    """A single diagnostic message (linter-style)."""
+
+    code: str = Field(description="Diagnostic code (e.g., WARN-001)")
+    severity: str = Field(description="Severity: error, warn, or info")
+    message: str = Field(description="Human-readable diagnostic message")
 
 
 class LintResult(BaseModel):
@@ -166,6 +177,9 @@ class LintResult(BaseModel):
     raw_tokens: int = Field(default=0, description="Estimated raw HTML tokens")
     clean_tokens: int = Field(default=0, description="Estimated clean markdown tokens")
     passed: bool = Field(default=True, description="Whether all checks passed")
+    diagnostics: list[Diagnostic] = Field(
+        default_factory=list, description="Diagnostic messages"
+    )
 
 
 # ── Informational signal models (not scored, verbose output only) ─────────
