@@ -282,7 +282,8 @@ def test_verbose_llms_not_found():
             app, ["audit", "https://example.com", "--single", "--verbose"]
         )
     assert result.exit_code == 0
-    assert "Not found at" in result.output
+    assert "Not found" in result.output
+    assert "/llms.txt" in result.output
 
 
 def test_verbose_with_bots():
