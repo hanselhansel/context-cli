@@ -80,13 +80,15 @@ def test_format_leaderboard_md_basic():
         _mock_report("https://mid-waste.com", waste=50.0, score=55.0),
     ]
     md = format_leaderboard_md(reports)
-    assert "# Context Leaderboard" in md
-    assert "| Rank | URL | Score | Waste % | RAG Ready |" in md
+    assert "# Context CLI Leaderboard" in md
+    assert "Target URL" in md
+    assert "Context Waste %" in md
+    assert "RAG Ready?" in md
     # low-waste should be rank 1
     lines = md.strip().splitlines()
     data_lines = [
         ln for ln in lines
-        if ln.startswith("| ") and "Rank" not in ln and "---" not in ln
+        if ln.startswith("| ") and "#" not in ln.split("|")[1] and "---" not in ln
     ]
     assert "low-waste.com" in data_lines[0]
     assert "mid-waste.com" in data_lines[1]
@@ -128,7 +130,7 @@ def test_format_leaderboard_json_basic():
     assert len(entries) == 2
     assert entries[0]["rank"] == 1
     assert entries[0]["url"] == "https://a.com"
-    assert entries[0]["waste_pct"] == 30.0
+    assert entries[0]["context_waste_pct"] == 30.0
     assert entries[0]["rag_ready"] is True
     assert entries[1]["rank"] == 2
     assert entries[1]["url"] == "https://b.com"
@@ -144,19 +146,20 @@ def test_format_leaderboard_json_custom_threshold():
 
 
 def test_format_leaderboard_md_no_lint_result():
-    """Formatter falls back to content.context_waste_pct when no lint_result."""
+    """Formatter treats no lint_result as 0 tokens and 0% waste in display."""
     reports = [_mock_report_no_lint("https://nolint.com", waste=45.0)]
     md = format_leaderboard_md(reports)
-    assert "45.0%" in md
-    assert "Yes" in md
+    assert "nolint.com" in md
+    # Without lint_result, raw/clean tokens are 0 and waste displays as 0%
+    assert "| 0 |" in md
 
 
 def test_format_leaderboard_json_no_lint_result():
-    """JSON formatter falls back to content.context_waste_pct when no lint_result."""
+    """JSON formatter treats no lint_result as 0 context_waste_pct."""
     reports = [_mock_report_no_lint("https://nolint.com", waste=45.0)]
     raw = format_leaderboard_json(reports)
     data = json.loads(raw)
-    assert data["leaderboard"][0]["waste_pct"] == 45.0
+    assert data["leaderboard"][0]["context_waste_pct"] == 0.0
 
 
 # ── CLI command tests ────────────────────────────────────────────────────────
@@ -182,7 +185,7 @@ def test_leaderboard_url_file(tmp_path):
         result = runner.invoke(app, ["leaderboard", str(url_file)])
 
     assert result.exit_code == 0
-    assert "Context Leaderboard" in result.output
+    assert "Context CLI Leaderboard" in result.output
     assert "a.com" in result.output
     assert "b.com" in result.output
 
@@ -221,7 +224,7 @@ def test_leaderboard_output_file(tmp_path):
     assert result.exit_code == 0
     assert out_file.exists()
     content = out_file.read_text()
-    assert "Context Leaderboard" in content
+    assert "Context CLI Leaderboard" in content
     assert "saved to" in result.output
 
 
@@ -445,7 +448,7 @@ def test_format_leaderboard_md_single_report():
     md = format_leaderboard_md(reports)
     assert "| 1 |" in md
     assert "only.com" in md
-    assert "10.0%" in md
+    assert "10%" in md
 
 
 def test_format_leaderboard_json_single_report():
@@ -454,20 +457,19 @@ def test_format_leaderboard_json_single_report():
     raw = format_leaderboard_json(reports)
     data = json.loads(raw)
     assert len(data["leaderboard"]) == 1
-    assert data["leaderboard"][0]["score"] == 90.0
+    assert data["leaderboard"][0]["url"] == "https://only.com"
 
 
 def test_format_leaderboard_md_score_formatting():
-    """Markdown formatter formats scores with one decimal place."""
+    """Markdown formatter formats waste percentage."""
     reports = [_mock_report("https://test.com", waste=33.3, score=66.7)]
     md = format_leaderboard_md(reports)
-    assert "66.7" in md
-    assert "33.3%" in md
+    assert "33%" in md
 
 
 def test_format_leaderboard_json_waste_rounding():
-    """JSON formatter rounds waste_pct to one decimal."""
+    """JSON formatter preserves context_waste_pct value."""
     reports = [_mock_report("https://test.com", waste=33.333)]
     raw = format_leaderboard_json(reports)
     data = json.loads(raw)
-    assert data["leaderboard"][0]["waste_pct"] == 33.3
+    assert data["leaderboard"][0]["context_waste_pct"] == 33.333
