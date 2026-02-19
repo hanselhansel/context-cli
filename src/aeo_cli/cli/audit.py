@@ -12,11 +12,13 @@ from rich.table import Table
 from rich.text import Text
 
 from aeo_cli.core.auditor import audit_site, audit_url
+from aeo_cli.core.history import HistoryDB
 from aeo_cli.core.models import (
     AuditReport,
     OutputFormat,
     SiteAuditReport,
 )
+from aeo_cli.core.regression import detect_regression
 from aeo_cli.formatters.csv import (
     format_single_report_csv,
     format_site_report_csv,
@@ -37,6 +39,28 @@ console = Console()
 def _score_color(score: float, pillar: str) -> Text:
     """Return a Rich Text with the score colored by threshold (green/yellow/red)."""
     return _score_color_impl(score, pillar)
+
+
+def _save_to_history(report: AuditReport, con: Console) -> None:
+    """Save report to history and check for regression against previous audit."""
+    db = HistoryDB()
+    try:
+        previous = db.get_latest_report(report.url)
+        db.save(report)
+        con.print("[green]Saved to history.[/green]")
+
+        if previous is not None:
+            result = detect_regression(report, previous)
+            if result.has_regression:
+                con.print(
+                    f"[bold red]Regression detected:[/bold red] "
+                    f"score dropped {abs(result.delta):.1f} points "
+                    f"({result.previous_score:.0f} -> {result.current_score:.0f})"
+                )
+    except Exception as exc:
+        con.print(f"[yellow]History save error:[/yellow] {exc}")
+    finally:
+        db.close()
 
 
 def register(app: typer.Typer) -> None:
@@ -86,6 +110,9 @@ def register(app: typer.Typer) -> None:
         bots: str = typer.Option(
             None, "--bots", help="Comma-separated custom AI bot list (overrides defaults)"
         ),
+        save: bool = typer.Option(
+            False, "--save", help="Save audit results to local history (~/.aeo-cli/history.db)"
+        ),
     ) -> None:
         """Run an AEO audit on a URL and display the results."""
         # --json flag is a shortcut for --format json
@@ -123,6 +150,16 @@ def register(app: typer.Typer) -> None:
         # Normal flow
         report = _run_audit(url, single, max_pages, timeout, bots=bots_list)
         _render_output(report, format, verbose, single)
+
+        if save:
+            if isinstance(report, AuditReport):
+                _save_to_history(report, console)
+            else:
+                console.print(
+                    "[yellow]Note:[/yellow] --save stores single-page audits only. "
+                    "Use --single for history tracking."
+                )
+
         _write_github_step_summary(report, fail_under)
 
         if fail_under is not None or fail_on_blocked_bots:
