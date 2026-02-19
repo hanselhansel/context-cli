@@ -114,3 +114,23 @@ def test_site_audit_page_breakdown():
     assert "### Per-Page Breakdown" in md
     assert "https://example.com/page1" in md
     assert "https://example.com/page2" in md
+
+
+def test_page_breakdown_empty_pages():
+    """_format_page_breakdown with empty pages returns empty string."""
+    from aeo_cli.formatters.ci_summary import _format_page_breakdown
+
+    report = SiteAuditReport(
+        url="https://example.com",
+        domain="example.com",
+        overall_score=50.0,
+        robots=RobotsReport(found=True, score=25, detail="OK"),
+        llms_txt=LlmsTxtReport(found=False, score=0, detail="Not found"),
+        schema_org=SchemaReport(detail="None"),
+        content=ContentReport(detail="None"),
+        discovery=DiscoveryResult(method="sitemap", detail="0 found"),
+        pages=[],
+        pages_audited=0,
+    )
+    result = _format_page_breakdown(report)
+    assert result == ""

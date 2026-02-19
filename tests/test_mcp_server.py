@@ -25,7 +25,7 @@ from aeo_cli.server import audit, generate
 
 # FastMCP 2.x wraps @mcp.tool functions in a FunctionTool object.
 # The underlying async function is accessible via .fn
-_audit_fn = audit.fn
+_audit_fn = audit.fn if hasattr(audit, "fn") else audit
 
 
 def _mock_single_report() -> AuditReport:
@@ -106,7 +106,7 @@ async def test_audit_tool_returns_dict():
 
 # ── Generate MCP tool ────────────────────────────────────────────────────────
 
-_generate_fn = generate.fn
+_generate_fn = generate.fn if hasattr(generate, "fn") else generate
 
 
 def _mock_generate_result() -> GenerateResult:
