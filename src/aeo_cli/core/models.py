@@ -730,3 +730,54 @@ class BenchmarkReport(BaseModel):
     total_cost_estimate: float | None = Field(
         default=None, description="Estimated total cost in USD (None if unavailable)"
     )
+
+
+# ── Retail models ───────────────────────────────────────────────────────────
+
+
+class MarketplaceType(str, Enum):
+    """Supported marketplace types for retail auditing."""
+
+    AMAZON = "amazon"
+    SHOPEE = "shopee"
+    LAZADA = "lazada"
+    TOKOPEDIA = "tokopedia"
+    TIKTOK_SHOP = "tiktok_shop"
+    BLIBLI = "blibli"
+    ZALORA = "zalora"
+    GENERIC = "generic"
+
+
+class ProductData(BaseModel):
+    """Parsed product data from a marketplace listing."""
+
+    title: str | None = Field(default=None, description="Product title")
+    description: str | None = Field(default=None, description="Product description text")
+    price: str | None = Field(default=None, description="Product price as displayed")
+    currency: str | None = Field(default=None, description="Currency code (e.g., USD, SGD)")
+    availability: str | None = Field(default=None, description="Availability status")
+    image_urls: list[str] = Field(default_factory=list, description="Product image URLs")
+    brand: str | None = Field(default=None, description="Brand name")
+    rating: float | None = Field(default=None, description="Average rating (0-5)")
+    review_count: int | None = Field(default=None, description="Number of reviews")
+    bullet_points: list[str] = Field(
+        default_factory=list, description="Product feature bullet points"
+    )
+    specifications: dict[str, str] = Field(
+        default_factory=dict, description="Product specifications"
+    )
+    has_video: bool = Field(default=False, description="Whether listing has video content")
+    has_aplus_content: bool = Field(
+        default=False, description="Whether listing has A+ content"
+    )
+    qa_count: int | None = Field(default=None, description="Number of Q&A entries")
+    schema_org: dict[str, Any] = Field(
+        default_factory=dict, description="Extracted Schema.org JSON-LD data"
+    )
+    marketplace: MarketplaceType = Field(
+        default=MarketplaceType.GENERIC, description="Detected marketplace"
+    )
+    url: str = Field(default="", description="Product URL")
+    alt_texts: list[str] = Field(
+        default_factory=list, description="Alt text for product images"
+    )
