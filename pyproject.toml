@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeo-cli"
-version = "0.6.0"
+version = "0.7.0"
 description = "Agentic Engine Optimization CLI — audit URLs for AI crawler readiness"
 readme = "README.md"
 license = "MIT"

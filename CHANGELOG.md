@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-02-19
+
+### Added
+
+- **Shared LLM layer (`core/llm.py`)**: Centralized model detection, structured output calling with json_schema fallback, Ollama support — consumed by all generate/audit commands
+- **Cost estimation (`core/cost.py`)**: Per-model token pricing (GPT-4o, Claude 3, Ollama) with `estimate_cost()` and `format_cost()` helpers
+- **Backward-compatible re-exports**: `core/generate/llm.py` now re-exports from `core/llm.py`
+
+### Changed
+
+- Enforced mandatory agent teams for ALL phases (removed "Solo" exceptions from CLAUDE.md)
+- Test suite expanded from 777 to 798 tests, maintaining **100% code coverage**
+
 ## [0.6.0] - 2026-02-19
 
 ### Added
