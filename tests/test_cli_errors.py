@@ -31,11 +31,11 @@ def _error_report(url: str) -> AuditReport:
     )
 
 
-async def _fake_audit_url_error(url: str) -> AuditReport:
+async def _fake_audit_url_error(url: str, **kwargs) -> AuditReport:
     return _error_report(url)
 
 
-async def _fake_audit_url_exception(url: str) -> AuditReport:
+async def _fake_audit_url_exception(url: str, **kwargs) -> AuditReport:
     raise RuntimeError("Unexpected crash")
 
 

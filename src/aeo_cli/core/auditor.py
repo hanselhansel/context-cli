@@ -131,11 +131,11 @@ def aggregate_page_scores(
     return agg_schema, agg_content, overall
 
 
-async def audit_url(url: str) -> AuditReport:
+async def audit_url(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> AuditReport:
     """Run a full AEO audit on a single URL. Returns AuditReport with all pillar scores."""
     errors: list[str] = []
 
-    async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         # Run HTTP checks and browser crawl concurrently
         robots_task = check_robots(url, client)
         llms_task = check_llms_txt(url, client)
@@ -196,6 +196,7 @@ async def audit_site(
     max_pages: int = 10,
     delay_seconds: float = 1.0,
     progress_callback: Callable[[str], None] | None = None,
+    timeout: int = DEFAULT_TIMEOUT,
 ) -> SiteAuditReport:
     """Run a multi-page AEO audit. Discovers pages via sitemap/spider and aggregates scores."""
     errors: list[str] = []
@@ -207,7 +208,9 @@ async def audit_site(
 
     try:
         return await asyncio.wait_for(
-            _audit_site_inner(url, domain, max_pages, delay_seconds, errors, _progress),
+            _audit_site_inner(
+                url, domain, max_pages, delay_seconds, errors, _progress, timeout
+            ),
             timeout=SITE_AUDIT_TIMEOUT,
         )
     except asyncio.TimeoutError:
@@ -233,11 +236,12 @@ async def _audit_site_inner(
     delay_seconds: float,
     errors: list[str],
     progress: Callable[[str], None],
+    timeout: int = DEFAULT_TIMEOUT,
 ) -> SiteAuditReport:
     """Inner implementation of audit_site, wrapped with a timeout by the caller."""
     progress("Running site-wide checks...")
 
-    async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
         # Phase 1: Site-wide checks + seed crawl in parallel
         robots_task = check_robots(url, client)
         llms_task = check_llms_txt(url, client)

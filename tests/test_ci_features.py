@@ -55,19 +55,19 @@ def _mock_site_report(score: float = 68.0) -> SiteAuditReport:
     )
 
 
-async def _fake_audit_url(url: str) -> AuditReport:
+async def _fake_audit_url(url: str, **kwargs) -> AuditReport:
     return _mock_report()
 
 
-async def _fake_audit_url_low(url: str) -> AuditReport:
+async def _fake_audit_url_low(url: str, **kwargs) -> AuditReport:
     return _mock_report(score=30.0)
 
 
-async def _fake_audit_url_blocked(url: str) -> AuditReport:
+async def _fake_audit_url_blocked(url: str, **kwargs) -> AuditReport:
     return _mock_report(score=55.0, bots_allowed=False)
 
 
-async def _fake_audit_url_low_blocked(url: str) -> AuditReport:
+async def _fake_audit_url_low_blocked(url: str, **kwargs) -> AuditReport:
     return _mock_report(score=30.0, bots_allowed=False)
 
 

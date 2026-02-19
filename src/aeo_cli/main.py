@@ -148,6 +148,9 @@ def audit(
         "--fail-on-blocked-bots",
         help="Exit code 2 if any AI bot is blocked by robots.txt",
     ),
+    timeout: int = typer.Option(
+        15, "--timeout", "-t", help="HTTP timeout in seconds (default: 15)"
+    ),
 ) -> None:
     """Run an AEO audit on a URL and display the results."""
     if not url.startswith("http"):
@@ -160,11 +163,11 @@ def audit(
     if quiet:
         # Backwards compat: --quiet uses threshold 50 unless --fail-under overrides
         threshold = fail_under if fail_under is not None else 50
-        _audit_quiet(url, single, max_pages, threshold, fail_on_blocked_bots)
+        _audit_quiet(url, single, max_pages, threshold, fail_on_blocked_bots, timeout)
         return  # pragma: no cover — _audit_quiet always raises SystemExit
 
     # Normal flow
-    report = _run_audit(url, single, max_pages)
+    report = _run_audit(url, single, max_pages, timeout)
     _render_output(report, format, verbose, single)
     _write_github_step_summary(report, fail_under)
 
@@ -173,12 +176,12 @@ def audit(
 
 
 def _run_audit(
-    url: str, single: bool, max_pages: int,
+    url: str, single: bool, max_pages: int, timeout: int = 15,
 ) -> AuditReport | SiteAuditReport:
     """Execute the audit and return the report."""
     if single:
         with console.status(f"Auditing {url}..."):
-            return asyncio.run(audit_url(url))
+            return asyncio.run(audit_url(url, timeout=timeout))
 
     with Progress(
         SpinnerColumn(),
@@ -193,7 +196,8 @@ def _run_audit(
             progress.update(task_id, description=msg, advance=1)
 
         report = asyncio.run(
-            audit_site(url, max_pages=max_pages, progress_callback=on_progress)
+            audit_site(url, max_pages=max_pages, timeout=timeout,
+                       progress_callback=on_progress)
         )
         progress.update(task_id, description="Done", completed=max_pages)
     return report
@@ -290,13 +294,14 @@ def _audit_quiet(
     max_pages: int,
     threshold: float = 50,
     fail_on_blocked_bots: bool = False,
+    timeout: int = 15,
 ) -> None:
     """Run audit silently — exit based on threshold and bot access."""
     report: AuditReport | SiteAuditReport
     if single:
-        report = asyncio.run(audit_url(url))
+        report = asyncio.run(audit_url(url, timeout=timeout))
     else:
-        report = asyncio.run(audit_site(url, max_pages=max_pages))
+        report = asyncio.run(audit_site(url, max_pages=max_pages, timeout=timeout))
 
     if fail_on_blocked_bots and report.robots.found:
         if any(not b.allowed for b in report.robots.bots):

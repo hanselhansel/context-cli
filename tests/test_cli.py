@@ -54,7 +54,7 @@ def _mock_site_report() -> SiteAuditReport:
     )
 
 
-async def _fake_audit_url(url: str) -> AuditReport:
+async def _fake_audit_url(url: str, **kwargs) -> AuditReport:
     """Async mock for audit_url that returns a canned report."""
     return _mock_report()
 

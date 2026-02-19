@@ -31,7 +31,7 @@ def _mock_report(score: float = 55.0) -> AuditReport:
     )
 
 
-async def _fake_audit_url(url: str) -> AuditReport:
+async def _fake_audit_url(url: str, **kwargs) -> AuditReport:
     return _mock_report()
 
 

@@ -200,7 +200,7 @@ def test_quiet_blocked_bots():
 def test_audit_csv_single():
     """--single --format csv produces CSV (line 227)."""
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return _report()
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -227,7 +227,7 @@ def test_audit_csv_site():
 def test_audit_markdown_single():
     """--single --format markdown (line 233)."""
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return _report()
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -259,7 +259,7 @@ def test_verbose_robots_not_found():
     """Verbose with robots.found=False (line 281)."""
     report = _report(robots=RobotsReport(found=False, score=0, detail="not found"))
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -274,7 +274,7 @@ def test_verbose_llms_not_found():
     """Verbose with llms_txt.found=False (line 289)."""
     report = _report(llms_txt=LlmsTxtReport(found=False, score=0, detail="Not found"))
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -294,7 +294,7 @@ def test_verbose_with_bots():
     ]
     report = _report(robots=RobotsReport(found=True, bots=bots, score=15, detail="5/7"))
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -313,7 +313,7 @@ def test_verbose_llms_found():
         )
     )
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -335,7 +335,7 @@ def test_verbose_schema_detail():
         )
     )
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -359,7 +359,7 @@ def test_verbose_content_detail():
         )
     )
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -377,7 +377,7 @@ def test_single_page_with_errors():
     """Single-page rich output shows errors section (lines 262-265)."""
     report = _report(errors=["Crawl failed"])
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -469,7 +469,7 @@ def test_site_report_pages_failed():
 def test_fail_under_triggers_exit():
     """--fail-under with score below threshold → exit 1 (lines 183, 323-324)."""
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return _report(score=30.0)
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -487,7 +487,7 @@ def test_fail_on_blocked_bots_nonquiet():
         robots=RobotsReport(found=True, bots=bots, score=0, detail="blocked"),
     )
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return report
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -504,7 +504,7 @@ def test_github_step_summary(tmp_path):
     """GITHUB_STEP_SUMMARY env var triggers CI summary write (lines 334-338)."""
     summary_file = tmp_path / "summary.md"
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return _report(score=55.0)
 
     env = {**os.environ, "GITHUB_STEP_SUMMARY": str(summary_file)}
@@ -522,7 +522,7 @@ def test_github_step_summary(tmp_path):
 def test_quiet_single_pass():
     """--quiet --single with score >= 50 → exit 0 (line 351)."""
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return _report(score=60.0)
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
@@ -535,7 +535,7 @@ def test_quiet_single_pass():
 def test_quiet_single_fail():
     """--quiet --single with score < 50 → exit 1."""
 
-    async def _fake(url):
+    async def _fake(url, **kwargs):
         return _report(score=30.0)
 
     with patch("aeo_cli.main.audit_url", side_effect=_fake):
