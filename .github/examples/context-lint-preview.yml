@@ -1,5 +1,6 @@
 # Context Lint on Vercel/Netlify preview deployments
 # Triggers when a deployment succeeds and lints the preview URL.
+# Enforces token waste and bot access requirements on preview builds.
 name: Context Lint (Preview Deploy)
 
 on:
@@ -13,8 +14,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run Context Lint on Preview
+        id: lint
         uses: hanselhansel/context-cli@main
         with:
           url: ${{ github.event.deployment_status.target_url }}
           fail-under: '50'
           single-page: 'true'
+          max-context-waste: '85'
+          require-bot-access: 'true'
+
+      - name: Check results
+        run: |
+          echo "Score: ${{ steps.lint.outputs.score }}"
+          echo "Token Waste: ${{ steps.lint.outputs.token-waste }}%"

@@ -53,6 +53,18 @@ inputs:
   webhook-url:
     description: 'Webhook URL to POST lint results to (Slack, Discord, etc.)'
     required: false
+  max-context-waste:
+    description: 'Maximum acceptable context waste percentage (0-100). Fail if exceeded.'
+    required: false
+    default: ''
+  require-llms-txt:
+    description: 'Fail if llms.txt is not present on the site'
+    required: false
+    default: 'false'
+  require-bot-access:
+    description: 'Fail if any AI bots are blocked by robots.txt'
+    required: false
+    default: 'false'
   python-version:
     description: 'Python version to use'
     required: false
@@ -65,6 +77,9 @@ outputs:
   report-json:
     description: 'Full lint report as JSON'
     value: ${{ steps.lint.outputs.report_json }}
+  token-waste:
+    description: 'Context waste percentage from Token Waste analysis'
+    value: ${{ steps.lint.outputs.token_waste }}
 
 runs:
   using: 'composite'
@@ -105,7 +120,19 @@ runs:
         # Extract score from JSON
         SCORE=$(echo "$REPORT" | python3 -c "import sys, json; print(json.load(sys.stdin)['overall_score'])" 2>/dev/null || echo "0")
 
+        # Extract token waste from JSON
+        TOKEN_WASTE=$(echo "$REPORT" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+lr = data.get('lint_result')
+if lr:
+    print(lr.get('context_waste_pct', 'N/A'))
+else:
+    print('N/A')
+" 2>/dev/null || echo "N/A")
+
         echo "score=$SCORE" >> $GITHUB_OUTPUT
+        echo "token_waste=$TOKEN_WASTE" >> $GITHUB_OUTPUT
         echo "report_json<<REPORT_EOF" >> $GITHUB_OUTPUT
         echo "$REPORT" >> $GITHUB_OUTPUT
         echo "REPORT_EOF" >> $GITHUB_OUTPUT
@@ -158,6 +185,18 @@ runs:
 
         if [ -n "${{ inputs.webhook-url }}" ]; then
           SUMMARY_CMD="$SUMMARY_CMD --webhook '${{ inputs.webhook-url }}'"
+        fi
+
+        if [ -n "${{ inputs.max-context-waste }}" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --max-context-waste ${{ inputs.max-context-waste }}"
+        fi
+
+        if [ "${{ inputs.require-llms-txt }}" = "true" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --require-llms-txt"
+        fi
+
+        if [ "${{ inputs.require-bot-access }}" = "true" ]; then
+          SUMMARY_CMD="$SUMMARY_CMD --require-bot-access"
         fi
 
         eval $SUMMARY_CMD
