@@ -66,14 +66,14 @@ class TestDetectModel:
     def test_ollama_fallback(self):
         with patch.dict("os.environ", {}, clear=True):
             with patch(
-                "aeo_cli.core.generate.llm._check_ollama_running", return_value=True
+                "aeo_cli.core.llm._check_ollama_running", return_value=True
             ):
                 assert detect_model() == "ollama/llama3.2"
 
     def test_no_provider_raises(self):
         with patch.dict("os.environ", {}, clear=True):
             with patch(
-                "aeo_cli.core.generate.llm._check_ollama_running", return_value=False
+                "aeo_cli.core.llm._check_ollama_running", return_value=False
             ):
                 with pytest.raises(LLMError, match="No LLM provider found"):
                     detect_model()
