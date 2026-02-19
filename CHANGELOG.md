@@ -27,7 +27,7 @@ AEO-CLI reaches 1.0.0 with all planned features complete across 10 development p
 - **Share-of-Recommendation Benchmark**: LLM-as-judge brand mention/recommendation tracking
 - **Retail AI-Readiness Auditor**: 8 marketplace parsers, 5-pillar retail scoring, OpenAI Feed Spec compliance
 - **MCP Server**: 9 tools for AI agent integration
-- **1,452 tests at 100% code coverage** across 83 source files
+- **1,467 tests at 100% code coverage** across 83 source files
 
 ## [0.12.0] - 2026-02-19
 
