@@ -160,3 +160,12 @@ Details: `docs/long-running-session-plan.md`
 | B4 | 3 | loader+dispatcher, judge+metrics, cost+CLI |
 | B5 | 4 | 2 parsers each, scoring+auditor, CLI+MCP |
 | B0, B1, B2, A4 | Solo | Too small or needs coherent voice |
+
+## Agent Team File Ownership Protocol
+When spawning agent teams, ALWAYS:
+1. Map every task to its exact file modifications BEFORE spawning
+2. Assign exclusive file ownership — no file shared between agents
+3. Keep shared files (models.py, main.py, auditor.py) for the leader or one designated agent
+4. Have agents skip mypy (leader runs it after merge)
+5. Agents `git pull --rebase` before editing, commit+push immediately after
+See `.claude/rules/agent-teams.md` for full protocol.
