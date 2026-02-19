@@ -1,9 +1,9 @@
-# AEO-CLI v0.2.1 — CRITICAL CONTEXT
+# AEO-CLI v0.3.0 — CRITICAL CONTEXT
 
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
-Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot
+Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: Pre-A1 (workflow infrastructure complete, ready for feature development)
+CURRENT PHASE: A2 (Intelligence layer — RSL, IETF, E-E-A-T, citation, history, compare)
 
 ## Session Workflow (MANDATORY — enforced by hooks)
 1. **TEST** — Write comprehensive tests FIRST (TDD, 100% coverage)
@@ -136,8 +136,8 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`
 ## Phase Roadmap
 | Phase | Version | Status | Description |
 |-------|---------|--------|-------------|
-| A1 | 0.3.0 | NEXT | Strengthen core: new bots, llms-full.txt, schema weighting, readability, batch |
-| A2 | 0.4.0 | — | Intelligence: citation readiness, compare, SQLite history, RSL, IETF |
+| A1 | 0.3.0 | DONE | Strengthen core: new bots, llms-full.txt, schema weighting, readability, batch |
+| A2 | 0.4.0 | NEXT | Intelligence: citation readiness, compare, SQLite history, RSL, IETF |
 | A3 | 0.5.0 | — | Ecosystem: config file, MCP expansion, plugin arch, webhooks, HTML report |
 | A4 | 0.6.0 | — | Polish: docs, CHANGELOG, benchmarks |
 | B0 | 0.7.0 | — | Shared infra: core/llm.py, core/cost.py |

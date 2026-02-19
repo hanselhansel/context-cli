@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-19
+
+### Added
+
+- **Schema type weighting**: High-value Schema.org types (FAQPage, HowTo, Article, Product, Recipe) score higher than standard types
+- **6 new AI bots**: Added DeepSeekBot, Grok, Bytespider, YouBot, AppleBot-Extended, Diffbot to robot checking (13 bots total)
+- **`--timeout/-t` flag**: Configurable HTTP timeout (default 15s)
+- **llms-full.txt detection**: Checks for `/llms-full.txt` alongside `/llms.txt`
+- **Content chunk analysis**: Citation readiness scoring via statistics density, quote patterns, and FAQ detection
+- **Batch mode (`--file` flag)**: Audit multiple URLs from a `.txt` or `.csv` file with `--concurrency` control
+- **Flesch-Kincaid readability scoring**: Readability grade level integrated into content pillar
+- **Heading structure analysis**: H1-H6 hierarchy validation and scoring bonus
+- **Answer-first pattern detection**: Detects pages that lead with direct answers (AI-friendly content structure)
+- **`--bots` flag**: Override default AI bot list with custom comma-separated bot names
+
+### Changed
+
+- Refactored `auditor.py` into per-pillar `checks/` modules and standalone `scoring.py`
+- Enhanced verbose output with scoring formulas, per-bot detail, and multi-page aggregation panels
+- Test suite expanded from 308 to 493 tests, maintaining **100% code coverage**
+
 ## [0.2.1] - 2026-02-19
 
 ### Added
