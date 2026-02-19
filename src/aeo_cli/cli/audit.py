@@ -41,7 +41,9 @@ def _score_color(score: float, pillar: str) -> Text:
     return _score_color_impl(score, pillar)
 
 
-def _save_to_history(report: AuditReport, con: Console) -> None:
+def _save_to_history(
+    report: AuditReport, con: Console, threshold: float = 5.0,
+) -> None:
     """Save report to history and check for regression against previous audit."""
     db = HistoryDB()
     try:
@@ -50,7 +52,7 @@ def _save_to_history(report: AuditReport, con: Console) -> None:
         con.print("[green]Saved to history.[/green]")
 
         if previous is not None:
-            result = detect_regression(report, previous)
+            result = detect_regression(report, previous, threshold=threshold)
             if result.has_regression:
                 con.print(
                     f"[bold red]Regression detected:[/bold red] "
@@ -113,6 +115,10 @@ def register(app: typer.Typer) -> None:
         save: bool = typer.Option(
             False, "--save", help="Save audit results to local history (~/.aeo-cli/history.db)"
         ),
+        regression_threshold: float = typer.Option(
+            5.0, "--regression-threshold",
+            help="Score drop threshold to flag as regression (default: 5 points)",
+        ),
     ) -> None:
         """Run an AEO audit on a URL and display the results."""
         # --json flag is a shortcut for --format json
@@ -153,7 +159,7 @@ def register(app: typer.Typer) -> None:
 
         if save:
             if isinstance(report, AuditReport):
-                _save_to_history(report, console)
+                _save_to_history(report, console, threshold=regression_threshold)
             else:
                 console.print(
                     "[yellow]Note:[/yellow] --save stores single-page audits only. "

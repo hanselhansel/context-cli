@@ -200,3 +200,34 @@ def test_cli_save_works_with_rich_output(mock_run, mock_save):
     result = runner.invoke(app, ["audit", _URL, "--save"])
     assert result.exit_code == 0
     mock_save.assert_called_once()
+
+
+@patch("aeo_cli.cli.audit._save_to_history")
+@patch("aeo_cli.cli.audit._run_audit")
+def test_cli_regression_threshold_flag(mock_run, mock_save):
+    """--regression-threshold passes custom threshold to _save_to_history."""
+    mock_run.return_value = _report()
+    runner.invoke(app, ["audit", _URL, "--save", "--regression-threshold", "10", "--json"])
+    mock_save.assert_called_once()
+    _, kwargs = mock_save.call_args
+    assert kwargs["threshold"] == 10.0
+
+
+@patch("aeo_cli.cli.audit.detect_regression")
+@patch("aeo_cli.cli.audit.HistoryDB")
+def test_save_to_history_passes_threshold(mock_db_cls, mock_regress):
+    """Custom threshold is forwarded to detect_regression."""
+    from aeo_cli.cli.audit import _save_to_history
+
+    mock_db = MagicMock()
+    mock_db_cls.return_value = mock_db
+    mock_db.get_latest_report.return_value = _report(score=70.0)
+    mock_regress.return_value = _regression(has_regression=False, delta=-3.0)
+
+    buf = StringIO()
+    con = Console(file=buf, force_terminal=True, width=80)
+    _save_to_history(_report(score=67.0), con, threshold=10.0)
+
+    mock_regress.assert_called_once()
+    _, kwargs = mock_regress.call_args
+    assert kwargs["threshold"] == 10.0
