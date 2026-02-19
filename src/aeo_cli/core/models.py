@@ -13,6 +13,7 @@ class OutputFormat(str, Enum):
     json = "json"
     csv = "csv"
     markdown = "markdown"
+    html = "html"
 
 
 class ProfileType(str, Enum):
@@ -366,3 +367,19 @@ class GenerateResult(BaseModel):
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors during generation"
     )
+
+
+# ── Webhook models ───────────────────────────────────────────────────────────
+
+
+class WebhookPayload(BaseModel):
+    """Payload sent to webhook URLs after an audit completes."""
+
+    url: str = Field(description="Audited URL")
+    overall_score: float = Field(description="Overall AEO score")
+    robots_score: float = Field(description="Robots pillar score")
+    llms_txt_score: float = Field(description="llms.txt pillar score")
+    schema_score: float = Field(description="Schema.org pillar score")
+    content_score: float = Field(description="Content pillar score")
+    timestamp: str = Field(description="ISO 8601 timestamp")
+    regression: bool = Field(default=False, description="Whether regression was detected")
