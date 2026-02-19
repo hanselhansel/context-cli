@@ -1,6 +1,6 @@
-# Contributing to AEO-CLI
+# Contributing to Context CLI
 
-Thanks for your interest in contributing to AEO-CLI! This guide will help you get set up and submit your first pull request.
+Thanks for your interest in contributing to Context CLI! This guide will help you get set up and submit your first pull request.
 
 ## Development Setup
 
@@ -12,12 +12,12 @@ Thanks for your interest in contributing to AEO-CLI! This guide will help you ge
 ### Install
 
 ```bash
-git clone https://github.com/hanselhansel/aeo-cli.git
-cd aeo-cli
+git clone https://github.com/hanselhansel/context-cli.git
+cd context-cli
 pip install -e ".[dev]"
 ```
 
-AEO-CLI uses a headless browser (via [crawl4ai](https://github.com/unclecode/crawl4ai)) for content extraction. After installing, set it up:
+Context CLI uses a headless browser (via [crawl4ai](https://github.com/unclecode/crawl4ai)) for content extraction. After installing, set it up:
 
 ```bash
 crawl4ai-setup
@@ -26,7 +26,7 @@ crawl4ai-setup
 ### Verify your setup
 
 ```bash
-aeo-cli audit example.com --single
+context-cli lint example.com --single
 ```
 
 ## Running Tests
@@ -54,7 +54,7 @@ ruff check --fix src/ tests/
 ## Project Architecture
 
 ```
-src/aeo_cli/
+src/context_cli/
 ├── main.py              # Typer CLI (thin wrapper)
 ├── server.py            # FastMCP server (thin wrapper)
 └── core/
@@ -66,19 +66,19 @@ src/aeo_cli/
 
 Key design principles:
 
-- **`auditor.py`** is the core entry point — both CLI and MCP server call `audit_url()` / `audit_site()`
+- **`auditor.py`** is the core entry point -- both CLI and MCP server call `audit_url()` / `audit_site()`
 - **`models.py`** defines all data contracts as Pydantic models with `Field(description=...)` on every field
-- **Async-first** — core logic is async; the CLI bridges with `asyncio.run()`
-- **Errors don't crash** — all errors are captured in `AuditReport.errors`
+- **Async-first** -- core logic is async; the CLI bridges with `asyncio.run()`
+- **Errors don't crash** -- all errors are captured in `AuditReport.errors`
 
 ## Code Style
 
 - **Ruff** for linting and formatting (config in `pyproject.toml`)
 - **Line length**: 100 characters
 - **Async-first**: use `async`/`await` for I/O operations
-- **Pydantic models**: add `Field(description=...)` on all model fields — these propagate to MCP tool schemas
+- **Pydantic models**: add `Field(description=...)` on all model fields -- these propagate to MCP tool schemas
 - **Type hints**: use modern Python syntax (`list[str]`, `str | None`, not `List[str]`, `Optional[str]`)
-- **src-layout**: all source code lives under `src/aeo_cli/`
+- **src-layout**: all source code lives under `src/context_cli/`
 
 ## Submitting a Pull Request
 
@@ -87,7 +87,7 @@ Key design principles:
    ```bash
    git checkout -b your-feature-name
    ```
-3. **Make your changes** — keep PRs focused on a single concern
+3. **Make your changes** -- keep PRs focused on a single concern
 4. **Run tests and lint** before committing:
    ```bash
    pytest tests/ -v
@@ -98,13 +98,13 @@ Key design principles:
 
 ### PR Guidelines
 
-- Keep PRs small and focused — one feature or fix per PR
+- Keep PRs small and focused -- one feature or fix per PR
 - Add tests for new functionality
 - Update documentation if your change affects user-facing behavior
 - Ensure all tests pass and linting is clean
 - Describe what the PR does and why in the PR description
 
-## Adding a New Audit Pillar
+## Adding a New Lint Pillar
 
 If you're adding a new scoring pillar:
 
@@ -118,7 +118,7 @@ If you're adding a new scoring pillar:
 
 ## Reporting Issues
 
-Found a bug or have a feature request? [Open an issue](https://github.com/hanselhansel/aeo-cli/issues) with:
+Found a bug or have a feature request? [Open an issue](https://github.com/hanselhansel/context-cli/issues) with:
 
 - A clear description of the problem or suggestion
 - Steps to reproduce (for bugs)
@@ -127,4 +127,4 @@ Found a bug or have a feature request? [Open an issue](https://github.com/hansel
 
 ## License
 
-By contributing to AEO-CLI, you agree that your contributions will be licensed under the MIT License.
+By contributing to Context CLI, you agree that your contributions will be licensed under the MIT License.

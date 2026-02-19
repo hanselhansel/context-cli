@@ -1,5 +1,5 @@
-name: 'AEO Audit'
-description: 'Audit a URL for AI engine optimization readiness and get a 0-100 AEO score'
+name: 'Context Lint'
+description: 'Lint a URL for LLM readiness and token efficiency'
 author: 'Hansel Wahjono'
 
 branding:
@@ -8,7 +8,7 @@ branding:
 
 inputs:
   url:
-    description: 'URL to audit'
+    description: 'URL to lint'
     required: true
   fail-under:
     description: 'Fail if score is below this threshold (0-100)'
@@ -18,11 +18,11 @@ inputs:
     required: false
     default: 'false'
   single-page:
-    description: 'Audit only the given URL (skip multi-page discovery)'
+    description: 'Lint only the given URL (skip multi-page discovery)'
     required: false
     default: 'false'
   max-pages:
-    description: 'Maximum pages to audit in multi-page mode'
+    description: 'Maximum pages to lint in multi-page mode'
     required: false
     default: '10'
   baseline-file:
@@ -48,10 +48,10 @@ inputs:
     description: 'Minimum llms.txt pillar score (0-10)'
     required: false
   overall-min:
-    description: 'Minimum overall AEO score (0-100, alternative to fail-under)'
+    description: 'Minimum overall score (0-100, alternative to fail-under)'
     required: false
   webhook-url:
-    description: 'Webhook URL to POST audit results to (Slack, Discord, etc.)'
+    description: 'Webhook URL to POST lint results to (Slack, Discord, etc.)'
     required: false
   python-version:
     description: 'Python version to use'
@@ -60,11 +60,11 @@ inputs:
 
 outputs:
   score:
-    description: 'Overall AEO score (0-100)'
-    value: ${{ steps.audit.outputs.score }}
+    description: 'Overall LLM readiness score (0-100)'
+    value: ${{ steps.lint.outputs.score }}
   report-json:
-    description: 'Full audit report as JSON'
-    value: ${{ steps.audit.outputs.report_json }}
+    description: 'Full lint report as JSON'
+    value: ${{ steps.lint.outputs.report_json }}
 
 runs:
   using: 'composite'
@@ -84,12 +84,12 @@ runs:
       run: |
         crawl4ai-setup || echo "::warning::crawl4ai browser setup failed, content analysis may be limited"
 
-    - name: Run AEO audit
-      id: audit
+    - name: Run Context Lint
+      id: lint
       shell: bash
       run: |
         # Build command
-        CMD="context-cli audit '${{ inputs.url }}'"
+        CMD="context-cli lint '${{ inputs.url }}'"
 
         if [ "${{ inputs.single-page }}" = "true" ]; then
           CMD="$CMD --single"
@@ -99,7 +99,7 @@ runs:
 
         CMD="$CMD --json"
 
-        # Run audit and capture JSON output
+        # Run lint and capture JSON output
         REPORT=$(eval $CMD 2>/dev/null || true)
 
         # Extract score from JSON
@@ -111,7 +111,7 @@ runs:
         echo "REPORT_EOF" >> $GITHUB_OUTPUT
 
         # Now run with formatting for the step summary
-        SUMMARY_CMD="context-cli audit '${{ inputs.url }}'"
+        SUMMARY_CMD="context-cli lint '${{ inputs.url }}'"
 
         if [ "${{ inputs.single-page }}" = "true" ]; then
           SUMMARY_CMD="$SUMMARY_CMD --single"

@@ -1,7 +1,7 @@
-# AEO-CLI Long-Running Session Plan
+# Context CLI Long-Running Session Plan
 
-> A comprehensive, multi-day Claude Code development plan for evolving aeo-cli into the
-> definitive open-source AEO toolkit — grounded in market research, validated by continuous
+> A comprehensive, multi-day Claude Code development plan for evolving context-cli into the
+> definitive open-source LLM readiness linting toolkit — grounded in market research, validated by continuous
 > testing, and protected against hallucination drift.
 
 **Generated**: 2026-02-19
@@ -13,7 +13,7 @@
 
 1. [Market Intelligence Summary](#1-market-intelligence-summary)
 2. [Research & Trends Shaping AEO](#2-research--trends-shaping-aeo)
-3. [Current State of aeo-cli](#3-current-state-of-aeo-cli)
+3. [Current State of context-cli](#3-current-state-of-context-cli)
 4. [Strategic Roadmap (Feature Phases)](#4-strategic-roadmap-feature-phases)
 5. [Detailed Implementation Plans](#5-detailed-implementation-plans)
 6. [Long-Running Session Architecture](#6-long-running-session-architecture)
@@ -48,10 +48,10 @@ The AEO/GEO space has exploded into a **$200M+ funded category with 24+ platform
 | **Peec AI** | $29M | Berlin-based, 1,500+ marketing teams, from $105/mo |
 | **Evertune** | $19M+ (Felicis) | 1M+ prompts/brand/month monitoring |
 
-### Where aeo-cli is Unique
+### Where context-cli is Unique
 
 **No other tool in the market offers this combination:**
-1. **CLI-first** — the only command-line AEO audit tool
+1. **CLI-first** — the only command-line LLM readiness linting tool
 2. **Developer-focused** — market is dominated by marketer-facing SaaS
 3. **Open-source** — only GetCito and LLM Brand Tracker are OSS (neither has same scope)
 4. **MCP server** — only Adobe and Schema App mention MCP among commercial tools
@@ -62,7 +62,7 @@ The AEO/GEO space has exploded into a **$200M+ funded category with 24+ platform
 
 | Tool | Type | Score? | robots.txt? | llms.txt? | Schema? | CLI? | OSS? |
 |------|------|--------|------------|-----------|---------|------|------|
-| **aeo-cli** | CLI + MCP | 0-100 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **context-cli** | CLI + MCP | 0-100 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Delante AI Audit | Web | 0-100 | ✅ | ✅ | ✅ | ❌ | ❌ |
 | FastAEOCheck | Web | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
 | LLMAudit.ai | Web | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
@@ -77,7 +77,7 @@ The AEO/GEO space has exploded into a **$200M+ funded category with 24+ platform
 
 The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Princeton, IIT Delhi, Allen Institute) introduced systematic study of how to optimize content for AI-generated responses.
 
-**Key findings relevant to aeo-cli:**
+**Key findings relevant to context-cli:**
 - **Cite Sources** boost: +30-40% visibility in generative engines
 - **Statistics inclusion**: +20-30% improvement
 - **Quotations from authoritative sources**: +15-25%
@@ -85,7 +85,7 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 - **Technical terms and jargon**: +10-15% for specialized queries
 - Content structure matters more than keyword density for AI engines
 
-**Implication for aeo-cli**: Consider adding "citation readiness" and "statistical density" as sub-signals within the Content Density pillar.
+**Implication for context-cli**: Consider adding "citation readiness" and "statistical density" as sub-signals within the Content Density pillar.
 
 ### 2.2 The llms.txt Standard — Reality Check
 
@@ -104,7 +104,7 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 
 **Where it does have value**: Developer documentation, agent workflows (Google A2A references it), API-heavy SaaS products.
 
-**Implication for aeo-cli**: The 10-point weight is **appropriately calibrated** (not too high). Consider also checking for `llms-full.txt`. Do NOT increase the weight — the data does not support it.
+**Implication for context-cli**: The 10-point weight is **appropriately calibrated** (not too high). Consider also checking for `llms-full.txt`. Do NOT increase the weight — the data does not support it.
 
 ### 2.3 How LLMs Actually Cite Sources — Research Data
 
@@ -129,7 +129,7 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 - Recommended reading level: **8th-10th grade**
 - One topic per heading (multi-topic sections get treated as single chunk by LLMs)
 
-**Implication for aeo-cli**: Content Density pillar should evolve to check chunk sizing, answer-first patterns, readability grade, and heading structure — not just word count.
+**Implication for context-cli**: Content Density pillar should evolve to check chunk sizing, answer-first patterns, readability grade, and heading structure — not just word count.
 
 ### 2.4 AI Crawler Ecosystem — What's Changing
 
@@ -156,7 +156,7 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 - Key deliverables: AI Usage Preferences Vocabulary, `Content-Usage` HTTP header, robots.txt extensions
 - Co-chaired by Mark Nottingham, with Google's Gary Illyes participating
 
-**New AI bots to consider adding to aeo-cli:**
+**New AI bots to consider adding to context-cli:**
 - DeepSeek-AI
 - Grok/xAI crawler
 - Meta AI crawler
@@ -177,7 +177,7 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 - Schema.org types most impactful for AI: `FAQPage`, `HowTo`, `Article`, `Product`, `Organization`
 - Google's John Mueller confirmed schema types "come and go" but JSON-LD remains preferred format
 
-**Implication for aeo-cli**: Schema pillar at 25 points is well-validated. Consider weighting specific schema types differently (FAQ/HowTo worth more than generic Organization).
+**Implication for context-cli**: Schema pillar at 25 points is well-validated. Consider weighting specific schema types differently (FAQ/HowTo worth more than generic Organization).
 
 ### 2.6 Content Optimization for AI Engines
 
@@ -196,7 +196,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 - **Schema App's MCP Server** exposes knowledge graphs to AI assistants
 - **LangChain mcpdoc** serves llms.txt to IDEs via MCP
 
-**Implication for aeo-cli**: Our MCP server is ahead of the curve. Consider expanding MCP tools beyond `audit()` and `generate()`.
+**Implication for context-cli**: Our MCP server is ahead of the curve. Consider expanding MCP tools beyond `audit()` and `generate()`.
 
 ### 2.8 Emerging Protocols & Standards
 
@@ -221,9 +221,9 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 | **Really Simple Licensing** | Publisher monetization of AI crawl access | New check candidate |
 | **Chunk Relevance** | Self-contained 50-150 word chunks get 2.3x more citations | Content scoring |
 
-### 2.10 Research Validation of aeo-cli Scoring Pillars
+### 2.10 Research Validation of context-cli Scoring Pillars
 
-| aeo-cli Pillar | Weight | Research Validation | Evolution Path |
+| context-cli Pillar | Weight | Research Validation | Evolution Path |
 |---------------|--------|---------------------|----------------|
 | Content Density | 40 pts | **Strongly validated** — chunk clarity, LLM readability, content depth are #1 factor | Add chunk sizing, answer-first detection, readability grade, heading structure |
 | Robots.txt AI Bot Access | 25 pts | **Validated as gatekeeper** — but compliance is unreliable | Add RSL check, IETF Content-Usage header detection |
@@ -232,7 +232,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 
 ---
 
-## 3. Current State of aeo-cli
+## 3. Current State of context-cli
 
 ### Metrics
 
@@ -268,7 +268,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 8. Citation readiness analysis (statistics, quotes, direct answers)
 
 **Medium-Value:**
-9. Comparative analysis (`aeo-cli compare url1 url2`)
+9. Comparative analysis (`context-cli compare url1 url2`)
 10. Score history & regression tracking
 11. Webhook notifications (Slack, Discord)
 12. PDF/HTML report export
@@ -309,7 +309,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 | # | Task | Research Basis | Priority | Complexity |
 |---|------|----------------|----------|------------|
 | 11 | Citation readiness score (statistics density, quote density, FAQ patterns) | GEO paper: +30-40% visibility from citations, +20-30% from statistics | High | Medium |
-| 12 | Comparative analysis: `aeo-cli compare url1 url2` | Unique feature — no competitor offers CLI comparison | High | Medium |
+| 12 | Comparative analysis: `context-cli compare url1 url2` | Unique feature — no competitor offers CLI comparison | High | Medium |
 | 13 | Score history with SQLite persistence | Monthly citation monitoring recommended; enables regression detection | High | Medium |
 | 14 | Recommendation engine ("Add FAQ schema to boost +8 points") | Scrunch, Goodie, and Profound all offer recommendations | High | High |
 | 15 | RSL (Really Simple Licensing) detection (`/license.xml`) | Official standard since Dec 2025; Reddit, Medium, Cloudflare support it | Medium | Low |
@@ -321,12 +321,12 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 
 | # | Task | Research Basis | Priority | Complexity |
 |---|------|----------------|----------|------------|
-| 19 | Configuration file support (`.aeorc.yml`) | Custom scoring profiles needed for enterprise | High | Medium |
+| 19 | Configuration file support (`.contextrc.yml`) | Custom scoring profiles needed for enterprise | High | Medium |
 | 20 | MCP tool expansion (compare, history, recommend) | Adobe + Schema App both expanding MCP; stay ahead | High | Medium |
 | 21 | Plugin architecture for custom pillars | Enables community-driven pillar development | High | High |
 | 22 | Webhook notifications (Slack, Discord, custom URL) | Monitoring cadence requires automated alerting | Medium | Medium |
 | 23 | HTML report export (Lighthouse-style) | Profound/Goodie provide visual reports; CLI needs parity | Medium | High |
-| 24 | `aeo-cli watch` — continuous monitoring mode | 65% of AI bot traffic targets recent content; freshness matters | Medium | Medium |
+| 24 | `context-cli watch` — continuous monitoring mode | 65% of AI bot traffic targets recent content; freshness matters | Medium | Medium |
 
 #### Phase A4: Polish & Ship (Days 7-8)
 
@@ -340,15 +340,15 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 
 ### Track B: New Capabilities (Days 9-38)
 
-**Goal**: Transform aeo-cli from "URL auditor" into a **brand intelligence platform** with 5 new capabilities solving distinct CPG/enterprise pain points. No open-source tool does any of these today.
+**Goal**: Transform context-cli from "URL auditor" into a **brand intelligence platform** with 5 new capabilities solving distinct CPG/enterprise pain points. No open-source tool does any of these today.
 
-**User decisions**: Users provide their own API keys. All capabilities are new subcommands within aeo-cli. Both SEA and global marketplaces supported from day one.
+**User decisions**: Users provide their own API keys. All capabilities are new subcommands within context-cli. Both SEA and global marketplaces supported from day one.
 
 | Phase | Capability | CLI Command | Days | Key Deliverable |
 |-------|-----------|-------------|------|-----------------|
 | B0 | Shared Infrastructure | — | 1-2 | `core/llm.py`, `core/cost.py` — shared LLM calling layer |
 | B1 | CI/CD Enhancement | `audit --robots-min --baseline --webhook` | 2-3 | Per-pillar thresholds, regression detection, webhooks |
-| B2 | AEO Compiler Batch | `generate --batch` | 3-4 | Batch llms.txt + JSON-LD generation for 5K+ pages |
+| B2 | Context Compiler Batch | `generate --batch` | 3-4 | Batch llms.txt + JSON-LD generation for 5K+ pages |
 | B3 | Citation Radar | `radar` | 5-7 | Multi-model citation extraction + brand/source analysis |
 | B4 | Share-of-Model Benchmark | `benchmark` | 6-8 | LLM-as-judge Share-of-Recommendation % tracking |
 | B5 | Retail-RAG Auditor | `retail` | 7-10 | 8 marketplace parsers, 5-pillar retail AI-readiness scoring |
@@ -367,9 +367,9 @@ See [Section 5: Detailed Implementation Plans](#5-detailed-implementation-plans)
 
 | File | Action | Purpose |
 |------|--------|---------|
-| `src/aeo_cli/core/llm.py` | Create (move from `generate/llm.py`) | Shared LiteLLM wrapper: `call_llm_structured()`, `detect_model()`, `ensure_litellm()` |
-| `src/aeo_cli/core/cost.py` | Create | Model-to-price lookup, token estimation, cost formatting |
-| `src/aeo_cli/core/generate/llm.py` | Modify | Re-export from `core/llm.py` for backward compatibility |
+| `src/context_cli/core/llm.py` | Create (move from `generate/llm.py`) | Shared LiteLLM wrapper: `call_llm_structured()`, `detect_model()`, `ensure_litellm()` |
+| `src/context_cli/core/cost.py` | Create | Model-to-price lookup, token estimation, cost formatting |
+| `src/context_cli/core/generate/llm.py` | Modify | Re-export from `core/llm.py` for backward compatibility |
 
 Reuse: `core/generate/llm.py` already has the right abstractions. `core/retry.py` already handles HTTP retry with backoff.
 
@@ -377,22 +377,22 @@ Reuse: `core/generate/llm.py` already has the right abstractions. `core/retry.py
 
 **Pain**: Junior dev pushes update that blocks ClaudeBot, breaks JSON-LD. Nobody notices for months.
 
-**CLI changes** (modify `src/aeo_cli/main.py`):
+**CLI changes** (modify `src/context_cli/main.py`):
 ```
-aeo-cli audit <url> --robots-min 20 --schema-min 15 --content-min 30
-aeo-cli audit <url> --baseline scores.json --regression-threshold 5
-aeo-cli audit <url> --save-baseline scores.json
-aeo-cli audit <url> --webhook https://hooks.slack.com/...
+context-cli audit <url> --robots-min 20 --schema-min 15 --content-min 30
+context-cli audit <url> --baseline scores.json --regression-threshold 5
+context-cli audit <url> --save-baseline scores.json
+context-cli audit <url> --webhook https://hooks.slack.com/...
 ```
 
 **New files**:
 
 | File | Purpose |
 |------|---------|
-| `src/aeo_cli/core/ci/__init__.py` | Package exports |
-| `src/aeo_cli/core/ci/thresholds.py` | Per-pillar threshold checking |
-| `src/aeo_cli/core/ci/baseline.py` | Baseline JSON read/write/comparison |
-| `src/aeo_cli/core/ci/webhook.py` | Async httpx POST to webhook URL |
+| `src/context_cli/core/ci/__init__.py` | Package exports |
+| `src/context_cli/core/ci/thresholds.py` | Per-pillar threshold checking |
+| `src/context_cli/core/ci/baseline.py` | Baseline JSON read/write/comparison |
+| `src/context_cli/core/ci/webhook.py` | Async httpx POST to webhook URL |
 
 **New models**: `PillarThresholds`, `BaselineComparison`, `WebhookPayload`
 
@@ -400,13 +400,13 @@ aeo-cli audit <url> --webhook https://hooks.slack.com/...
 
 **Tests**: `test_ci_thresholds.py`, `test_ci_baseline.py`, `test_ci_webhook.py`
 
-### 5.3 Phase B2: AEO Compiler Batch Mode (3-4 days)
+### 5.3 Phase B2: Context Compiler Batch Mode (3-4 days)
 
 **Pain**: CPG brand needs llms.txt + JSON-LD for 5,000 SKUs. Manual = 8 months, $500K. Auto-generate = 30 seconds per page.
 
-**CLI**: `aeo-cli generate --batch urls.txt --profile cpg --model gpt-4o-mini`
+**CLI**: `context-cli generate --batch urls.txt --profile cpg --model gpt-4o-mini`
 
-**New file**: `src/aeo_cli/core/generate/batch.py` — Batch orchestrator: URL discovery from sitemap/file, concurrency loop with `asyncio.Semaphore`, cost estimation upfront, aggregated site-wide `llms.txt` + per-page `schema.jsonld`.
+**New file**: `src/context_cli/core/generate/batch.py` — Batch orchestrator: URL discovery from sitemap/file, concurrency loop with `asyncio.Semaphore`, cost estimation upfront, aggregated site-wide `llms.txt` + per-page `schema.jsonld`.
 
 **Key design**: Reuses existing `generate_assets()` per URL. Uses `discovery.py` for sitemap parsing (already exists). Cost displayed before proceeding.
 
@@ -416,14 +416,14 @@ aeo-cli audit <url> --webhook https://hooks.slack.com/...
 
 **Tests**: `test_generate_batch.py`, `test_generate_batch_cli.py`
 
-### 5.4 Phase B3: Citation Radar — `aeo-cli radar` (5-7 days)
+### 5.4 Phase B3: Citation Radar — `context-cli radar` (5-7 days)
 
-**Pain**: Brand achieves 100/100 AEO score but AI still recommends competitors. LLMs weight Reddit, Wirecutter, blogs over corporate sites. Brand has no visibility into what AI is citing.
+**Pain**: Brand achieves 100/100 LLM readiness score but AI still recommends competitors. LLMs weight Reddit, Wirecutter, blogs over corporate sites. Brand has no visibility into what AI is citing.
 
 **CLI**:
 ```
-aeo-cli radar "best body wash for eczema" --brand Dove --brand CeraVe
-aeo-cli radar "best running shoes" --model perplexity/sonar-pro --model gpt-4o
+context-cli radar "best body wash for eczema" --brand Dove --brand CeraVe
+context-cli radar "best running shoes" --model perplexity/sonar-pro --model gpt-4o
 ```
 
 **Citation extraction differs per model**:
@@ -438,11 +438,11 @@ aeo-cli radar "best running shoes" --model perplexity/sonar-pro --model gpt-4o
 
 | File | Purpose |
 |------|---------|
-| `src/aeo_cli/core/radar/__init__.py` | Package exports |
-| `src/aeo_cli/core/radar/query.py` | Multi-model query dispatcher via LiteLLM |
-| `src/aeo_cli/core/radar/parser.py` | Citation extraction: Perplexity metadata, inline refs, plain text |
-| `src/aeo_cli/core/radar/analyzer.py` | Brand mention detection + LLM-as-judge for sentiment |
-| `src/aeo_cli/core/radar/domains.py` | Domain classification registry (reddit, news, review_site, marketplace, etc.) |
+| `src/context_cli/core/radar/__init__.py` | Package exports |
+| `src/context_cli/core/radar/query.py` | Multi-model query dispatcher via LiteLLM |
+| `src/context_cli/core/radar/parser.py` | Citation extraction: Perplexity metadata, inline refs, plain text |
+| `src/context_cli/core/radar/analyzer.py` | Brand mention detection + LLM-as-judge for sentiment |
+| `src/context_cli/core/radar/domains.py` | Domain classification registry (reddit, news, review_site, marketplace, etc.) |
 
 **New models**: `RadarConfig`, `CitationSource`, `BrandMention`, `ModelRadarResult`, `RadarReport`
 
@@ -452,13 +452,13 @@ aeo-cli radar "best running shoes" --model perplexity/sonar-pro --model gpt-4o
 
 **Risks**: Perplexity API format changes (mitigate: abstract parser), models without citations (mitigate: label clearly), rate limits (mitigate: reuse `RetryConfig`)
 
-### 5.5 Phase B4: Share-of-Model Benchmark — `aeo-cli benchmark` (6-8 days)
+### 5.5 Phase B4: Share-of-Model Benchmark — `context-cli benchmark` (6-8 days)
 
 **Pain**: CMO asks "We spent $50K optimizing for AI. Are we getting recommended more?" No "Google Analytics" for AI models exists.
 
 **CLI**:
 ```
-aeo-cli benchmark prompts.csv --brand "Dove" --competitor "CeraVe" --competitor "Aveeno" --runs 3
+context-cli benchmark prompts.csv --brand "Dove" --competitor "CeraVe" --competitor "Aveeno" --runs 3
 # Output: "This will make ~450 API calls (~$3.20). Proceed? [y/N]"
 ```
 
@@ -489,12 +489,12 @@ prompts.csv -> Loader -> Query Dispatcher (multi-model, N runs each)
 
 | File | Purpose |
 |------|---------|
-| `src/aeo_cli/core/benchmark/__init__.py` | Package exports |
-| `src/aeo_cli/core/benchmark/loader.py` | CSV prompt parser + validation |
-| `src/aeo_cli/core/benchmark/dispatcher.py` | Async multi-model query dispatcher |
-| `src/aeo_cli/core/benchmark/judge.py` | LLM-as-judge: structured JSON output classification |
-| `src/aeo_cli/core/benchmark/metrics.py` | Statistical aggregation: SoR %, mention rates, position |
-| `src/aeo_cli/core/benchmark/cost.py` | Per-model cost estimation with upfront display |
+| `src/context_cli/core/benchmark/__init__.py` | Package exports |
+| `src/context_cli/core/benchmark/loader.py` | CSV prompt parser + validation |
+| `src/context_cli/core/benchmark/dispatcher.py` | Async multi-model query dispatcher |
+| `src/context_cli/core/benchmark/judge.py` | LLM-as-judge: structured JSON output classification |
+| `src/context_cli/core/benchmark/metrics.py` | Statistical aggregation: SoR %, mention rates, position |
+| `src/context_cli/core/benchmark/cost.py` | Per-model cost estimation with upfront display |
 
 **Cost estimation**: `MODEL_COSTS = {"gpt-4o": 0.005, "gpt-4o-mini": 0.0003, ...}`. Formula: `prompts × models × runs × (query_cost + judge_cost)`.
 
@@ -506,14 +506,14 @@ prompts.csv -> Loader -> Query Dispatcher (multi-model, N runs each)
 
 **Risks**: LLM-as-judge inconsistency (mitigate: structured `response_format`), high cost (mitigate: mandatory estimation), non-determinism (mitigate: report std dev)
 
-### 5.6 Phase B5: Retail-RAG Auditor — `aeo-cli retail` (7-10 days)
+### 5.6 Phase B5: Retail-RAG Auditor — `context-cli retail` (7-10 days)
 
 **Pain**: CPG brands care about Amazon/Shopee listings, not dove.com. Amazon Rufus asks "Is this safe for colored hair?" and if the listing is not optimized, AI says "I don't know" and the brand loses a sale.
 
 **CLI**:
 ```
-aeo-cli retail "https://www.amazon.com/dp/B07L123456" --verbose
-aeo-cli retail "https://shopee.sg/product/123" --json
+context-cli retail "https://www.amazon.com/dp/B07L123456" --verbose
+context-cli retail "https://shopee.sg/product/123" --json
 ```
 
 **Retail AI-Readiness Score (0-100)**:
@@ -547,20 +547,20 @@ aeo-cli retail "https://shopee.sg/product/123" --json
 
 | File | Purpose |
 |------|---------|
-| `src/aeo_cli/core/retail/__init__.py` | Package exports |
-| `src/aeo_cli/core/retail/auditor.py` | Main orchestrator: crawl → detect marketplace → parse → score |
-| `src/aeo_cli/core/retail/scoring.py` | 5-pillar retail scoring logic |
-| `src/aeo_cli/core/retail/feed_spec.py` | OpenAI Product Feed Spec field checklist |
-| `src/aeo_cli/core/retail/parsers/__init__.py` | Parser registry + marketplace detection |
-| `src/aeo_cli/core/retail/parsers/base.py` | Abstract base parser interface |
-| `src/aeo_cli/core/retail/parsers/amazon.py` | Amazon HTML parser |
-| `src/aeo_cli/core/retail/parsers/shopee.py` | Shopee HTML parser |
-| `src/aeo_cli/core/retail/parsers/lazada.py` | Lazada HTML parser |
-| `src/aeo_cli/core/retail/parsers/tokopedia.py` | Tokopedia HTML parser |
-| `src/aeo_cli/core/retail/parsers/tiktok_shop.py` | TikTok Shop HTML parser |
-| `src/aeo_cli/core/retail/parsers/blibli.py` | Blibli HTML parser |
-| `src/aeo_cli/core/retail/parsers/zalora.py` | Zalora HTML parser |
-| `src/aeo_cli/core/retail/parsers/generic.py` | Fallback Schema.org/OpenGraph parser |
+| `src/context_cli/core/retail/__init__.py` | Package exports |
+| `src/context_cli/core/retail/auditor.py` | Main orchestrator: crawl → detect marketplace → parse → score |
+| `src/context_cli/core/retail/scoring.py` | 5-pillar retail scoring logic |
+| `src/context_cli/core/retail/feed_spec.py` | OpenAI Product Feed Spec field checklist |
+| `src/context_cli/core/retail/parsers/__init__.py` | Parser registry + marketplace detection |
+| `src/context_cli/core/retail/parsers/base.py` | Abstract base parser interface |
+| `src/context_cli/core/retail/parsers/amazon.py` | Amazon HTML parser |
+| `src/context_cli/core/retail/parsers/shopee.py` | Shopee HTML parser |
+| `src/context_cli/core/retail/parsers/lazada.py` | Lazada HTML parser |
+| `src/context_cli/core/retail/parsers/tokopedia.py` | Tokopedia HTML parser |
+| `src/context_cli/core/retail/parsers/tiktok_shop.py` | TikTok Shop HTML parser |
+| `src/context_cli/core/retail/parsers/blibli.py` | Blibli HTML parser |
+| `src/context_cli/core/retail/parsers/zalora.py` | Zalora HTML parser |
+| `src/context_cli/core/retail/parsers/generic.py` | Fallback Schema.org/OpenGraph parser |
 
 **New models**: `MarketplaceType` enum, `ProductSchemaReport`, `ContentQualityReport`, `VisualAssetsReport`, `SocialProofReport`, `FeedComplianceReport`, `RetailAuditReport`
 
@@ -573,7 +573,7 @@ aeo-cli retail "https://shopee.sg/product/123" --json
 ### 5.7 Complete New File Tree
 
 ```
-src/aeo_cli/core/
+src/context_cli/core/
   llm.py                            # NEW: Shared LLM layer
   cost.py                           # NEW: Shared cost estimation
   ci/
@@ -637,16 +637,16 @@ src/aeo_cli/core/
 **End-to-end smoke tests**:
 ```bash
 # Phase B1
-aeo-cli audit https://example.com --robots-min 10 --save-baseline baseline.json
-aeo-cli audit https://example.com --baseline baseline.json --webhook https://httpbin.org/post
+context-cli audit https://example.com --robots-min 10 --save-baseline baseline.json
+context-cli audit https://example.com --baseline baseline.json --webhook https://httpbin.org/post
 # Phase B2
-aeo-cli generate --batch urls.txt --profile cpg --model gpt-4o-mini
+context-cli generate --batch urls.txt --profile cpg --model gpt-4o-mini
 # Phase B3
-aeo-cli radar "best body wash for eczema" --brand Dove --brand CeraVe
+context-cli radar "best body wash for eczema" --brand Dove --brand CeraVe
 # Phase B4
-aeo-cli benchmark prompts.csv --brand Dove --competitor CeraVe --runs 3
+context-cli benchmark prompts.csv --brand Dove --competitor CeraVe --runs 3
 # Phase B5
-aeo-cli retail "https://www.amazon.com/dp/B07L123456" --verbose
+context-cli retail "https://www.amazon.com/dp/B07L123456" --verbose
 ```
 
 **Total effort**: Track A (~8 days) + Track B (~28-38 days) = ~36-46 working days
@@ -774,7 +774,7 @@ mypy src/
 pytest tests/ -v
 
 # Gate 4: Coverage maintained
-pytest --cov=src/aeo_cli --cov-fail-under=95 tests/
+pytest --cov=src/context_cli --cov-fail-under=95 tests/
 
 # Gate 5: Git clean
 git status  # No uncommitted changes
@@ -842,7 +842,7 @@ This prevents hallucinated implementations — the test is the source of truth.
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/user/aeo-cli && python -m pytest tests/ -q --tb=short 2>&1 | tail -5"
+            "command": "cd /home/user/context-cli && python -m pytest tests/ -q --tb=short 2>&1 | tail -5"
           }
         ]
       },
@@ -851,7 +851,7 @@ This prevents hallucinated implementations — the test is the source of truth.
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/user/aeo-cli && git status --short"
+            "command": "cd /home/user/context-cli && git status --short"
           }
         ]
       }
@@ -879,7 +879,7 @@ This prevents hallucinated implementations — the test is the source of truth.
       "hooks": [
         {
           "type": "command",
-          "command": "cat /home/user/aeo-cli/CLAUDE.md | head -50"
+          "command": "cat /home/user/context-cli/CLAUDE.md | head -50"
         }
       ]
     }
@@ -896,7 +896,7 @@ This prevents hallucinated implementations — the test is the source of truth.
       "hooks": [
         {
           "type": "command",
-          "command": "cd /home/user/aeo-cli && python -c 'import aeo_cli; print(f\"aeo-cli v{aeo_cli.__version__}\")' && git branch --show-current"
+          "command": "cd /home/user/context-cli && python -c 'import context_cli; print(f\"context-cli v{context_cli.__version__}\")' && git branch --show-current"
         }
       ]
     }
@@ -1033,7 +1033,7 @@ This prevents hallucinated implementations — the test is the source of truth.
 
 ### LLM Share-of-Voice Competitors
 
-No open-source CLI tool exists for LLM share-of-voice tracking. aeo-cli would be the first.
+No open-source CLI tool exists for LLM share-of-voice tracking. context-cli would be the first.
 
 | Company | Funding | Approach | Scale |
 |---------|---------|----------|-------|
@@ -1099,12 +1099,12 @@ No open-source CLI tool exists for LLM share-of-voice tracking. aeo-cli would be
 
 This plan provides:
 
-1. **Market context** — aeo-cli occupies a genuinely unique niche (CLI + MCP + OSS + 4-pillar scoring)
+1. **Market context** — context-cli occupies a genuinely unique niche (CLI + MCP + OSS + 4-pillar scoring)
 2. **Research-backed feature roadmap** — aligned with GEO academic research, citation data (680M+ analyzed), and industry trends
 3. **Two-track development plan** — Track A (core improvements, 8 days) + Track B (5 new capabilities, 28-38 days)
 4. **5 new capabilities** solving real CPG/enterprise pain points:
    - **CI/CD Enhancement** — per-pillar thresholds, regression detection, webhooks
-   - **AEO Compiler Batch** — auto-generate llms.txt + JSON-LD for 5K+ pages
+   - **Context Compiler Batch** — auto-generate llms.txt + JSON-LD for 5K+ pages
    - **Citation Radar** — reverse-engineer what AI models cite and recommend
    - **Share-of-Model Benchmark** — LLM-as-judge Share-of-Recommendation % tracking
    - **Retail-RAG Auditor** — 8 marketplace parsers, 5-pillar retail AI-readiness scoring

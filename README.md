@@ -1,44 +1,43 @@
-# AEO-CLI
+# Context CLI
 
-[![Tests](https://github.com/hanselhansel/aeo-cli/actions/workflows/test.yml/badge.svg)](https://github.com/hanselhansel/aeo-cli/actions/workflows/test.yml)
+[![Tests](https://github.com/hanselhansel/context-cli/actions/workflows/test.yml/badge.svg)](https://github.com/hanselhansel/context-cli/actions/workflows/test.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![PyPI version](https://img.shields.io/pypi/v/aeo-cli.svg)](https://pypi.org/project/aeo-cli/)
+[![PyPI version](https://img.shields.io/pypi/v/context-cli.svg)](https://pypi.org/project/context-cli/)
 
-**Audit any URL for AI crawler readiness. Get a 0-100 AEO score.**
+**Lint any URL for LLM readiness. Get a 0-100 score for token efficiency, RAG readiness, and LLM extraction quality.**
 
-## What is AEO?
+## What is Context CLI?
 
-Agentic Engine Optimization (AEO) is the practice of making your website discoverable and accessible to AI agents and LLM-powered search engines. As AI crawlers like GPTBot, ClaudeBot, and PerplexityBot become major traffic sources, AEO ensures your content is structured, permitted, and optimized for these systems.
+Context CLI is an LLM Readiness Linter that checks how well a URL is structured for AI consumption. As LLM-powered search engines, RAG pipelines, and AI agents become primary consumers of web content, your pages need to be optimized for token efficiency, structured data extraction, and machine-readable formatting.
 
-AEO-CLI checks how well a URL is prepared for AI consumption and returns a structured score.
+Context CLI analyzes your content across four pillars and returns a structured score from 0 to 100.
 
 ## Features
 
-- **Robots.txt AI bot access** — checks 13 AI crawlers (GPTBot, ClaudeBot, DeepSeek-AI, Grok, and more)
-- **llms.txt & llms-full.txt** — detects both standard and extended LLM instruction files
-- **Schema.org JSON-LD** — extracts and evaluates structured data with high-value type weighting (Product, Article, FAQ, HowTo)
-- **Content density** — measures useful content vs. boilerplate with readability scoring, heading structure analysis, and answer-first detection
-- **Batch mode** — audit multiple URLs from a file with `--file` and configurable `--concurrency`
-- **Custom bot list** — override default bots with `--bots` for targeted checks
-- **Verbose output** — detailed per-pillar breakdown with scoring explanations and recommendations
-- **Rich CLI output** — formatted tables and scores via Rich
-- **JSON / CSV / Markdown output** — machine-readable results for pipelines
-- **MCP server** — expose the audit as a tool for AI agents via FastMCP
-- **AEO Compiler** — LLM-powered `llms.txt` and `schema.jsonld` generation, with batch mode for multiple URLs
-- **CI/CD integration** — `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
-- **GitHub Action** — composite action for CI pipelines with baseline support
-- **Citation Radar** — query AI models to see what they cite and recommend, with brand tracking and domain classification
-- **Share-of-Recommendation Benchmark** — track how often AI models mention and recommend your brand vs competitors, with LLM-as-judge analysis
-- **Retail AI-Readiness Auditor** — audit product listings on Amazon, Shopee, Lazada, Tokopedia, TikTok Shop, Blibli, Zalora with 5-pillar scoring and OpenAI Feed Spec compliance
+- **Robots.txt AI bot access** -- checks 13 AI crawlers (GPTBot, ClaudeBot, DeepSeek-AI, Grok, and more)
+- **llms.txt & llms-full.txt** -- detects both standard and extended LLM instruction files
+- **Schema.org JSON-LD** -- extracts and evaluates structured data with high-value type weighting (Product, Article, FAQ, HowTo)
+- **Content density** -- measures useful content vs. boilerplate with readability scoring, heading structure analysis, and answer-first detection
+- **Batch mode** -- lint multiple URLs from a file with `--file` and configurable `--concurrency`
+- **Custom bot list** -- override default bots with `--bots` for targeted checks
+- **Verbose output** -- detailed per-pillar breakdown with scoring explanations and recommendations
+- **Rich CLI output** -- formatted tables and scores via Rich
+- **JSON / CSV / Markdown output** -- machine-readable results for pipelines
+- **MCP server** -- expose the linter as a tool for AI agents via FastMCP
+- **Context Compiler** -- LLM-powered `llms.txt` and `schema.jsonld` generation, with batch mode for multiple URLs
+- **CI/CD integration** -- `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
+- **GitHub Action** -- composite action for CI pipelines with baseline support
+- **Citation Radar** -- query AI models to see what they cite and recommend, with brand tracking and domain classification
+- **Share-of-Recommendation Benchmark** -- track how often AI models mention and recommend your brand vs competitors, with LLM-as-judge analysis
 
 ## Installation
 
 ```bash
-pip install aeo-cli
+pip install context-cli
 ```
 
-AEO-CLI uses a headless browser for content extraction. After installing, run:
+Context CLI uses a headless browser for content extraction. After installing, run:
 
 ```bash
 crawl4ai-setup
@@ -47,8 +46,8 @@ crawl4ai-setup
 ### Development install
 
 ```bash
-git clone https://github.com/your-org/aeo-cli.git
-cd aeo-cli
+git clone https://github.com/your-org/context-cli.git
+cd context-cli
 pip install -e ".[dev]"
 crawl4ai-setup
 ```
@@ -56,33 +55,33 @@ crawl4ai-setup
 ## Quick Start
 
 ```bash
-aeo-cli audit example.com
+context-cli lint example.com
 ```
 
-This runs a full audit and prints a Rich-formatted report with your AEO score.
+This runs a full lint and prints a Rich-formatted report with your LLM readiness score.
 
 ## CLI Usage
 
-### Single Page Audit
+### Single Page Lint
 
-Audit only the specified URL (skip multi-page discovery):
+Lint only the specified URL (skip multi-page discovery):
 
 ```bash
-aeo-cli audit example.com --single
+context-cli lint example.com --single
 ```
 
-### Multi-Page Site Audit (default)
+### Multi-Page Site Lint (default)
 
-Discover pages via sitemap/spider and audit up to 10 pages:
+Discover pages via sitemap/spider and lint up to 10 pages:
 
 ```bash
-aeo-cli audit example.com
+context-cli lint example.com
 ```
 
 ### Limit Pages
 
 ```bash
-aeo-cli audit example.com --max-pages 5
+context-cli lint example.com --max-pages 5
 ```
 
 ### JSON Output
@@ -90,14 +89,14 @@ aeo-cli audit example.com --max-pages 5
 Get structured JSON for CI pipelines, dashboards, or scripting:
 
 ```bash
-aeo-cli audit example.com --json
+context-cli lint example.com --json
 ```
 
 ### CSV / Markdown Output
 
 ```bash
-aeo-cli audit example.com --format csv
-aeo-cli audit example.com --format markdown
+context-cli lint example.com --format csv
+context-cli lint example.com --format markdown
 ```
 
 ### Verbose Mode
@@ -105,7 +104,7 @@ aeo-cli audit example.com --format markdown
 Show detailed per-pillar breakdown with scoring explanations:
 
 ```bash
-aeo-cli audit example.com --single --verbose
+context-cli lint example.com --single --verbose
 ```
 
 ### Timeout
@@ -113,7 +112,7 @@ aeo-cli audit example.com --single --verbose
 Set the HTTP timeout (default: 15 seconds):
 
 ```bash
-aeo-cli audit example.com --timeout 30
+context-cli lint example.com --timeout 30
 ```
 
 ### Custom Bot List
@@ -121,31 +120,31 @@ aeo-cli audit example.com --timeout 30
 Override the default 13 bots with a custom list:
 
 ```bash
-aeo-cli audit example.com --bots "GPTBot,ClaudeBot,PerplexityBot"
+context-cli lint example.com --bots "GPTBot,ClaudeBot,PerplexityBot"
 ```
 
 ### Batch Mode
 
-Audit multiple URLs from a file (one URL per line, `.txt` or `.csv`):
+Lint multiple URLs from a file (one URL per line, `.txt` or `.csv`):
 
 ```bash
-aeo-cli audit --file urls.txt
-aeo-cli audit --file urls.txt --concurrency 5
-aeo-cli audit --file urls.txt --format csv
+context-cli lint --file urls.txt
+context-cli lint --file urls.txt --concurrency 5
+context-cli lint --file urls.txt --format csv
 ```
 
 ### CI Mode
 
-Fail the build if the AEO score is below a threshold:
+Fail the build if the score is below a threshold:
 
 ```bash
-aeo-cli audit example.com --fail-under 60
+context-cli lint example.com --fail-under 60
 ```
 
 Fail if any AI bot is blocked:
 
 ```bash
-aeo-cli audit example.com --fail-on-blocked-bots
+context-cli lint example.com --fail-on-blocked-bots
 ```
 
 #### Per-Pillar Thresholds
@@ -153,24 +152,24 @@ aeo-cli audit example.com --fail-on-blocked-bots
 Gate CI on individual pillar scores:
 
 ```bash
-aeo-cli audit example.com --robots-min 20 --content-min 30 --overall-min 60
+context-cli lint example.com --robots-min 20 --content-min 30 --overall-min 60
 ```
 
 Available: `--robots-min`, `--schema-min`, `--content-min`, `--llms-min`, `--overall-min`.
 
 #### Baseline Regression Detection
 
-Save a baseline and detect score regressions in future audits:
+Save a baseline and detect score regressions in future lints:
 
 ```bash
 # Save current scores as baseline
-aeo-cli audit example.com --single --save-baseline .aeo-baseline.json
+context-cli lint example.com --single --save-baseline .context-baseline.json
 
 # Compare against baseline (exit 1 if any pillar drops > 5 points)
-aeo-cli audit example.com --single --baseline .aeo-baseline.json
+context-cli lint example.com --single --baseline .context-baseline.json
 
 # Custom regression threshold
-aeo-cli audit example.com --single --baseline .aeo-baseline.json --regression-threshold 10
+context-cli lint example.com --single --baseline .context-baseline.json --regression-threshold 10
 ```
 
 Exit codes: 0 = pass, 1 = score below threshold or regression detected, 2 = bots blocked.
@@ -182,59 +181,59 @@ When running in GitHub Actions, a markdown summary is automatically written to `
 Suppress output, exit code 0 if score >= 50, 1 otherwise:
 
 ```bash
-aeo-cli audit example.com --quiet
+context-cli lint example.com --quiet
 ```
 
 Use `--fail-under` with `--quiet` to override the default threshold:
 
 ```bash
-aeo-cli audit example.com --quiet --fail-under 70
+context-cli lint example.com --quiet --fail-under 70
 ```
 
 ### Start MCP server
 
 ```bash
-aeo-cli mcp
+context-cli mcp
 ```
 
-Launches a FastMCP stdio server exposing the audit as a tool for AI agents.
+Launches a FastMCP stdio server exposing the linter as a tool for AI agents.
 
 ## MCP Integration
 
-To use AEO-CLI as a tool in Claude Desktop, add this to your Claude Desktop config (`claude_desktop_config.json`):
+To use Context CLI as a tool in Claude Desktop, add this to your Claude Desktop config (`claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
-    "aeo-cli": {
-      "command": "aeo-cli",
+    "context-cli": {
+      "command": "context-cli",
       "args": ["mcp"]
     }
   }
 }
 ```
 
-Once configured, Claude can call the `audit_url` tool directly to check any URL's AEO readiness.
+Once configured, Claude can call the `audit_url` tool directly to check any URL's LLM readiness.
 
-## AEO Compiler (Generate)
+## Context Compiler (Generate)
 
 Generate `llms.txt` and `schema.jsonld` files from any URL using LLM analysis:
 
 ```bash
-pip install aeo-cli[generate]
-aeo-cli generate example.com
+pip install context-cli[generate]
+context-cli generate example.com
 ```
 
-This crawls the URL, sends the content to an LLM, and writes optimized files to `./aeo-output/`.
+This crawls the URL, sends the content to an LLM, and writes optimized files to `./context-output/`.
 
 ### Batch Generate
 
 Generate assets for multiple URLs from a file:
 
 ```bash
-aeo-cli generate-batch urls.txt
-aeo-cli generate-batch urls.txt --concurrency 5 --profile ecommerce
-aeo-cli generate-batch urls.txt --json
+context-cli generate-batch urls.txt
+context-cli generate-batch urls.txt --concurrency 5 --profile ecommerce
+context-cli generate-batch urls.txt --json
 ```
 
 Each URL's output goes to a subdirectory under `--output-dir`.
@@ -252,7 +251,7 @@ The generate command auto-detects your LLM provider from environment variables:
 Override with `--model`:
 
 ```bash
-aeo-cli generate example.com --model gpt-4o
+context-cli generate example.com --model gpt-4o
 ```
 
 ### Industry Profiles
@@ -260,8 +259,8 @@ aeo-cli generate example.com --model gpt-4o
 Tailor the output with `--profile`:
 
 ```bash
-aeo-cli generate example.com --profile saas
-aeo-cli generate example.com --profile ecommerce
+context-cli generate example.com --profile saas
+context-cli generate example.com --profile ecommerce
 ```
 
 Available: `generic`, `cpg`, `saas`, `ecommerce`, `blog`.
@@ -271,8 +270,8 @@ Available: `generic`, `cpg`, `saas`, `ecommerce`, `blog`.
 Query AI models to see what they cite and recommend for any search prompt:
 
 ```bash
-pip install aeo-cli[generate]
-aeo-cli radar "best project management tools" --brand Asana --brand Monday --model gpt-4o-mini
+pip install context-cli[generate]
+context-cli radar "best project management tools" --brand Asana --brand Monday --model gpt-4o-mini
 ```
 
 Options:
@@ -281,32 +280,13 @@ Options:
 - `--runs/-r`: Runs per model for statistical significance
 - `--json`: Output as JSON
 
-## Retail AI-Readiness Auditor
-
-Audit product listings on marketplaces for AI optimization readiness:
-
-```bash
-aeo-cli retail "https://www.amazon.com/dp/B07L123456"
-aeo-cli retail "https://shopee.sg/product/123" --json
-aeo-cli retail "https://www.lazada.co.id/products/example-i123.html" --verbose
-```
-
-Supported marketplaces: Amazon (all TLDs), Shopee, Lazada, Tokopedia, TikTok Shop, Blibli, Zalora, and a Generic fallback (Schema.org/OpenGraph).
-
-Scoring pillars:
-- **Product Schema** (25): JSON-LD Product, Offer, AggregateRating
-- **Content Quality** (30): Bullet points, description, A+ content, spec charts
-- **Visual Assets** (15): Image count, alt text, video
-- **Social Proof** (20): Reviews, rating, Q&A
-- **Feed Compliance** (10): OpenAI Product Feed Spec alignment
-
 ## Share-of-Recommendation Benchmark
 
 Track how AI models mention and recommend your brand across multiple prompts:
 
 ```bash
-pip install aeo-cli[generate]
-aeo-cli benchmark prompts.txt -b "YourBrand" -c "Competitor1" -c "Competitor2"
+pip install context-cli[generate]
+context-cli benchmark prompts.txt -b "YourBrand" -c "Competitor1" -c "Competitor2"
 ```
 
 Options:
@@ -320,11 +300,11 @@ Options:
 
 ## GitHub Action
 
-Use AEO-CLI in your CI pipeline:
+Use Context CLI in your CI pipeline:
 
 ```yaml
-- name: Run AEO Audit
-  uses: hanselhansel/aeo-cli@main
+- name: Run Context Lint
+  uses: hanselhansel/context-cli@main
   with:
     url: 'https://your-site.com'
     fail-under: '60'
@@ -333,20 +313,20 @@ Use AEO-CLI in your CI pipeline:
 With baseline regression detection:
 
 ```yaml
-- name: Run AEO Audit
-  uses: hanselhansel/aeo-cli@main
+- name: Run Context Lint
+  uses: hanselhansel/context-cli@main
   with:
     url: 'https://your-site.com'
-    baseline-file: '.aeo-baseline.json'
-    save-baseline: '.aeo-baseline.json'
+    baseline-file: '.context-baseline.json'
+    save-baseline: '.context-baseline.json'
     regression-threshold: '5'
 ```
 
-The action sets up Python, installs aeo-cli, and runs the audit. Outputs `score` and `report-json` for downstream steps. See [docs/ci-integration.md](docs/ci-integration.md) for full documentation.
+The action sets up Python, installs context-cli, and runs the lint. Outputs `score` and `report-json` for downstream steps. See [docs/ci-integration.md](docs/ci-integration.md) for full documentation.
 
 ## Score Breakdown
 
-AEO-CLI returns a score from 0 to 100, composed of four pillars:
+Context CLI returns a score from 0 to 100, composed of four pillars:
 
 | Pillar | Max Points | What it measures |
 |---|---|---|
@@ -360,13 +340,13 @@ AEO-CLI returns a score from 0 to 100, composed of four pillars:
 The weights reflect how AI search engines (ChatGPT, Perplexity, Claude) actually consume web content:
 
 - **Content density (40 pts)** is weighted highest because it's what LLMs extract and cite when answering questions. Rich, well-structured content with headings and lists gives AI better material to work with.
-- **Robots.txt (25 pts)** is the gatekeeper — if a bot is blocked, it literally cannot crawl. It's critical but largely binary (either you're blocking or you're not).
+- **Robots.txt (25 pts)** is the gatekeeper -- if a bot is blocked, it literally cannot crawl. It's critical but largely binary (either you're blocking or you're not).
 - **Schema.org (25 pts)** provides structured "cheat sheets" that help AI understand entities. High-value types (Product, Article, FAQ, HowTo, Recipe) receive bonus weighting. Valuable but not required for citation.
 - **llms.txt (10 pts)** is an emerging standard. Both `/llms.txt` and `/llms-full.txt` are checked. No major AI search engine heavily weights it yet, but it signals forward-thinking AI readiness.
 
 ## AI Bots Checked
 
-AEO-CLI checks access rules for 13 AI crawlers:
+Context CLI checks access rules for 13 AI crawlers:
 
 - GPTBot
 - ChatGPT-User

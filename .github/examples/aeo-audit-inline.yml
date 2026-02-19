@@ -1,25 +1,25 @@
-# Inline AEO Audit without using the composite action.
+# Inline Context Lint without using the composite action.
 # Useful when you want full control over each step or cannot
 # reference external actions (e.g. enterprise restrictions).
-name: AEO Audit (Inline)
+name: Context Lint (Inline)
 
 on:
   push:
     branches: [main]
 
 jobs:
-  aeo-audit:
+  context-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install aeo-cli
-        run: pip install aeo-cli
+      - name: Install context-cli
+        run: pip install context-cli
 
       - name: Install browser
         run: crawl4ai-setup
 
-      - name: Run AEO Audit
-        run: aeo-cli audit https://your-site.com --fail-under 60
+      - name: Run Context Lint
+        run: context-cli lint https://your-site.com --fail-under 60

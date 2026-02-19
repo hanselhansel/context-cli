@@ -1,19 +1,19 @@
-# AEO Audit on Vercel/Netlify preview deployments
-# Triggers when a deployment succeeds and audits the preview URL.
-name: AEO Audit (Preview Deploy)
+# Context Lint on Vercel/Netlify preview deployments
+# Triggers when a deployment succeeds and lints the preview URL.
+name: Context Lint (Preview Deploy)
 
 on:
   deployment_status:
 
 jobs:
-  aeo-audit:
+  context-lint:
     if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run AEO Audit on Preview
-        uses: hanselhansel/aeo-cli@main
+      - name: Run Context Lint on Preview
+        uses: hanselhansel/context-cli@main
         with:
           url: ${{ github.event.deployment_status.target_url }}
           fail-under: '50'
