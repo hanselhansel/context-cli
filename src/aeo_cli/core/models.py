@@ -210,6 +210,15 @@ class AuditReport(BaseModel):
     llms_txt: LlmsTxtReport = Field(description="llms.txt presence check")
     schema_org: SchemaReport = Field(description="Schema.org JSON-LD analysis")
     content: ContentReport = Field(description="Content density analysis")
+    rsl: RslReport | None = Field(
+        default=None, description="RSL analysis (informational, not scored)"
+    )
+    content_usage: ContentUsageReport | None = Field(
+        default=None, description="IETF Content-Usage header (informational, not scored)"
+    )
+    eeat: EeatReport | None = Field(
+        default=None, description="E-E-A-T signals (informational, not scored)"
+    )
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors encountered during audit"
     )
@@ -247,6 +256,15 @@ class SiteAuditReport(BaseModel):
     llms_txt: LlmsTxtReport = Field(description="llms.txt presence (site-wide)")
     schema_org: SchemaReport = Field(description="Aggregated Schema.org analysis across pages")
     content: ContentReport = Field(description="Aggregated content density across pages")
+    rsl: RslReport | None = Field(
+        default=None, description="RSL analysis (informational, not scored)"
+    )
+    content_usage: ContentUsageReport | None = Field(
+        default=None, description="IETF Content-Usage header (informational, not scored)"
+    )
+    eeat: EeatReport | None = Field(
+        default=None, description="E-E-A-T signals (informational, not scored)"
+    )
     discovery: DiscoveryResult = Field(description="Page discovery details")
     pages: list[PageAudit] = Field(default_factory=list, description="Per-page audit results")
     pages_audited: int = Field(default=0, description="Number of pages successfully audited")

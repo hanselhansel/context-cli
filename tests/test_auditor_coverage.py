@@ -90,6 +90,25 @@ async def test_audit_url_llms_txt_exception(mock_robots, mock_llms, mock_crawl):
 
 @pytest.mark.asyncio
 @patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.check_content_usage", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+async def test_audit_url_content_usage_exception(
+    mock_robots, mock_llms, mock_cu, mock_crawl
+):
+    """When check_content_usage raises, errors should contain 'Content-Usage check failed'."""
+    mock_robots.return_value = _make_robots()
+    mock_llms.return_value = _make_llms()
+    mock_cu.side_effect = RuntimeError("boom")
+    mock_crawl.return_value = _make_crawl()
+
+    report = await audit_url(_SEED)
+
+    assert any("Content-Usage check failed" in e for e in report.errors)
+
+
+@pytest.mark.asyncio
+@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
 @patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
 @patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
 async def test_audit_url_crawl_exception(mock_robots, mock_llms, mock_crawl):
@@ -219,6 +238,31 @@ async def test_audit_site_inner_happy_path(
     assert isinstance(report, SiteAuditReport)
     assert len(report.pages) == 2
     assert report.errors == []
+
+
+@pytest.mark.asyncio
+@patch("aeo_cli.core.auditor.extract_pages", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.discover_pages", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.extract_page", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.check_content_usage", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.check_llms_txt", new_callable=AsyncMock)
+@patch("aeo_cli.core.auditor.check_robots", new_callable=AsyncMock)
+async def test_audit_site_inner_content_usage_exception(
+    mock_robots, mock_llms, mock_cu, mock_crawl, mock_discover, mock_batch
+):
+    """check_content_usage raising → 'Content-Usage check failed' in errors."""
+    mock_robots.return_value = _make_robots()
+    mock_llms.return_value = _make_llms()
+    mock_cu.side_effect = RuntimeError("boom")
+    mock_crawl.return_value = _make_crawl()
+    mock_discover.return_value = DiscoveryResult(
+        method="sitemap", urls_sampled=[_SEED]
+    )
+
+    errors: list[str] = []
+    report = await _audit_site_inner(_SEED, "example.com", 10, 0.0, errors, lambda _: None)
+
+    assert any("Content-Usage check failed" in e for e in report.errors)
 
 
 @pytest.mark.asyncio
