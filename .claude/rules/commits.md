@@ -33,6 +33,9 @@ refactor: extract retry logic into core/retry.py
 ## Auto-Push
 - After every commit: `git push origin main`
 - After version bumps: `git push origin main --tags`
+- PostToolUse hook reminds after every `git commit` if unpushed commits exist
+- Stop gate BLOCKS if unpushed commits remain at session end
+- Never accumulate >2 unpushed commits — push immediately after each commit
 
 ## What Gets Committed
 - Source code changes (`src/`)

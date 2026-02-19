@@ -33,6 +33,7 @@ Semantic versioning: MAJOR.MINOR.PATCH
 ## Files to Update on Version Bump
 - `pyproject.toml` → `version = "X.Y.Z"`
 - `CHANGELOG.md` → new section with features
+- `README.md` → update Features, CLI Usage, and AI Bots sections if changed
 
 ## CHANGELOG Format
 ```markdown

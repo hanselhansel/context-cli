@@ -12,6 +12,7 @@ CURRENT PHASE: A2 (Intelligence layer — RSL, IETF, E-E-A-T, citation, history,
 4. **LINT** — Auto-lint via PostToolUse hook on every file change
 5. **VERIFY** — `pytest --cov=aeo_cli --cov-fail-under=100` (100% mandatory)
 6. **COMMIT** — `git add` + `git commit` + `git push origin main` (every green feature)
+6.5. **README** — If releasing a version: update README Features, CLI Usage, and Bots sections
 7. **VERSION** — Patch bump + tag + push when feature is significant
 8. **CONTEXT** — Check /context; if >70% → `/compact`
 
@@ -111,6 +112,7 @@ aeo-cli mcp                          # Start MCP stdio server
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `auto-lint.sh` | PostToolUse (Edit\|Write) | Ruff auto-fix on every Python file change |
+| `commit-push-reminder.sh` | PostToolUse (Bash) | Reminds to push after git commit |
 | `stop-gate.sh` | Stop | Full CI gate: lint + types + tests + 100% coverage + committed + pushed |
 | `task-complete-gate.sh` | TaskCompleted | CI gate before marking tasks done |
 | `session-start.sh` | SessionStart | Load version, branch, phase context |
