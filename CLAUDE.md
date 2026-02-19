@@ -16,6 +16,7 @@ AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section 
 6.5. **README** — If releasing a version: update README Features, CLI Usage, and Bots sections
 7. **VERSION** — Patch bump + tag + push when feature is significant
 8. **CONTEXT** — Check /context; if >70% → `/compact`
+8.5. **AGENTS** — If session resumes with active worktrees: check agent branches for commits, merge completed work, clean up worktrees
 
 ## Versioning
 Minor bump per phase: 0.3.0(A1) → 0.4.0(A2) → 0.5.0(A3) → 0.6.0(A4) → 0.7.0(B0) → 0.8.0(B1) → 0.9.0(B2) → 0.10.0(B3) → 0.11.0(B4) → 0.12.0(B5) → 1.0.0

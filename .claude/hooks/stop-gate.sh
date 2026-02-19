@@ -25,6 +25,18 @@ if [[ "$STOP_HOOK_ACTIVE" == "true" ]]; then
     exit 0
 fi
 
+# 0. Skip CI when agent worktrees are active (main hasn't changed)
+WORKTREE_COUNT=$(git worktree list 2>/dev/null | wc -l | tr -d ' ')
+if [[ "$WORKTREE_COUNT" -gt 1 ]]; then
+    echo "Agent worktrees active ($WORKTREE_COUNT total). Skipping CI checks on main."
+    echo "  Agents work independently in worktrees — their branches persist."
+    echo "  Leader will run full CI after merging agent branches."
+    git worktree list 2>/dev/null | grep -v "\[main\]" | while read -r line; do
+        echo "  - $line"
+    done
+    exit 0
+fi
+
 # 1. Lint check
 echo "--- Stop gate: checking lint ---"
 if ! ruff check src/ tests/ 2>&1; then
