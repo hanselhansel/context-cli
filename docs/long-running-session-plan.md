@@ -86,24 +86,74 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 
 **Implication for aeo-cli**: Consider adding "citation readiness" and "statistical density" as sub-signals within the Content Density pillar.
 
-### 2.2 The llms.txt Standard — Current Status
+### 2.2 The llms.txt Standard — Reality Check
 
 - **Proposed**: September 2024 by Jeremy Howard (Answer.AI / fast.ai)
-- **Adoption**: 844,000+ websites (BuiltWith, Oct 2025)
+- **Adoption claims vary wildly**: NerdyData says 951 domains; BuiltWith says 844K+; Majestic Million found only 105 (May 2025)
 - **Major adopters**: Anthropic, Stripe, Cloudflare, Zapier, Vercel, Coinbase, Svelte
-- **Impact**: Vercel reports 10% of signups now come from ChatGPT due to GEO + llms.txt
-- **Ecosystem**: Generators (Firecrawl, llms-txt.io), validators (MRS Digital), framework plugins (VitePress, Docusaurus, Drupal)
 - **Companion**: `llms-full.txt` — complete docs in single Markdown file
 
-**Implication for aeo-cli**: The 10-point weight for llms.txt may need upward revision as adoption accelerates. Consider also checking for `llms-full.txt`.
+**CRITICAL FINDING — No confirmed AI usage:**
+- Google's John Mueller (mid-2025): "No AI system currently uses llms.txt"
+- Semrush server log analysis: **Zero visits** from GPTBot, PerplexityBot, or ClaudeBot to llms.txt files (Aug-Oct 2025)
+- ALLMO.ai analysis of 94K+ cited URLs: **No measurable citation uplift** from llms.txt
+- 8 out of 9 sites saw **no traffic change** after implementation
+- Only 1 out of 50 most-cited domains in AI search has `/llms.txt` (Target.com)
+- Not a single top-1,000 website has implemented it
 
-### 2.3 AI Crawler Ecosystem — What's Changing
+**Where it does have value**: Developer documentation, agent workflows (Google A2A references it), API-heavy SaaS products.
 
+**Implication for aeo-cli**: The 10-point weight is **appropriately calibrated** (not too high). Consider also checking for `llms-full.txt`. Do NOT increase the weight — the data does not support it.
+
+### 2.3 How LLMs Actually Cite Sources — Research Data
+
+**SourceCheckup (Nature Communications, April 2025):**
+- **50-90% of LLM responses** are not fully supported by the sources they cite
+- Even GPT-4o with Web Search: ~30% of statements are unsupported
+- Evaluated 7 LLMs on 800 questions, 58,000 statement-source pairs
+
+**2025 AI Visibility Report (680M+ citations analyzed):**
+- **Brand search volume** (not backlinks) is the strongest citation predictor (0.334 correlation)
+- Sources with **self-contained chunks of 50-150 words** receive **2.3x more citations**
+- **65% of AI bot traffic** targets content published within the past year
+- **44.2% of all LLM citations** come from the first 30% of text (intro matters most)
+- Only **12% of URLs cited** by ChatGPT/Perplexity/Copilot rank in Google's top 10
+- **80% of cited URLs don't rank in Google's top 100** — AI citation ≠ SEO ranking
+
+**Content architecture for citation:**
+- **Self-contained chunks of 134-167 words** are optimal for Google AI Overviews extraction
+- Proper hierarchical headings (H2/H3/H4) → **40% more citations**
+- Evidence-backed content with statistics → **28% higher AI inclusion**
+- **Answer-first structure**: Core answer must appear in first sentence of each section
+- Recommended reading level: **8th-10th grade**
+- One topic per heading (multi-topic sections get treated as single chunk by LLMs)
+
+**Implication for aeo-cli**: Content Density pillar should evolve to check chunk sizing, answer-first patterns, readability grade, and heading structure — not just word count.
+
+### 2.4 AI Crawler Ecosystem — What's Changing
+
+- **21% of top 1,000 websites** now have robots.txt rules for GPTBot
+- **560,000+ sites** have rules for ChatGPT, Claude, and other AI bots
+- Non-human traffic reached **~40% of visits** to the average website in 2025
 - **Cloudflare** now blocks AI crawlers by default (since Jul 2025) with AI Crawl Control
 - **HTTP 402 (Payment Required)** emerging as monetization mechanism for AI crawl access
-- **ai.robots.txt** community project maintains curated bot lists
-- **Dark Visitors / Known Agents** provides real-time bot directory + API
-- Growing tension between publishers wanting AI visibility and wanting crawl compensation
+
+**The compliance problem (Duke University, May 2025):**
+- Many AI bots **never check robots.txt at all**
+- Compliance **drops as rules become stricter**
+- Courts ruled robots.txt is NOT enforceable under DMCA (Ziff Davis v. OpenAI, 2025)
+
+**Really Simple Licensing (RSL) — New Standard (Dec 2025):**
+- Launched by RSS co-creator Eckart Walther and former Ask.com CEO Doug Leeds
+- Augments robots.txt with `/license.xml` for licensing and royalty terms
+- Supports: free, attribution, subscription, **pay-per-crawl**, **pay-per-inference**
+- RSL 1.0 is now an **official industry standard** (Dec 2025)
+- Supporters: Reddit, Medium, Yahoo, Quora, Stack Overflow, Cloudflare, Akamai, Fastly, AP
+
+**IETF AI Preferences Working Group (aipref) — In Progress:**
+- Launched January 2025, creating standardized AI content preference rules
+- Key deliverables: AI Usage Preferences Vocabulary, `Content-Usage` HTTP header, robots.txt extensions
+- Co-chaired by Mark Nottingham, with Google's Gary Illyes participating
 
 **New AI bots to consider adding to aeo-cli:**
 - DeepSeek-AI
@@ -113,16 +163,22 @@ The landmark paper **"GEO: Generative Engine Optimization"** (Georgia Tech, Prin
 - AI2Bot (Allen Institute)
 - ByteSpider (ByteDance/TikTok)
 
-### 2.4 Schema.org & Structured Data for AI
+### 2.5 Schema.org & Structured Data for AI
 
+- GPT-4 accuracy jumps from **16% to 54%** correct responses when content relies on structured data (Data World)
+- Structured data increases AI citations by **44%** (2025)
+- Pages with proper schema are **3x more likely** to earn AI citations
+- Schema drives **20-40% higher CTR** through rich snippets
+- Brands with comprehensive schema see **57% more AI Overview triggers** on long-tail queries
 - **Schema App** launched MCP Server to expose structured data directly to AI assistants
 - **Wells Fargo** case study: resolved Google AI Overview hallucinations using proper schema
 - **WordLift** offers "Agentic AI Audit" evaluating AI-readiness of structured data
 - Schema.org types most impactful for AI: `FAQPage`, `HowTo`, `Article`, `Product`, `Organization`
+- Google's John Mueller confirmed schema types "come and go" but JSON-LD remains preferred format
 
-**Implication for aeo-cli**: Consider weighting specific schema types differently (FAQ/HowTo worth more than generic Organization for AI citation).
+**Implication for aeo-cli**: Schema pillar at 25 points is well-validated. Consider weighting specific schema types differently (FAQ/HowTo worth more than generic Organization).
 
-### 2.5 Content Optimization for AI Engines
+### 2.6 Content Optimization for AI Engines
 
 Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 - **Direct answers** to questions are prioritized
@@ -132,7 +188,7 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 - **Freshness** matters — recently updated content preferred
 - **Readability** (Flesch-Kincaid) correlates with AI citation likelihood
 
-### 2.6 MCP (Model Context Protocol) & AI Agent Access
+### 2.7 MCP (Model Context Protocol) & AI Agent Access
 
 - MCP is becoming the standard protocol for AI tool integration
 - **Adobe LLM Optimizer** supports both MCP and A2A (Agent-to-Agent) protocols
@@ -141,15 +197,37 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 
 **Implication for aeo-cli**: Our MCP server is ahead of the curve. Consider expanding MCP tools beyond `audit()` and `generate()`.
 
-### 2.7 Emerging Concepts
+### 2.8 Emerging Protocols & Standards
+
+| Protocol/Standard | Origin | Status | What It Does |
+|-------------------|--------|--------|--------------|
+| **MCP** | Anthropic → Linux Foundation | Production | Connect agents to data/tools (JSON-RPC) |
+| **A2A** | Google → Linux Foundation | v0.3 (150+ orgs) | Agent-to-agent collaboration (HTTP/SSE) |
+| **WebMCP** | Google+Microsoft / W3C | Early preview (Feb 2026) | Agent-to-browser interaction (postMessage) |
+| **RSL** | RSL Collective | Standard (Dec 2025) | Content licensing for AI (pay-per-crawl) |
+| **IETF AI Preferences** | IETF aipref WG | Draft | Content-Usage HTTP headers, robots.txt extensions |
+| **TDMRep** | W3C | Community Group | Text/data mining rights (EU DSM Directive) |
+| **agents.txt** | Community | Emerging | AI agent identity + interaction rules for e-commerce |
+
+### 2.9 Emerging Concepts
 
 | Concept | Description | Relevance |
 |---------|-------------|-----------|
 | **Agent Experience (AX)** | Designing for AI agent UX, not just human UX | New pillar candidate |
 | **AI-Ready Content Delivery** | Serving different content to AI vs humans (Adobe, Scrunch) | Future feature |
-| **Agentic Commerce** | AI shopping agents (OpenAI's protocol) | Niche but growing |
+| **Agentic Commerce** | AI shopping agents — Gartner: 90% B2B buying AI-mediated by 2028 | Growing fast |
 | **Content Fingerprinting** | Tracking AI citation attribution | Monitoring feature |
-| **TDP (Trust & Deliverability Protocol)** | Kalicube's UCD framework for AI trust | Scoring refinement |
+| **Really Simple Licensing** | Publisher monetization of AI crawl access | New check candidate |
+| **Chunk Relevance** | Self-contained 50-150 word chunks get 2.3x more citations | Content scoring |
+
+### 2.10 Research Validation of aeo-cli Scoring Pillars
+
+| aeo-cli Pillar | Weight | Research Validation | Evolution Path |
+|---------------|--------|---------------------|----------------|
+| Content Density | 40 pts | **Strongly validated** — chunk clarity, LLM readability, content depth are #1 factor | Add chunk sizing, answer-first detection, readability grade, heading structure |
+| Robots.txt AI Bot Access | 25 pts | **Validated as gatekeeper** — but compliance is unreliable | Add RSL check, IETF Content-Usage header detection |
+| Schema.org JSON-LD | 25 pts | **Strongly validated** — 3x citation likelihood, 44% citation increase | Add entity density, type weighting (FAQ/HowTo > generic) |
+| llms.txt Presence | 10 pts | **Low impact confirmed** — zero measurable citation uplift | Weight appropriately low; add `llms-full.txt` check |
 
 ---
 
@@ -208,44 +286,48 @@ Research on how Google AI Overviews, Perplexity, and ChatGPT select content:
 
 ### Phase 1: Strengthen the Core (Days 1-3)
 
-**Goal**: Make the existing 4 pillars best-in-class and add the most-requested features.
+**Goal**: Make the existing 4 pillars best-in-class based on research findings.
 
-| Task | Priority | Est. Complexity |
-|------|----------|----------------|
-| Add new AI bots (DeepSeek, Grok, ByteSpider, Meta AI, AI2Bot, Cohere) | High | Low |
-| Check `llms-full.txt` alongside `llms.txt` | High | Low |
-| Add `llms.txt` content quality scoring (not just presence) | High | Medium |
-| Schema type weighting (FAQ/HowTo/Article > generic) | High | Medium |
-| Readability sub-signal in Content Density (Flesch-Kincaid) | High | Medium |
-| Batch mode: `--file urls.csv` or `--file urls.txt` | High | Medium |
-| Configurable crawl4ai timeout via `--timeout` flag | Medium | Low |
-| Custom bot list via `--bots` flag or config file | Medium | Low |
+| # | Task | Research Basis | Priority | Complexity |
+|---|------|----------------|----------|------------|
+| 1 | Add new AI bots (DeepSeek, Grok, ByteSpider, Meta AI, AI2Bot, Cohere) | 560K+ sites now manage AI bots; market expects comprehensive coverage | High | Low |
+| 2 | Check `llms-full.txt` alongside `llms.txt` | Part of the llms.txt spec; Anthropic + Vercel use it | High | Low |
+| 3 | Schema type weighting (FAQ/HowTo/Article > generic Organization) | FAQ schema → 60% more AI Overview inclusion; 3x citation likelihood | High | Medium |
+| 4 | Content chunk analysis (50-150 word self-contained chunks) | 2.3x more citations for properly chunked content | High | Medium |
+| 5 | Readability scoring (Flesch-Kincaid grade level) | 8th-10th grade optimal for AI citation; Delante already checks this | High | Medium |
+| 6 | Heading structure analysis (one topic per heading, proper H2/H3/H4 hierarchy) | 40% more citations with proper hierarchical organization | High | Medium |
+| 7 | Answer-first pattern detection | 44.2% of citations come from first 30% of text | Medium | Medium |
+| 8 | Batch mode: `--file urls.csv` or `--file urls.txt` | No competitor offers batch CLI auditing | High | Medium |
+| 9 | Configurable crawl4ai timeout via `--timeout` flag | Quality-of-life improvement | Medium | Low |
+| 10 | Custom bot list via `--bots` flag or config file | Enterprise need | Medium | Low |
 
 ### Phase 2: Intelligence Layer (Days 3-5)
 
 **Goal**: Move beyond basic auditing to actionable intelligence.
 
-| Task | Priority | Est. Complexity |
-|------|----------|----------------|
-| Citation readiness analysis (statistics density, quote density, FAQ presence) | High | Medium |
-| Comparative analysis: `aeo-cli compare url1 url2` | High | Medium |
-| Score history with SQLite persistence | High | Medium |
-| Regression detection (score dropped since last audit) | Medium | Medium |
-| Recommendation engine ("Add FAQ schema to boost +8 points") | High | High |
-| E-E-A-T signal detection (authorship, expertise markers) | Medium | Medium |
+| # | Task | Research Basis | Priority | Complexity |
+|---|------|----------------|----------|------------|
+| 11 | Citation readiness score (statistics density, quote density, FAQ patterns) | GEO paper: +30-40% visibility from citations, +20-30% from statistics | High | Medium |
+| 12 | Comparative analysis: `aeo-cli compare url1 url2` | Unique feature — no competitor offers CLI comparison | High | Medium |
+| 13 | Score history with SQLite persistence | Monthly citation monitoring recommended; enables regression detection | High | Medium |
+| 14 | Recommendation engine ("Add FAQ schema to boost +8 points") | Scrunch, Goodie, and Profound all offer recommendations | High | High |
+| 15 | RSL (Really Simple Licensing) detection (`/license.xml`) | Official standard since Dec 2025; Reddit, Medium, Cloudflare support it | Medium | Low |
+| 16 | IETF Content-Usage header detection | Coming standard from IETF aipref WG | Medium | Low |
+| 17 | Regression detection (score dropped since last audit) | Quarterly audit cadence now recommended | Medium | Medium |
+| 18 | E-E-A-T signal detection (authorship, expertise markers) | 96% of AI Overview citations come from E-E-A-T content | Medium | Medium |
 
 ### Phase 3: Ecosystem Expansion (Days 5-7)
 
 **Goal**: Make aeo-cli the hub of AEO workflows.
 
-| Task | Priority | Est. Complexity |
-|------|----------|----------------|
-| Plugin architecture for custom pillars | High | High |
-| Webhook notifications (Slack, Discord, custom URL) | Medium | Medium |
-| HTML report export (Lighthouse-style) | Medium | High |
-| MCP tool expansion (compare, history, recommend) | Medium | Medium |
-| `aeo-cli watch` — continuous monitoring mode | Medium | Medium |
-| Configuration file support (`.aeorc.yml`) | Medium | Medium |
+| # | Task | Research Basis | Priority | Complexity |
+|---|------|----------------|----------|------------|
+| 19 | Configuration file support (`.aeorc.yml`) | Custom scoring profiles needed for enterprise | High | Medium |
+| 20 | MCP tool expansion (compare, history, recommend) | Adobe + Schema App both expanding MCP; stay ahead | High | Medium |
+| 21 | Plugin architecture for custom pillars | Enables community-driven pillar development | High | High |
+| 22 | Webhook notifications (Slack, Discord, custom URL) | Monitoring cadence requires automated alerting | Medium | Medium |
+| 23 | HTML report export (Lighthouse-style) | Profound/Goodie provide visual reports; CLI needs parity | Medium | High |
+| 24 | `aeo-cli watch` — continuous monitoring mode | 65% of AI bot traffic targets recent content; freshness matters | Medium | Medium |
 
 ### Phase 4: Polish & Ship (Days 7-8)
 
