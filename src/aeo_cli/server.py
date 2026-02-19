@@ -137,3 +137,33 @@ async def recommend(url: str) -> list[dict[str, Any]]:
     report = await audit_url(url)
     recs = generate_recommendations(report)
     return [rec.model_dump() for rec in recs]
+
+
+@mcp.tool
+async def radar(
+    prompt: str,
+    models: list[str] | None = None,
+    brands: list[str] | None = None,
+    runs_per_model: int = 1,
+) -> dict[str, Any]:
+    """Query AI models and analyze what they cite for a given prompt.
+
+    Args:
+        prompt: Search query to send to AI models.
+        models: LLM models to query (defaults to gpt-4o-mini).
+        brands: Brand names to track in responses.
+        runs_per_model: Number of runs per model for statistical significance.
+    """
+    from aeo_cli.core.models import RadarConfig
+    from aeo_cli.core.radar.analyzer import build_radar_report
+    from aeo_cli.core.radar.query import query_models
+
+    config = RadarConfig(
+        prompt=prompt,
+        models=models or ["gpt-4o-mini"],
+        brands=brands or [],
+        runs_per_model=runs_per_model,
+    )
+    results = await query_models(config)
+    report = build_radar_report(config, results)
+    return report.model_dump()
