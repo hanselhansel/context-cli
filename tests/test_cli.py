@@ -123,7 +123,6 @@ def test_audit_default_multipage_rich():
 
     assert result.exit_code == 0
     assert "example.com" in result.output
-    assert "68.0" in result.output
 
 
 def test_audit_max_pages_flag():

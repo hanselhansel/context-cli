@@ -372,3 +372,91 @@ def test_render_compare_token_waste_a_less_waste():
     # A has 30%, B has 85%, delta is -55 (A has less waste = green)
     assert "30%" in text
     assert "85%" in text
+
+
+# ── Diagnostics in compare output ──────────────────────────────────────────
+
+
+def _capture_compare_plain(report: CompareReport) -> str:
+    buf = StringIO()
+    con = Console(file=buf, no_color=True, width=120)
+    render_compare(report, con)
+    return buf.getvalue()
+
+
+def test_render_compare_diagnostics_both_urls():
+    """Compare should show diagnostics for both URLs when both have them."""
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    a = _high_report()
+    b = _low_report()
+    a.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500, passed=False,
+        diagnostics=[
+            Diagnostic(code="WARN-001", severity="warn", message="Excessive DOM bloat."),
+        ],
+    )
+    b.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=42.0, raw_tokens=10000, clean_tokens=5800, passed=True,
+        diagnostics=[
+            Diagnostic(code="INFO-001", severity="info", message="Readability grade: 12.3"),
+        ],
+    )
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare_plain(result)
+    assert "Diagnostics" in text
+    assert "alpha.example.com" in text
+    assert "beta.example.com" in text
+    assert "WARN-001" in text
+    assert "INFO-001" in text
+
+
+def test_render_compare_diagnostics_one_url_only():
+    """Compare should show diagnostics only for the URL that has them."""
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    a = _high_report()
+    b = _low_report()
+    a.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500, passed=False,
+        diagnostics=[
+            Diagnostic(code="WARN-001", severity="warn", message="DOM bloat"),
+        ],
+    )
+    b.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=42.0, raw_tokens=10000, clean_tokens=5800, passed=True,
+    )
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare_plain(result)
+    assert "WARN-001" in text
+    assert "Diagnostics" in text
+
+
+def test_render_compare_no_diagnostics_without_lint():
+    """Compare should not show diagnostics when no lint_result."""
+    result = build_compare_report(_URL_A, _URL_B, _high_report(), _low_report())
+    text = _capture_compare_plain(result)
+    assert "Diagnostics:" not in text
+
+
+def test_render_compare_diagnostics_error_severity():
+    """Compare diagnostics should render error severity."""
+    from context_cli.core.models import Diagnostic, LintCheck, LintResult
+    a = _high_report()
+    a.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500, passed=False,
+        diagnostics=[
+            Diagnostic(code="ERR-001", severity="error", message="Critical issue"),
+            Diagnostic(code="WARN-001", severity="warn", message="Minor issue"),
+            Diagnostic(code="INFO-001", severity="info", message="Informational"),
+        ],
+    )
+    b = _low_report()
+    result = build_compare_report(_URL_A, _URL_B, a, b)
+    text = _capture_compare_plain(result)
+    assert "ERR-001" in text
+    assert "WARN-001" in text
+    assert "INFO-001" in text

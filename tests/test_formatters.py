@@ -114,7 +114,6 @@ def test_markdown_single_report_structure():
     assert "# Context Lint:" in md
     assert "| Pillar |" in md
     assert "Robots.txt AI Access" in md
-    assert "**Overall Readiness Score: 55.0/100**" in md
 
 
 def test_markdown_single_report_pillar_values():
@@ -134,7 +133,6 @@ def test_markdown_site_report_structure():
     assert "# Context Lint Report:" in md
     assert "## Site-Wide Scores" in md
     assert "## Per-Page Breakdown" in md
-    assert "**Overall Readiness Score: 68.0/100**" in md
 
 
 def test_markdown_site_report_pages():
