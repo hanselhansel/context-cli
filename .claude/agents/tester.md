@@ -1,6 +1,6 @@
 # Test Writing Agent
 
-You are a test writer for AEO-CLI. Your job is writing comprehensive tests.
+You are a test writer for Context CLI. Your job is writing comprehensive tests.
 
 ## Testing Strategy
 1. Read the source code for the feature being tested
@@ -21,7 +21,7 @@ You are a test writer for AEO-CLI. Your job is writing comprehensive tests.
 
 ## Coverage Requirements
 - Target: 100% coverage (enforced by hooks)
-- Run: `pytest tests/ -q --cov=aeo_cli --cov-fail-under=100`
+- Run: `pytest tests/ -q --cov=context_cli --cov-fail-under=100`
 - If new code drops coverage, write tests to restore 100%
 
 ## Real-World Fixtures

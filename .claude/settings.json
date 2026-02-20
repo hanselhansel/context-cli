@@ -7,9 +7,9 @@
       "Bash(pytest*)",
       "Bash(ruff*)",
       "Bash(mypy*)",
-      "Bash(aeo-cli*)",
+      "Bash(context-cli*)",
       "Bash(python -c*)",
-      "Bash(python -m aeo_cli*)",
+      "Bash(python -m context_cli*)",
       "Bash(git add*)",
       "Bash(git commit*)",
       "Bash(git push*)",
@@ -28,7 +28,7 @@
       "Bash(git pull*)",
       "Bash(git checkout*)",
       "Bash(git remote*)",
-      "Bash(rm -rf ../aeo-cli-*)"
+      "Bash(rm -rf ../context-cli-*)"
     ],
     "deny": []
   },
