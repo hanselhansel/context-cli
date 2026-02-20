@@ -88,10 +88,6 @@ def render_single_report(report: AuditReport, console: Console) -> None:
         _render_token_analysis(lr, console)
         _render_diagnostics(lr, console)
 
-    console.print(
-        f"\n  [bold]Overall Score:[/bold] [cyan]{report.overall_score:.1f}/100[/cyan]\n"
-    )
-
     if report.errors:
         console.print("[bold red]Errors:[/bold red]")
         for err in report.errors:
@@ -166,11 +162,6 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
         _render_lint_checks(lr, console)
         _render_token_analysis(lr, console)
         _render_diagnostics(lr, console)
-
-    color = overall_color(report.overall_score)
-    console.print(
-        f"\n[bold]Overall Readiness Score:[/bold] [{color}]{report.overall_score}/100[/{color}]"
-    )
 
     if report.errors:
         console.print("\n[bold red]Errors:[/bold red]")

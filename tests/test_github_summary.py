@@ -50,7 +50,6 @@ def test_writes_to_file_when_env_set(tmp_path):
     assert result.exit_code == 0
     content = summary_file.read_text()
     assert "Context Lint" in content
-    assert "55.0/100" in content
 
 
 def test_skips_when_env_unset(tmp_path):
