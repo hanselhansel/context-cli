@@ -142,7 +142,6 @@ def test_fail_under_with_markdown():
         )
     assert result.exit_code == 1
     assert "Context Lint" in result.output
-    assert "55.0" in result.output
 
 
 # -- --fail-on-blocked-bots tests ---------------------------------------------

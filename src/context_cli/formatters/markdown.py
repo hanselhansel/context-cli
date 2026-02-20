@@ -53,11 +53,6 @@ def format_single_report_md(report: AuditReport) -> str:
 
     lines.extend(_format_token_waste_md(report))
 
-    lines.extend([
-        "",
-        f"**Overall Readiness Score: {report.overall_score}/100**",
-    ])
-
     if report.errors:
         lines.append("")
         lines.append("## Errors")
@@ -106,11 +101,6 @@ def format_site_report_md(report: SiteAuditReport) -> str:
             )
 
     lines.extend(_format_token_waste_md(report))
-
-    lines.extend([
-        "",
-        f"**Overall Readiness Score: {report.overall_score}/100**",
-    ])
 
     if report.errors:
         lines.append("")

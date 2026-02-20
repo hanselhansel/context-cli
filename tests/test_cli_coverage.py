@@ -89,7 +89,7 @@ def test_site_report_green_score():
     with patch("context_cli.cli.audit.audit_site", side_effect=_fake):
         result = runner.invoke(app, ["lint", "https://example.com"])
     assert result.exit_code == 0
-    assert "75.0" in result.output
+    assert "example.com" in result.output
 
 
 def test_site_report_red_score():
@@ -619,7 +619,7 @@ def test_single_page_linter_style_with_lint_result():
     assert "PASS" in result.output
     assert "WARN" in result.output
     assert "Token Analysis" in result.output
-    assert "Overall Score" in result.output
+    assert "50.0%" in result.output
 
 
 def test_single_page_linter_style_with_diagnostics():
@@ -727,11 +727,10 @@ def test_render_single_report_lint_header():
     output = buf.getvalue()
     assert "LINT" in output
     assert "https://example.com" in output
-    assert "Overall Score" in output
 
 
 def test_render_single_report_no_lint_result():
-    """render_single_report should still show score when lint_result is None."""
+    """render_single_report should still show LINT header when lint_result is None."""
     from io import StringIO
 
     from rich.console import Console as RichConsole
@@ -745,7 +744,7 @@ def test_render_single_report_no_lint_result():
     render_single_report(report, con)
     output = buf.getvalue()
     assert "LINT" in output
-    assert "Overall Score" in output
+    assert "https://example.com" in output
 
 
 def test_render_single_report_zero_raw_tokens():

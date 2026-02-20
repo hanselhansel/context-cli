@@ -15,12 +15,7 @@ def _waste_status(waste_pct: float) -> str:
 
 
 def _format_header(report: AuditReport | SiteAuditReport, fail_under: float | None) -> str:
-    """Format the summary header with PASS/FAIL badge."""
-    score = report.overall_score
-    if fail_under is not None:
-        status = "PASS ✅" if score >= fail_under else "FAIL ❌"
-    else:
-        status = "PASS ✅" if score >= 50 else "FAIL ❌"
+    """Format the summary header with Token Waste hero metric."""
     url = report.url
     lines = [f"## Context Lint: {url}", ""]
     # Token Waste hero metric (when lint_result is available)
@@ -28,7 +23,6 @@ def _format_header(report: AuditReport | SiteAuditReport, fail_under: float | No
         waste_pct = report.lint_result.context_waste_pct
         waste_stat = _waste_status(waste_pct)
         lines.append(f"**Token Waste: {waste_pct:.0f}%** — {waste_stat}")
-    lines.append(f"**Score: {score}/100** — {status}")
     lines.append("")
     return "\n".join(lines)
 

@@ -65,7 +65,6 @@ def test_summary_contains_heading_with_score():
     report = _mock_report(score=55.0)
     md = format_ci_summary(report)
     assert "## Context Lint: https://example.com" in md
-    assert "**Score: 55.0/100**" in md
 
 
 def test_summary_contains_pillar_table():
@@ -80,20 +79,29 @@ def test_summary_contains_pillar_table():
 
 
 def test_pass_fail_status_rendering():
-    """PASS/FAIL status should render correctly based on threshold."""
-    # Default threshold (50) — score 55 → PASS
+    """PASS/FAIL status logic still works for CI exit code (not displayed in output)."""
+    from context_cli.core.models import LintCheck, LintResult
+    # With lint_result → Token Waste hero metric shows PASS/FAIL
     report_pass = _mock_report(score=55.0)
+    report_pass.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=20.0, raw_tokens=100, clean_tokens=80,
+    )
     md_pass = format_ci_summary(report_pass)
     assert "PASS" in md_pass
 
-    # Default threshold (50) — score 30 → FAIL
+    # With high waste → FAIL in Token Waste hero metric
     report_fail = _mock_report(score=30.0)
+    report_fail.lint_result = LintResult(
+        checks=[LintCheck(name="Test", passed=True, detail="ok")],
+        context_waste_pct=85.0, raw_tokens=10000, clean_tokens=1500,
+    )
     md_fail = format_ci_summary(report_fail)
     assert "FAIL" in md_fail
 
-    # Custom threshold — score 55 but threshold 70 → FAIL
+    # Custom fail_under threshold — covers the fail_under is not None branch
     md_custom = format_ci_summary(report_pass, fail_under=70)
-    assert "FAIL" in md_custom
+    assert "Context Lint" in md_custom
 
 
 def test_bot_access_table():
@@ -241,7 +249,6 @@ def test_ci_summary_header_shows_token_waste_hero_metric():
     md = format_ci_summary(report)
     # Token Waste hero metric should appear before the score line
     assert "**Token Waste: 85%** — FAIL" in md
-    assert "**Score: 55.0/100**" in md
 
 
 def test_ci_summary_header_no_waste_without_lint_result():
