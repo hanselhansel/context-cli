@@ -74,3 +74,21 @@ def render_compare(report: CompareReport, console: Console) -> None:
         console.print(f"\n[green]Winner: {report.url_b}[/green] (by {-report.delta} pts)")
     else:
         console.print("\n[yellow]Tie — both URLs scored identically[/yellow]")
+
+    # Per-URL diagnostics
+    _render_diagnostics_per_url(report, console)
+
+
+def _render_diagnostics_per_url(report: CompareReport, console: Console) -> None:
+    """Render diagnostics for each URL that has them."""
+    for url, audit in [(report.url_a, report.report_a), (report.url_b, report.report_b)]:
+        if audit.lint_result and audit.lint_result.diagnostics:
+            dash = "\u2500"
+            heading = f"{dash * 2} Diagnostics: {url} {dash * 2}"
+            console.print(f"\n{heading}")
+            for d in audit.lint_result.diagnostics:
+                color = (
+                    "red" if d.severity == "error"
+                    else ("yellow" if d.severity == "warn" else "cyan")
+                )
+                console.print(f"  [{color}]{d.code}[/{color}]  {d.message}")
