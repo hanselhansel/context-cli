@@ -12,6 +12,13 @@ set -uo pipefail
 
 cd "$CLAUDE_PROJECT_DIR"
 
+# Use venv python if available, otherwise system python3
+if [[ -x "$CLAUDE_PROJECT_DIR/.venv/bin/python" ]]; then
+    PYTHON="$CLAUDE_PROJECT_DIR/.venv/bin/python"
+else
+    PYTHON="python3"
+fi
+
 INPUT=$(cat)
 
 # Safety valve: prevent infinite loops
@@ -46,15 +53,15 @@ fi
 
 # 2. Type check (with cache cleanup to prevent corruption)
 echo "--- Stop gate: checking types ---"
-python3 -c "import shutil; shutil.rmtree('.mypy_cache', True)" 2>/dev/null
-if ! python3 -m mypy src/ 2>&1; then
+$PYTHON -c "import shutil; shutil.rmtree('.mypy_cache', True)" 2>/dev/null
+if ! $PYTHON -m mypy src/ 2>&1; then
     echo "BLOCKED: Type errors found. Fix before stopping." >&2
     exit 2
 fi
 
 # 3. Tests + 100% coverage
 echo "--- Stop gate: running tests ---"
-if ! python3 -m pytest tests/ -q --tb=short --cov=context_cli --cov-fail-under=100 2>&1; then
+if ! $PYTHON -m pytest tests/ -q --tb=short --cov=context_cli --cov-fail-under=100 2>&1; then
     echo "BLOCKED: Tests failing or coverage below 100%. Fix before stopping." >&2
     exit 2
 fi
