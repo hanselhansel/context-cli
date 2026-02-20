@@ -327,3 +327,111 @@ def test_lint_result_json_roundtrip():
     restored = LintResult.model_validate_json(json_str)
     assert restored == result
     assert len(restored.checks) == 4
+
+
+# ── Verdict rendering ──────────────────────────────────────────────────────
+
+
+def test_render_verdict_in_single_report():
+    """render_single_report() outputs a RESULT verdict line with correct counts."""
+    from io import StringIO
+
+    from rich.console import Console
+
+    from context_cli.core.models import AuditReport
+    from context_cli.formatters.rich_output import render_single_report
+
+    # waste=50 → Token Efficiency severity=warn (30-70 range)
+    # AI Primitives → fail (no llms.txt), Bot Access → pass, Data Structuring → pass
+    # So: 2 passed, 1 failed, 1 warning
+    lr = compute_lint_results(
+        _robots(),
+        _llms(found=False),
+        _schema(),
+        _content(waste_pct=50),
+    )
+    report = AuditReport(
+        url="https://example.com",
+        robots=_robots(),
+        llms_txt=_llms(found=False),
+        schema_org=_schema(),
+        content=_content(waste_pct=50),
+        lint_result=lr,
+    )
+
+    buf = StringIO()
+    console = Console(file=buf, no_color=True, width=120)
+    render_single_report(report, console)
+    output = buf.getvalue()
+
+    assert "RESULT:" in output
+    assert "2 passed" in output
+    assert "1 failed" in output
+    assert "1 warning" in output
+
+
+def test_render_verdict_all_pass():
+    """When all checks pass and no warnings, verdict shows 4 passed, 0 failed."""
+    from io import StringIO
+
+    from rich.console import Console
+
+    from context_cli.core.models import AuditReport
+    from context_cli.formatters.rich_output import render_single_report
+
+    # waste=10 → Token Efficiency severity=pass (<30)
+    lr = compute_lint_results(
+        _robots(), _llms(), _schema(), _content(waste_pct=10),
+    )
+    report = AuditReport(
+        url="https://example.com",
+        robots=_robots(),
+        llms_txt=_llms(),
+        schema_org=_schema(),
+        content=_content(waste_pct=10),
+        lint_result=lr,
+    )
+
+    buf = StringIO()
+    console = Console(file=buf, no_color=True, width=120)
+    render_single_report(report, console)
+    output = buf.getvalue()
+
+    assert "RESULT:" in output
+    assert "4 passed" in output
+    assert "0 failed" in output
+
+
+def test_render_verdict_with_warnings():
+    """Verdict counts warn-severity checks separately as warnings."""
+    from io import StringIO
+
+    from rich.console import Console
+
+    from context_cli.core.models import AuditReport
+    from context_cli.formatters.rich_output import render_single_report
+
+    # waste=10 → severity=pass; then we inject an extra warn check
+    lr = compute_lint_results(
+        _robots(), _llms(), _schema(), _content(waste_pct=10),
+    )
+    lr.checks.append(LintCheck(name="TestWarn", passed=True, detail="ok", severity="warn"))
+
+    report = AuditReport(
+        url="https://example.com",
+        robots=_robots(),
+        llms_txt=_llms(),
+        schema_org=_schema(),
+        content=_content(waste_pct=10),
+        lint_result=lr,
+    )
+
+    buf = StringIO()
+    console = Console(file=buf, no_color=True, width=120)
+    render_single_report(report, console)
+    output = buf.getvalue()
+
+    assert "RESULT:" in output
+    assert "4 passed" in output
+    assert "0 failed" in output
+    assert "1 warning" in output
