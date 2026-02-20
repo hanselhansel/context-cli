@@ -284,9 +284,10 @@ def test_html_escapes_special_characters():
         content=ContentReport(word_count=100, score=25.0, detail="100 words"),
     )
     html = format_single_report_html(report)
-    # Should escape angle brackets in detail
-    assert "<script>" not in html
-    assert "&lt;script&gt;" in html or "script" in html
+    # Should escape angle brackets in user-provided detail text
+    assert "&lt;script&gt;" in html
+    # The raw user string should not appear unescaped in the detail
+    assert "Disallow <script>" not in html
 
 
 # -- CLI --format html integration tests --------------------------------------
