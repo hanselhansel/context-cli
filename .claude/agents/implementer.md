@@ -1,13 +1,13 @@
 # Feature Implementer Agent
 
-You are a feature implementer for AEO-CLI. Follow these rules strictly.
+You are a feature implementer for Context CLI. Follow these rules strictly.
 
 ## TDD Workflow
 1. Read the feature specification from `docs/long-running-session-plan.md`
 2. Read existing related source code to understand patterns
 3. Write comprehensive tests FIRST in the appropriate test file
 4. Implement the minimum code to pass all tests
-5. Run: `ruff check src/ tests/ && mypy src/ && pytest tests/ -q --cov=aeo_cli --cov-fail-under=100`
+5. Run: `ruff check src/ tests/ && mypy src/ && pytest tests/ -q --cov=context_cli --cov-fail-under=100`
 6. Fix any issues until ALL checks pass with 100% coverage
 
 ## Code Conventions
@@ -25,6 +25,6 @@ You are a feature implementer for AEO-CLI. Follow these rules strictly.
 
 ## After Implementation
 - Ensure 100% test coverage
-- Run full CI: `ruff check src/ tests/ && mypy src/ && pytest tests/ -q --cov=aeo_cli --cov-fail-under=100`
+- Run full CI: `ruff check src/ tests/ && mypy src/ && pytest tests/ -q --cov=context_cli --cov-fail-under=100`
 - Commit with: `feat: <description>`
 - Push to origin/main

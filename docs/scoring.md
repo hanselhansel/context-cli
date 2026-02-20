@@ -2,6 +2,55 @@
 
 Context CLI scores URLs on a 0-100 scale across four pillars. Each pillar measures a distinct aspect of LLM readiness -- how well a page is structured for token-efficient extraction by AI crawlers and RAG pipelines.
 
+## Token Waste (Hero Metric)
+
+**Context Waste %** (`context_waste_pct`) is the primary metric reported by Context CLI. It measures how much of a page's raw HTML is wasted tokens — markup, scripts, styles, and boilerplate that add no value when an LLM ingests the page.
+
+### Formula
+
+```
+context_waste_pct = (raw_html_tokens - clean_md_tokens) / raw_html_tokens * 100
+```
+
+- **`raw_html_tokens`**: Token count of the full HTML response
+- **`clean_md_tokens`**: Token count after converting to clean markdown (via headless browser extraction)
+
+A page with 10,000 raw HTML tokens that reduces to 3,000 clean markdown tokens has a **70% context waste**. Lower is better — it means more of the page is useful content that LLMs can actually use.
+
+### Interpretation
+
+| Waste % | Rating | Meaning |
+|---|---|---|
+| < 50% | Excellent | Lean, content-rich page |
+| 50-70% | Acceptable | Typical for well-structured sites |
+| > 70% | Poor | Excessive DOM bloat; triggers WARN-001 |
+
+## Lint Checks (Pass/Fail)
+
+Context CLI runs four binary lint checks on every page. Each check produces a **Pass** or **Fail** result with an associated severity level.
+
+| Check | Condition for Pass | Severity |
+|---|---|---|
+| **AI Primitives** | `llms.txt` or `llms-full.txt` found at any standard location | warning |
+| **Bot Access** | At least one AI crawler is allowed in `robots.txt` | error |
+| **Data Structuring** | At least one `<script type="application/ld+json">` block found | warning |
+| **Token Efficiency** | Context waste < 70% | warning |
+
+These checks are designed for CI/CD integration — use `--require-llms-txt`, `--require-bot-access`, and `--max-context-waste` flags to enforce them as exit-code gates.
+
+## Diagnostic Codes
+
+Every lint result includes diagnostic codes that identify specific issues. Each code has a severity and a human-readable message.
+
+| Code | Severity | Trigger Condition | Message |
+|---|---|---|---|
+| `WARN-001` | warning | Context waste > 70% | Excessive DOM bloat — over 70% of tokens are wasted |
+| `WARN-002` | warning | No code blocks detected in markdown | No code blocks detected — technical content may lack examples |
+| `WARN-003` | warning | No heading structure (H1-H6) found | No heading structure — content lacks navigable hierarchy |
+| `WARN-004` | warning | One or more AI bots blocked in `robots.txt` | Blocked AI bots in robots.txt — reduces discoverability |
+| `INFO-001` | info | Always reported | Readability grade level (Flesch-Kincaid) |
+| `INFO-002` | info | JSON-LD blocks detected | JSON-LD structured data blocks detected |
+
 ## Score Overview
 
 | Pillar | Max Points | Weight | What it measures |
