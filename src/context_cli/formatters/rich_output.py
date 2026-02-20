@@ -53,6 +53,22 @@ def _render_token_analysis(lr: LintResult, console: Console) -> None:
     )
 
 
+def _render_verdict(lr: LintResult, console: Console) -> None:
+    """Render a RESULT verdict line summarizing pass/fail/warn counts."""
+    passed = sum(1 for c in lr.checks if c.severity != "warn" and c.passed)
+    failed = sum(1 for c in lr.checks if c.severity != "warn" and not c.passed)
+    warned = sum(1 for c in lr.checks if c.severity == "warn")
+
+    parts = [
+        f"[green]{passed} passed[/green]",
+        f"[red]{failed} failed[/red]",
+    ]
+    if warned:
+        parts.append(f"[yellow]{warned} warning{'s' if warned != 1 else ''}[/yellow]")
+
+    console.print(f"\n  [bold]RESULT:[/bold] {', '.join(parts)}")
+
+
 def _render_diagnostics(lr: LintResult, console: Console) -> None:
     """Render the diagnostics section in linter style."""
     if not lr.diagnostics:
@@ -87,6 +103,7 @@ def render_single_report(report: AuditReport, console: Console) -> None:
         _render_lint_checks(lr, console)
         _render_token_analysis(lr, console)
         _render_diagnostics(lr, console)
+        _render_verdict(lr, console)
 
     if report.errors:
         console.print("[bold red]Errors:[/bold red]")
@@ -162,6 +179,7 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
         _render_lint_checks(lr, console)
         _render_token_analysis(lr, console)
         _render_diagnostics(lr, console)
+        _render_verdict(lr, console)
 
     if report.errors:
         console.print("\n[bold red]Errors:[/bold red]")
