@@ -17,7 +17,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install context-cli
-        run: pip install context-cli
+        run: pip install context-linter
 
       - name: Install browser
         run: crawl4ai-setup

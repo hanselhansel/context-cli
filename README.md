@@ -34,7 +34,7 @@ Context CLI analyzes your content across four pillars and returns a structured s
 ## Installation
 
 ```bash
-pip install context-cli
+pip install context-linter
 ```
 
 Context CLI uses a headless browser for content extraction. After installing, run:
@@ -220,7 +220,7 @@ Once configured, Claude can call the `audit_url` tool directly to check any URL'
 Generate `llms.txt` and `schema.jsonld` files from any URL using LLM analysis:
 
 ```bash
-pip install context-cli[generate]
+pip install context-linter[generate]
 context-cli generate example.com
 ```
 
@@ -270,7 +270,7 @@ Available: `generic`, `cpg`, `saas`, `ecommerce`, `blog`.
 Query AI models to see what they cite and recommend for any search prompt:
 
 ```bash
-pip install context-cli[generate]
+pip install context-linter[generate]
 context-cli radar "best project management tools" --brand Asana --brand Monday --model gpt-4o-mini
 ```
 
@@ -285,7 +285,7 @@ Options:
 Track how AI models mention and recommend your brand across multiple prompts:
 
 ```bash
-pip install context-cli[generate]
+pip install context-linter[generate]
 context-cli benchmark prompts.txt -b "YourBrand" -c "Competitor1" -c "Competitor2"
 ```
 

@@ -92,7 +92,7 @@ runs:
 
     - name: Install context-cli
       shell: bash
-      run: pip install context-cli
+      run: pip install context-linter
 
     - name: Install crawl4ai browser
       shell: bash

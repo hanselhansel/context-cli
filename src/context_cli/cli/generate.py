@@ -39,7 +39,7 @@ def register(app: typer.Typer) -> None:
         except ImportError:
             console.print(
                 "[red]Error:[/red] litellm is required for the generate command.\n"
-                "Install it with: [bold]pip install context-cli\\[generate][/bold]"
+                "Install it with: [bold]pip install context-linter\\[generate][/bold]"
             )
             raise SystemExit(1)
 
@@ -113,7 +113,7 @@ def register(app: typer.Typer) -> None:
         except ImportError:
             console.print(
                 "[red]Error:[/red] litellm is required for the generate-batch command.\n"
-                "Install it with: [bold]pip install context-cli\\[generate][/bold]"
+                "Install it with: [bold]pip install context-linter\\[generate][/bold]"
             )
             raise SystemExit(1)
 
