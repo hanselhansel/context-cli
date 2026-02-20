@@ -1,0 +1,61 @@
+# Tech Docs LLM Readiness Benchmark — 50 Sites
+# Generated for context-linter (https://pypi.org/project/context-linter/)
+# One URL per line, audited in --single mode
+
+# ── AI Companies (15) ────────────────────────────────────────────────────────
+https://docs.anthropic.com
+https://platform.openai.com/docs
+https://ai.google.dev
+https://docs.cohere.com
+https://docs.mistral.ai
+https://huggingface.co/docs
+https://api-docs.deepseek.com
+https://docs.x.ai
+https://console.groq.com/docs
+https://replicate.com/docs
+https://docs.together.ai
+https://docs.perplexity.ai
+https://docs.fireworks.ai
+https://llama.meta.com
+https://platform.stability.ai/docs
+
+# ── Cloud Providers (8) ──────────────────────────────────────────────────────
+https://docs.aws.amazon.com
+https://cloud.google.com/docs
+https://learn.microsoft.com/en-us/azure
+https://developers.cloudflare.com
+https://docs.digitalocean.com
+https://fly.io/docs
+https://docs.railway.com
+https://docs.render.com
+
+# ── Dev Tools & APIs (15) ────────────────────────────────────────────────────
+https://docs.stripe.com
+https://www.twilio.com/docs
+https://docs.github.com
+https://docs.gitlab.com
+https://vercel.com/docs
+https://docs.netlify.com
+https://supabase.com/docs
+https://www.prisma.io/docs
+https://www.algolia.com/doc
+https://auth0.com/docs
+https://docs.datadoghq.com
+https://docs.sentry.io
+https://learning.postman.com/docs
+https://docs.docker.com
+https://planetscale.com/docs
+
+# ── Frameworks & Languages (12) ──────────────────────────────────────────────
+https://react.dev
+https://nextjs.org/docs
+https://vuejs.org
+https://svelte.dev/docs
+https://docs.djangoproject.com
+https://fastapi.tiangolo.com
+https://doc.rust-lang.org
+https://go.dev/doc
+https://docs.python.org
+https://nodejs.org/docs
+https://tailwindcss.com/docs
+https://developer.mozilla.org
