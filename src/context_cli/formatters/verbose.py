@@ -24,6 +24,7 @@ from context_cli.formatters.verbose_panels import (
     PILLAR_MAX,
     _border_color,
     overall_color,
+    render_agent_readiness_verbose,
     render_content_usage_verbose,
     render_content_verbose,
     render_eeat_verbose,
@@ -40,6 +41,7 @@ __all__ = [
     "PILLAR_MAX",
     "generate_recommendations",
     "overall_color",
+    "render_agent_readiness_verbose",
     "render_content_usage_verbose",
     "render_content_verbose",
     "render_eeat_verbose",
@@ -61,11 +63,16 @@ __all__ = [
 def _render_informational_panels(
     report: AuditReport | SiteAuditReport, console: Console,
 ) -> None:
-    """Render informational signal panels (RSL, Content-Usage, E-E-A-T) if present."""
+    """Render informational signal panels if present."""
     # Token analysis panel (shown first among informational panels)
     token_panel = render_token_analysis_verbose(report)
     if token_panel:
         console.print(token_panel)
+
+    # Agent readiness panel
+    ar_panel = render_agent_readiness_verbose(report)
+    if ar_panel:
+        console.print(ar_panel)
 
     rsl_panel = render_rsl_verbose(report)
     if rsl_panel:
@@ -84,7 +91,8 @@ def render_verbose_single(report: AuditReport, console: Console) -> None:
     """Render all verbose panels for a single-page audit report."""
     console.print()
     console.print(
-        "[bold]Scoring Methodology:[/bold] Content (40pts) + Robots (25pts) "
+        "[bold]Scoring Methodology:[/bold] Content (40pts)"
+        " + Robots (25pts) "
         "+ Schema (25pts) + llms.txt (10pts) = 100pts max"
     )
 
@@ -100,11 +108,14 @@ def render_verbose_single(report: AuditReport, console: Console) -> None:
         console.print(rec_panel)
 
 
-def render_verbose_site(report: SiteAuditReport, console: Console) -> None:
+def render_verbose_site(
+    report: SiteAuditReport, console: Console
+) -> None:
     """Render all verbose panels for a multi-page site audit report."""
     console.print()
     console.print(
-        "[bold]Scoring Methodology:[/bold] Content (40pts) + Robots (25pts) "
+        "[bold]Scoring Methodology:[/bold] Content (40pts)"
+        " + Robots (25pts) "
         "+ Schema (25pts) + llms.txt (10pts) = 100pts max"
     )
 
@@ -127,10 +138,16 @@ def render_verbose_site(report: SiteAuditReport, console: Console) -> None:
                 for s in page.schema_org.schemas:
                     props = ", ".join(s.properties[:5])
                     if len(s.properties) > 5:
-                        props += f"... (+{len(s.properties) - 5} more)"
-                    page_lines.append(f"  Schema: @type={s.schema_type} [{props}]")
+                        props += (
+                            f"... (+{len(s.properties) - 5} more)"
+                        )
+                    page_lines.append(
+                        f"  Schema: @type={s.schema_type} [{props}]"
+                    )
             else:
-                page_lines.append("  Schema: [dim]No JSON-LD found[/dim]")
+                page_lines.append(
+                    "  Schema: [dim]No JSON-LD found[/dim]"
+                )
 
             # Content for this page
             page_lines.append(
@@ -193,7 +210,9 @@ def _render_aggregation_explanation(
             w = 2
         else:
             w = 1
-        weight_lines.append(f"    {page.url}: depth {depth} → weight {w}")
+        weight_lines.append(
+            f"    {page.url}: depth {depth} \u2192 weight {w}"
+        )
 
     if weight_lines:
         lines.append("")
