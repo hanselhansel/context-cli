@@ -18,6 +18,7 @@ from context_cli.cli import leaderboard as _lb_mod  # noqa: E402
 from context_cli.cli import markdown as _markdown_mod  # noqa: E402
 from context_cli.cli import mcp_cmd as _mcp_mod  # noqa: E402
 from context_cli.cli import radar as _radar_mod  # noqa: E402
+from context_cli.cli import serve as _serve_mod  # noqa: E402
 from context_cli.cli import watch as _watch_mod  # noqa: E402
 
 _audit_mod.register(app)
@@ -29,4 +30,5 @@ _lb_mod.register(app)
 _markdown_mod.register(app)
 _mcp_mod.register(app)
 _radar_mod.register(app)
+_serve_mod.register(app)
 _watch_mod.register(app)
