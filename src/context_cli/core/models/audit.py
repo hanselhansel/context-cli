@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from .agent_readiness import AgentReadinessReport
 from .content import ContentReport
 from .llms_txt import LlmsTxtReport
 from .robots import RobotsReport
@@ -76,6 +77,9 @@ class AuditReport(BaseModel):
     eeat: EeatReport | None = Field(
         default=None, description="E-E-A-T signals (informational, not scored)"
     )
+    agent_readiness: AgentReadinessReport | None = Field(
+        default=None, description="Agent readiness pillar (V3 scoring only)"
+    )
     errors: list[str] = Field(
         default_factory=list, description="Non-fatal errors encountered during audit"
     )
@@ -121,6 +125,9 @@ class SiteAuditReport(BaseModel):
     )
     eeat: EeatReport | None = Field(
         default=None, description="E-E-A-T signals (informational, not scored)"
+    )
+    agent_readiness: AgentReadinessReport | None = Field(
+        default=None, description="Agent readiness pillar (V3 scoring only)"
     )
     discovery: DiscoveryResult = Field(description="Page discovery details")
     pages: list[PageAudit] = Field(default_factory=list, description="Per-page audit results")
