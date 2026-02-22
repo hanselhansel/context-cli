@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from context_cli.core.models import (
+    AgentReadinessReport,
     ContentReport,
     Diagnostic,
     LintCheck,
@@ -12,7 +13,7 @@ from context_cli.core.models import (
     SchemaReport,
 )
 
-# ── Scoring Constants ────────────────────────────────────────────────────────
+# ── V2 Scoring Constants ────────────────────────────────────────────────────
 # Exported so verbose output can display the actual thresholds used.
 
 CONTENT_WORD_TIERS: list[tuple[int, int]] = [
@@ -37,26 +38,66 @@ SCHEMA_MAX: int = 25
 ROBOTS_MAX: int = 25
 LLMS_TXT_MAX: int = 10
 
+# ── V3 Scoring Constants (opt-in via scoring_version="v3") ──────────────────
+
+V3_CONTENT_MAX: int = 35
+V3_ROBOTS_MAX: int = 20
+V3_SCHEMA_MAX: int = 20
+V3_AGENT_READINESS_MAX: int = 20
+V3_LLMS_TXT_MAX: int = 5
+
+
+def compute_agent_readiness(report: AgentReadinessReport) -> AgentReadinessReport:
+    """Compute the aggregate agent readiness score from sub-check scores."""
+    total = (
+        report.agents_md.score
+        + report.markdown_accept.score
+        + report.mcp_endpoint.score
+        + report.semantic_html.score
+        + report.x402.score
+        + report.nlweb.score
+    )
+    report.score = min(V3_AGENT_READINESS_MAX, total)
+    parts: list[str] = []
+    if report.agents_md.score > 0:
+        parts.append(f"AGENTS.md={report.agents_md.score}")
+    if report.markdown_accept.score > 0:
+        parts.append(f"MD-Accept={report.markdown_accept.score}")
+    if report.mcp_endpoint.score > 0:
+        parts.append(f"MCP={report.mcp_endpoint.score}")
+    if report.semantic_html.score > 0:
+        parts.append(f"Semantic={report.semantic_html.score}")
+    if report.x402.score > 0:
+        parts.append(f"x402={report.x402.score}")
+    if report.nlweb.score > 0:
+        parts.append(f"NLWeb={report.nlweb.score}")
+    report.detail = ", ".join(parts) if parts else "No agent readiness signals detected"
+    return report
+
 
 def compute_scores(
     robots: RobotsReport,
     llms_txt: LlmsTxtReport,
     schema_org: SchemaReport,
     content: ContentReport,
+    *,
+    scoring_version: str = "v2",
+    agent_readiness: AgentReadinessReport | None = None,
 ) -> tuple[RobotsReport, LlmsTxtReport, SchemaReport, ContentReport, float]:
     """Compute scores for each pillar and overall Readiness Score.
 
-    Scoring weights (revised 2026-02-18):
+    Scoring weights (V2, default):
         Content (max 40): most impactful — what LLMs actually extract and cite
         Schema  (max 25): structured signals help LLMs understand page entities
         Robots  (max 25): gatekeeper — blocked bots can't crawl at all
         llms.txt (max 10): forward-looking signal, minimal real impact today
 
-    Rationale: When AI search engines (ChatGPT, Perplexity, Claude) look up
-    products or answer questions, they crawl pages and extract text content.
-    Content quality dominates what gets cited. Schema.org gives structured
-    "cheat sheets" (Product, Article, FAQ). Robots.txt is pass/fail per bot.
-    llms.txt is emerging but not yet weighted by any major AI search engine.
+    V3 scoring (opt-in via scoring_version="v3"):
+        Content (max 35): rescaled from V2
+        Robots  (max 20): rescaled from V2
+        Schema  (max 20): rescaled from V2
+        Agent Readiness (max 20): new pillar for agent-era signals
+        llms.txt (max 5): rescaled from V2
     """
     # Robots: max ROBOTS_MAX — proportional to bots allowed
     if robots.found and robots.bots:
@@ -96,7 +137,17 @@ def compute_scores(
         score += CONTENT_CODE_BONUS
     content.score = min(CONTENT_MAX, score)
 
-    overall = robots.score + llms_txt.score + schema_org.score + content.score
+    if scoring_version == "v3":
+        # Scale V2 raw scores to V3 maximums proportionally
+        v3_robots = round(robots.score / ROBOTS_MAX * V3_ROBOTS_MAX, 1)
+        v3_llms = round(llms_txt.score / LLMS_TXT_MAX * V3_LLMS_TXT_MAX, 1)
+        v3_schema = round(schema_org.score / SCHEMA_MAX * V3_SCHEMA_MAX, 1)
+        v3_content = round(content.score / CONTENT_MAX * V3_CONTENT_MAX, 1)
+        ar_score = agent_readiness.score if agent_readiness is not None else 0
+        overall = v3_robots + v3_llms + v3_schema + v3_content + ar_score
+    else:
+        overall = robots.score + llms_txt.score + schema_org.score + content.score
+
     return robots, llms_txt, schema_org, content, overall
 
 
@@ -179,6 +230,9 @@ def compute_lint_results(
     llms_txt: LlmsTxtReport,
     schema_org: SchemaReport,
     content: ContentReport,
+    *,
+    scoring_version: str = "v2",
+    agent_readiness: AgentReadinessReport | None = None,
 ) -> LintResult:
     """Compute pass/fail checks, token waste metrics, and diagnostics."""
     checks: list[LintCheck] = []
@@ -243,6 +297,16 @@ def compute_lint_results(
     checks.append(LintCheck(
         name="Token Efficiency", passed=eff_pass, severity=eff_severity, detail=eff_detail,
     ))
+
+    # V3: Agent Readiness check
+    if scoring_version == "v3" and agent_readiness is not None:
+        ar_pass = agent_readiness.score > 0
+        checks.append(LintCheck(
+            name="Agent Readiness",
+            passed=ar_pass,
+            severity="pass" if ar_pass else "warn",
+            detail=agent_readiness.detail,
+        ))
 
     diagnostics = _generate_diagnostics(robots, content, schema_org)
 
