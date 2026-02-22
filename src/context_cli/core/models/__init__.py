@@ -1,5 +1,14 @@
 """Pydantic models defining all Context Lint data contracts."""
 
+from context_cli.core.models.agent_readiness import (
+    AgentReadinessReport,
+    AgentsMdReport,
+    MarkdownAcceptReport,
+    McpEndpointReport,
+    NlwebReport,
+    SemanticHtmlReport,
+    X402Report,
+)
 from context_cli.core.models.audit import (
     AuditReport,
     BatchAuditReport,
@@ -84,6 +93,14 @@ from context_cli.core.models.signals import (
 from context_cli.core.models.webhook import WebhookPayload
 
 __all__ = [
+    # agent_readiness
+    "AgentReadinessReport",
+    "AgentsMdReport",
+    "MarkdownAcceptReport",
+    "McpEndpointReport",
+    "NlwebReport",
+    "SemanticHtmlReport",
+    "X402Report",
     # audit
     "AuditReport",
     "BatchAuditReport",
