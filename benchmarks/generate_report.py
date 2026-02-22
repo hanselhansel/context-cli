@@ -368,7 +368,11 @@ def process_reports(data: dict) -> list[dict]:
     """Extract flat dicts from audit reports for analysis.
 
     Handles both AuditReport (single-page) and SiteAuditReport (multi-page).
+    Extracts V3 agent_readiness data and markdown_stats when present.
     """
+    # Load top-level markdown_stats (keyed by URL)
+    md_stats_map = data.get("markdown_stats", {})
+
     results = []
     for report in data.get("reports", []):
         url = report["url"]
@@ -386,6 +390,19 @@ def process_reports(data: dict) -> list[dict]:
         pages_failed = report.get("pages_failed", 0)
         discovery = report.get("discovery", {})
         discovery_method = discovery.get("method", "single")
+
+        # V3: Agent readiness data
+        ar = report.get("agent_readiness") or {}
+        agent_readiness_score = ar.get("score", 0)
+        agents_md = ar.get("agents_md", {})
+        md_accept = ar.get("markdown_accept", {})
+        mcp_ep = ar.get("mcp_endpoint", {})
+        semantic = ar.get("semantic_html", {})
+        x402 = ar.get("x402", {})
+        nlweb = ar.get("nlweb", {})
+
+        # Markdown conversion stats (from top-level markdown_stats)
+        md_stats = md_stats_map.get(url, {})
 
         results.append({
             "url": url,
@@ -408,6 +425,20 @@ def process_reports(data: dict) -> list[dict]:
             "pages_audited": pages_audited,
             "pages_failed": pages_failed,
             "discovery_method": discovery_method,
+            # V3: Agent readiness
+            "agent_readiness_score": agent_readiness_score,
+            "has_agents_md": agents_md.get("found", False),
+            "has_markdown_accept": md_accept.get("supported", False),
+            "has_mcp_endpoint": mcp_ep.get("found", False),
+            "has_semantic_html": semantic.get("score", 0) > 0,
+            "has_x402": x402.get("found", False),
+            "has_nlweb": nlweb.get("found", False),
+            # Markdown conversion stats
+            "md_raw_html_chars": md_stats.get("raw_html_chars", 0),
+            "md_clean_md_chars": md_stats.get("clean_md_chars", 0),
+            "md_raw_tokens": md_stats.get("raw_tokens", 0),
+            "md_clean_tokens": md_stats.get("clean_tokens", 0),
+            "md_reduction_pct": md_stats.get("reduction_pct", 0),
         })
     results.sort(key=lambda r: r["overall_score"], reverse=True)
     for i, r in enumerate(results):
@@ -571,6 +602,38 @@ def compute_insights(reports: list[dict], cat_stats: dict[str, dict]) -> list[di
             "style": "positive" if delta > 0 else "",
         })
 
+    # Agent Readiness insight
+    agents_md_count = sum(1 for r in reports if r.get("has_agents_md", False))
+    md_accept_count = sum(1 for r in reports if r.get("has_markdown_accept", False))
+    mcp_count = sum(1 for r in reports if r.get("has_mcp_endpoint", False))
+    avg_agent_score = sum(r.get("agent_readiness_score", 0) for r in reports) / n
+    insights.append({
+        "tag": "Agent Readiness",
+        "text": f"Average agent readiness score: {avg_agent_score:.1f}/20. "
+                f"Only {agents_md_count}/{n} have AGENTS.md, "
+                f"{md_accept_count}/{n} support Accept: text/markdown, "
+                f"and {mcp_count}/{n} expose MCP endpoints.",
+        "detail": "Agent readiness is the newest pillar — most sites have not "
+                  "yet adopted these standards for AI agent interoperability.",
+        "style": "warning" if avg_agent_score < 10 else "positive",
+    })
+
+    # Token Reduction insight
+    md_sites = [r for r in reports if r.get("md_reduction_pct", 0) > 0]
+    if md_sites:
+        avg_reduction = sum(r["md_reduction_pct"] for r in md_sites) / len(md_sites)
+        best_md = max(md_sites, key=lambda r: r["md_reduction_pct"])
+        insights.append({
+            "tag": "Token Reduction",
+            "text": f"Converting HTML to clean markdown reduces tokens by "
+                    f"{avg_reduction:.0f}% on average across {len(md_sites)} sites.",
+            "detail": f"Best reduction: {best_md['name']} at "
+                      f"{best_md['md_reduction_pct']:.0f}%. "
+                      f"Serving markdown instead of HTML can dramatically cut "
+                      f"context window waste for LLM consumers.",
+            "style": "positive",
+        })
+
     # Best content but blocking bots
     for r in reports[:10]:
         blocked = [b for b, allowed in r["bots"].items() if not allowed]
@@ -613,6 +676,17 @@ def build_stats_bar(reports: list[dict], cat_stats: dict) -> str:
     total_pages = sum(r["pages_audited"] for r in reports)
     schema_count = sum(1 for r in reports if r["schema_blocks"] > 0)
 
+    # V3: Agent readiness average
+    avg_agent = sum(r["agent_readiness_score"] for r in reports) / n
+    agent_color = score_color(avg_agent / 20 * 100)  # normalize to 0-100 scale
+
+    # Markdown token reduction average (only for sites with data)
+    md_sites = [r for r in reports if r["md_reduction_pct"] > 0]
+    avg_reduction = (
+        sum(r["md_reduction_pct"] for r in md_sites) / len(md_sites)
+        if md_sites else 0
+    )
+
     return f"""<div class="container">
 <div class="stats-bar">
   <div class="stat">
@@ -634,6 +708,14 @@ def build_stats_bar(reports: list[dict], cat_stats: dict) -> str:
   <div class="stat">
     <div class="stat-value" style="color:var(--yellow)">{schema_count}/{n}</div>
     <div class="stat-label">Have Schema.org</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" style="color:{agent_color}">{avg_agent:.1f}/20</div>
+    <div class="stat-label">Avg Agent Readiness</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" style="color:var(--accent)">{avg_reduction:.0f}%</div>
+    <div class="stat-label">Avg Token Reduction</div>
   </div>
 </div>
 </div>"""
@@ -750,6 +832,14 @@ def build_chart_section() -> str:
       </div>
     </div>
 
+    <div class="chart-card full">
+      <h3>Markdown Token Reduction</h3>
+      <p class="chart-sub">Token savings from HTML-to-markdown conversion per site</p>
+      <div class="chart-wrapper">
+        <canvas id="tokenReductionChart"></canvas>
+      </div>
+    </div>
+
   </div>
 </div>
 </section>"""
@@ -803,6 +893,85 @@ def build_bot_heatmap(reports: list[dict]) -> str:
           <tr style="border-top:2px solid var(--border-2)">
             <th class="company-th" style="font-weight:700;color:var(--text-0)">
               Allowed</th>{' '.join(summary_cells)}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</section>"""
+
+
+AGENT_CHECKS = [
+    ("has_agents_md", "AGENTS.md"),
+    ("has_markdown_accept", "Accept:md"),
+    ("has_mcp_endpoint", "MCP"),
+    ("has_semantic_html", "Semantic"),
+    ("has_x402", "x402"),
+    ("has_nlweb", "NLWeb"),
+]
+
+AGENT_SHORT_NAMES = {
+    "AGENTS.md": "AGT",
+    "Accept:md": "MD",
+    "MCP": "MCP",
+    "Semantic": "Sem",
+    "x402": "402",
+    "NLWeb": "NLW",
+}
+
+
+def build_agent_heatmap(reports: list[dict]) -> str:
+    """Build the agent readiness heatmap as an HTML table."""
+    headers = "".join(
+        f"<th>{esc(AGENT_SHORT_NAMES.get(label, label))}</th>"
+        for _, label in AGENT_CHECKS
+    )
+
+    rows = []
+    for r in reports:
+        cells = []
+        for key, _label in AGENT_CHECKS:
+            val = r.get(key, False)
+            if val:
+                cells.append(
+                    '<td><div class="hm-cell hm-yes">\u2713</div></td>'
+                )
+            else:
+                cells.append(
+                    '<td><div class="hm-cell hm-no">\u2717</div></td>'
+                )
+        rows.append(
+            f'<tr><th class="company-th">{esc(r["name"])}</th>'
+            f'{"".join(cells)}</tr>'
+        )
+
+    # Summary row: count per check
+    summary_cells = []
+    for key, _label in AGENT_CHECKS:
+        count = sum(1 for r in reports if r.get(key, False))
+        pct = count / len(reports) * 100 if reports else 0
+        color = score_color(pct)
+        summary_cells.append(
+            f'<td><div class="hm-cell" style="color:{color};font-weight:800">'
+            f'{count}</div></td>'
+        )
+
+    return f"""<section class="section" id="agent-heatmap">
+<div class="container">
+  <div class="section-header">
+    <h2>Agent Readiness Heatmap</h2>
+    <p>Which sites support the 6 agent readiness checks? Green = present, Red = absent.</p>
+  </div>
+  <div class="chart-card">
+    <div class="heatmap-scroll">
+      <table class="heatmap">
+        <thead><tr><th class="company-th"></th>{headers}</tr></thead>
+        <tbody>
+          {''.join(rows)}
+          <tr style="border-top:2px solid var(--border-2)">
+            <th class="company-th" style="font-weight:700;color:var(--text-0)">
+              Present</th>{' '.join(summary_cells)}
           </tr>
         </tbody>
       </table>
@@ -903,7 +1072,7 @@ def build_methodology() -> str:
 <div class="container">
   <div class="section-header">
     <h2>Methodology</h2>
-    <p>How we measure LLM readiness</p>
+    <p>How we measure LLM readiness (V3 scoring)</p>
   </div>
   <div class="method-grid">
     <div>
@@ -919,6 +1088,13 @@ def build_methodology() -> str:
         <div class="method-desc">Access rules for 13 AI crawlers including
         GPTBot, ClaudeBot, PerplexityBot, and more</div></div>
       </div>
+      <div class="method-pillar">
+        <div class="method-weight">20</div>
+        <div><div class="method-name">Agent Readiness</div>
+        <div class="method-desc">AGENTS.md, Accept: text/markdown,
+        MCP endpoints, semantic HTML, x402, NLWeb &mdash;
+        new V3 pillar measuring how well a site supports AI agents</div></div>
+      </div>
     </div>
     <div>
       <div class="method-pillar">
@@ -933,18 +1109,27 @@ def build_methodology() -> str:
         <div class="method-desc">Machine-readable context file that tells AI
         systems what your site is about</div></div>
       </div>
+      <div class="method-pillar">
+        <div class="method-weight" style="font-size:1rem;color:var(--text-1)">\u2728</div>
+        <div><div class="method-name">Markdown Conversion</div>
+        <div class="method-desc">HTML-to-markdown token reduction &mdash;
+        how much context waste can be eliminated by serving clean markdown
+        instead of raw HTML</div></div>
+      </div>
     </div>
   </div>
   <div class="cta-box">
     <h3>Run Your Own Audit</h3>
     <p>context-linter is free, open-source, and takes 30 seconds to set up.</p>
     <code class="cta-code">pip install context-linter &amp;&amp; context-cli lint yoursite.com</code>
+    <br><br>
+    <code class="cta-code">context-cli markdown yoursite.com</code>
     <div class="footer-links">
       <a href="https://pypi.org/project/context-linter/" target="_blank">PyPI</a>
       <a href="https://github.com/nicholasgriffintn/context-cli" target="_blank">GitHub</a>
     </div>
   </div>
-  <div class="timestamp">Generated on {now} using context-linter</div>
+  <div class="timestamp">Generated on {now} using context-linter v3.0</div>
 </div>
 </footer>"""
 
@@ -995,6 +1180,21 @@ def build_chart_js(reports: list[dict], cat_stats: dict) -> str:
         round(sum(r["content_score"] for r in bot5) / len(bot5) / 40 * 100),
     ]
 
+    # Token reduction data (sorted by reduction %, descending)
+    token_reduction_data = sorted(
+        [
+            {
+                "name": r["name"],
+                "reduction": r.get("md_reduction_pct", 0),
+                "cat": r["category"],
+            }
+            for r in reports
+            if r.get("md_reduction_pct", 0) > 0
+        ],
+        key=lambda d: d["reduction"],
+        reverse=True,
+    )
+
     chart_data = json.dumps({
         "labels": labels,
         "scores": scores,
@@ -1008,6 +1208,7 @@ def build_chart_js(reports: list[dict], cat_stats: dict) -> str:
         "topNames": [r["name"] for r in top5],
         "botNames": [r["name"] for r in bot5],
         "catColors": {c: CATEGORY_COLORS[c][0] for c in CATEGORY_ORDER},
+        "tokenReduction": token_reduction_data,
     })
 
     return f"""<script>
@@ -1183,6 +1384,54 @@ new Chart(document.getElementById('radarChart'), {{
   }}
 }});
 
+// ─ Markdown Token Reduction ─
+if (D.tokenReduction && D.tokenReduction.length > 0) {{
+  const trLabels = D.tokenReduction.map(d => d.name);
+  const trValues = D.tokenReduction.map(d => d.reduction);
+  const trColors = D.tokenReduction.map(d => {{
+    const pct = d.reduction;
+    if (pct >= 80) return '#22c55e';
+    if (pct >= 50) return '#eab308';
+    return '#ef4444';
+  }});
+  const trCtx = document.getElementById('tokenReductionChart');
+  trCtx.height = Math.max(400, D.tokenReduction.length * 24);
+  new Chart(trCtx, {{
+    type: 'bar',
+    data: {{
+      labels: trLabels,
+      datasets: [{{
+        data: trValues,
+        backgroundColor: trColors.map(c => c + '40'),
+        borderColor: trColors,
+        borderWidth: 1,
+        borderRadius: 4,
+        barThickness: 18,
+      }}]
+    }},
+    options: {{
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {{
+        legend: {{ display: false }},
+        tooltip: {{
+          callbacks: {{
+            label: ctx => ctx.parsed.x.toFixed(1) + '% token reduction'
+          }}
+        }}
+      }},
+      scales: {{
+        x: {{ min: 0, max: 100,
+             grid: {{ color: 'rgba(255,255,255,0.04)' }},
+             title: {{ display: true, text: 'Token Reduction (%)' }} }},
+        y: {{ grid: {{ display: false }},
+             ticks: {{ font: {{ size: 11 }} }} }}
+      }}
+    }}
+  }});
+}}
+
 // ─ Table Sorting ─
 document.querySelectorAll('#rankingsTable th.sortable').forEach((th, i) => {{
   let asc = false;
@@ -1214,6 +1463,7 @@ def generate_html(reports: list[dict], cat_stats: dict, insights: list[dict]) ->
     rankings = build_rankings_table(reports)
     charts = build_chart_section()
     heatmap = build_bot_heatmap(reports)
+    agent_heatmap = build_agent_heatmap(reports)
     insights_html = build_insights_section(insights)
     categories = build_category_sections(reports, cat_stats)
     methodology = build_methodology()
@@ -1237,6 +1487,7 @@ def generate_html(reports: list[dict], cat_stats: dict, insights: list[dict]) ->
 {rankings}
 {charts}
 {heatmap}
+{agent_heatmap}
 {insights_html}
 {categories}
 {methodology}
