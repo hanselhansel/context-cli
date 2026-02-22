@@ -217,3 +217,58 @@ async def retail_audit_tool(url: str) -> dict[str, Any]:
 
     report = await retail_audit(url)
     return report.model_dump()
+
+
+@mcp.tool
+async def agent_readiness_audit(url: str) -> dict[str, Any]:
+    """Audit a URL for AI agent readiness.
+
+    Checks for AGENTS.md, Accept: text/markdown support, MCP endpoints,
+    semantic HTML quality, x402 payment signaling, and NLWeb support.
+    Returns per-check scores and an overall agent readiness score (0-20).
+
+    Args:
+        url: URL to audit for agent readiness.
+    """
+    report = await audit_url(url)
+    if report.agent_readiness is not None:
+        return report.agent_readiness.model_dump()
+    return {"error": "Agent readiness data not available"}
+
+
+@mcp.tool
+async def convert_to_markdown(url: str) -> dict[str, Any]:
+    """Convert a URL's HTML content to clean, agent-friendly markdown.
+
+    Fetches the URL, strips boilerplate (nav, footer, ads, scripts),
+    extracts main content, and converts to markdown.
+    Returns the markdown text and conversion statistics.
+
+    Args:
+        url: URL to fetch and convert to markdown.
+    """
+    from context_cli.core.markdown_engine.converter import (
+        convert_url_to_markdown as _convert,
+    )
+
+    md_text, stats = await _convert(url)
+    return {"markdown": md_text, "stats": stats}
+
+
+@mcp.tool
+async def generate_agents_md_tool(url: str) -> dict[str, Any]:
+    """Generate an AGENTS.md file for a website.
+
+    Crawls the URL to understand site structure and produces an AGENTS.md
+    file following the emerging standard for AI agent discovery.
+    Returns the generated AGENTS.md content.
+
+    Args:
+        url: URL of the website to generate AGENTS.md for.
+    """
+    from context_cli.core.generate.agents_md import (
+        generate_agents_md as _generate_agents_md,
+    )
+
+    result = await _generate_agents_md(url)
+    return {"content": result, "url": url}
