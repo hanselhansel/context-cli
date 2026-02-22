@@ -32,7 +32,7 @@ def extract_content(html: str) -> str:
     # Try readabilipy first (pure Python mode, no Node.js needed)
     try:
         result = simple_json_from_html_string(html, use_readability=False)
-        content = result.get("plain_content") or result.get("content", "")
+        content: str = result.get("plain_content") or result.get("content", "")
         if content and len(content.strip()) > 100:
             return content
     except Exception:

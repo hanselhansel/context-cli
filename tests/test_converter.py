@@ -256,7 +256,7 @@ class TestConvertHtmlToMarkdownConfig:
     def test_custom_config_passed_to_sanitizer(
         self, mock_sanitize: MagicMock, mock_extract: MagicMock,
     ) -> None:
-        config = MarkdownEngineConfig(strip_selectors=["div.ad"])
+        config = MarkdownEngineConfig(strip_ads=False)
         html = "<p>Content</p>"
         mock_sanitize.return_value = html
         mock_extract.return_value = html
@@ -469,7 +469,7 @@ class TestConvertUrlToMarkdown:
         html = "<p>Content</p>"
         mock_sanitize.return_value = html
         mock_extract.return_value = html
-        config = MarkdownEngineConfig(strip_selectors=["nav"])
+        config = MarkdownEngineConfig(strip_nav=False)
 
         mock_response = MagicMock()
         mock_response.text = html
@@ -618,54 +618,3 @@ class TestMarkdownCli:
         assert "Conversion Stats" not in result.output
 
 
-# ---------------------------------------------------------------------------
-# MarkdownEngineConfig — model tests
-# ---------------------------------------------------------------------------
-
-
-class TestMarkdownEngineConfig:
-    """Tests for the config model."""
-
-    def test_default_config(self) -> None:
-        config = MarkdownEngineConfig()
-        assert "script" in config.strip_selectors
-        assert "style" in config.strip_selectors
-        assert config.extract_main is True
-
-    def test_custom_config(self) -> None:
-        config = MarkdownEngineConfig(
-            strip_selectors=["div.ad"],
-            extract_main=False,
-        )
-        assert config.strip_selectors == ["div.ad"]
-        assert config.extract_main is False
-
-
-# ---------------------------------------------------------------------------
-# Stub module tests (sanitizer + extractor stubs pass through unchanged)
-# ---------------------------------------------------------------------------
-
-
-class TestSanitizerStub:
-    """Tests for the sanitizer stub module."""
-
-    def test_sanitize_html_passthrough(self) -> None:
-        from context_cli.core.markdown_engine.sanitizer import sanitize_html
-        html = "<p>Test content</p>"
-        assert sanitize_html(html) == html
-
-    def test_sanitize_html_with_config(self) -> None:
-        from context_cli.core.markdown_engine.sanitizer import sanitize_html
-        config = MarkdownEngineConfig(strip_selectors=["nav"])
-        html = "<nav>Nav</nav><p>Content</p>"
-        # Stub just passes through
-        assert sanitize_html(html, config) == html
-
-
-class TestExtractorStub:
-    """Tests for the extractor stub module."""
-
-    def test_extract_content_passthrough(self) -> None:
-        from context_cli.core.markdown_engine.extractor import extract_content
-        html = "<article><p>Main content</p></article>"
-        assert extract_content(html) == html

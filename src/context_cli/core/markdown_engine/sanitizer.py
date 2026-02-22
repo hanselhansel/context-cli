@@ -5,6 +5,11 @@ from bs4 import BeautifulSoup, Tag
 from context_cli.core.markdown_engine.config import MarkdownEngineConfig
 
 
+def _is_display_none(v: str | None) -> bool:
+    """Check if a style attribute contains display:none."""
+    return bool(v and "display:none" in str(v).replace(" ", "").lower())
+
+
 def sanitize_html(
     html: str, config: MarkdownEngineConfig | None = None
 ) -> str:
@@ -51,10 +56,7 @@ def sanitize_html(
         if isinstance(tag, Tag):
             tag.decompose()
     for tag in soup.find_all(
-        attrs={
-            "style": lambda v: v
-            and "display:none" in str(v).replace(" ", "").lower()
-        }
+        attrs={"style": _is_display_none}
     ):
         if isinstance(tag, Tag):
             tag.decompose()
@@ -75,8 +77,9 @@ def _remove_by_patterns(
         # Skip already-decomposed tags (parent was removed earlier in this loop)
         if not isinstance(tag, Tag) or tag.attrs is None:
             continue
-        tag_id = tag.get("id", "") or ""
-        tag_classes = " ".join(tag.get("class", []) or [])
+        tag_id = str(tag.get("id") or "")
+        cls = tag.get("class")
+        tag_classes = " ".join(cls) if isinstance(cls, list) else ""
         combined = f"{tag_id} {tag_classes}".lower()
         for pattern in patterns:
             if pattern.lower() in combined:
