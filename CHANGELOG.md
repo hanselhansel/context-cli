@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-02-22
+
+### Added
+
+- **Agent Readiness pillar** (20 pts): New fifth scoring pillar with 6 sub-checks -- AGENTS.md detection (5 pts), `Accept: text/markdown` support (5 pts), MCP endpoint detection (4 pts), semantic HTML quality (3 pts), x402 payment signaling (2 pts), and NLWeb support (1 pt)
+- **V3 scoring model**: Rebalanced weights -- Content=35, Robots=20, Schema=20, Agent Readiness=20, llms.txt=5 (total=100). V2 remains the default; opt in with `--scoring v3`
+- **Markdown-for-Agents engine**: Three-stage HTML-to-markdown conversion pipeline (Sanitize, Extract, Convert) targeting 70%+ token reduction. Open-source alternative to Cloudflare's Markdown for Agents (Pro+ plan)
+- **`context-cli markdown` command**: Convert any URL to clean, token-efficient markdown with `--stats` for token reduction statistics and `--static -o ./output/` for static markdown site generation
+- **Reverse proxy server** (`context-cli serve --upstream <url> --port 8080`): Standalone reverse proxy that detects `Accept: text/markdown` and serves converted markdown to AI agents while proxying HTML to browsers
+- **ASGI middleware** (`MarkdownASGIMiddleware`): Drop-in middleware for FastAPI and Starlette applications
+- **WSGI middleware** (`MarkdownWSGIMiddleware`): Drop-in middleware for Django and Flask applications
+- **AGENTS.md generator**: Generate AGENTS.md files describing how AI agents should interact with a site
+- **Web server config generator**: Generate nginx, Apache, and Caddy configuration snippets for `Accept: text/markdown` routing
+- **x402 payment config generator**: Generate payment signaling configuration for monetizing AI agent access
+- **3 new MCP tools**: `agent_readiness_audit` (agent readiness checks), `convert_to_markdown` (HTML-to-markdown conversion), `generate_agents_md` (AGENTS.md file generation)
+
 ## [2.0.1] - 2026-02-20
 
 ### Changed
