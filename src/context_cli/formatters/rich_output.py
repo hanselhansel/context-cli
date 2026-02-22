@@ -105,6 +105,18 @@ def render_single_report(report: AuditReport, console: Console) -> None:
         _render_diagnostics(lr, console)
         _render_verdict(lr, console)
 
+    # Agent readiness summary (if populated)
+    if report.agent_readiness is not None:
+        ar = report.agent_readiness
+        ar_color = (
+            "green" if ar.score >= 14
+            else ("yellow" if ar.score >= 8 else "red")
+        )
+        console.print(
+            f"\n  [bold]Agent Readiness:[/bold]"
+            f" [{ar_color}]{ar.score}/20[/{ar_color}]"
+        )
+
     if report.errors:
         console.print("[bold red]Errors:[/bold red]")
         for err in report.errors:
@@ -181,32 +193,62 @@ def render_site_report(report: SiteAuditReport, console: Console) -> None:
         _render_diagnostics(lr, console)
         _render_verdict(lr, console)
 
+    # Agent readiness summary (if populated)
+    if report.agent_readiness is not None:
+        ar = report.agent_readiness
+        ar_color = (
+            "green" if ar.score >= 14
+            else ("yellow" if ar.score >= 8 else "red")
+        )
+        console.print(
+            f"\n  [bold]Agent Readiness:[/bold]"
+            f" [{ar_color}]{ar.score}/20[/{ar_color}]"
+        )
+
     if report.errors:
         console.print("\n[bold red]Errors:[/bold red]")
         for err in report.errors:
             console.print(f"  \u2022 {err}")
 
 
-def render_batch_rich(batch_report: BatchAuditReport, console: Console) -> None:
+def render_batch_rich(
+    batch_report: BatchAuditReport, console: Console
+) -> None:
     """Render batch audit results as a Rich summary table."""
-    table = Table(title=f"Batch Context Lint ({len(batch_report.reports)} URLs)")
+    # Detect if any report has agent_readiness populated
+    has_agent = any(
+        r.agent_readiness is not None for r in batch_report.reports
+    )
+
+    title = f"Batch Context Lint ({len(batch_report.reports)} URLs)"
+    table = Table(title=title)
     table.add_column("URL", max_width=50)
     table.add_column("Score", justify="right")
     table.add_column("Robots", justify="right")
     table.add_column("llms.txt", justify="right")
     table.add_column("Schema", justify="right")
     table.add_column("Content", justify="right")
+    if has_agent:
+        table.add_column("Agent", justify="right")
 
     for report in batch_report.reports:
         color = overall_color(report.overall_score)
-        table.add_row(
+        row = [
             report.url,
             Text(f"{report.overall_score}", style=color),
             f"{report.robots.score}",
             f"{report.llms_txt.score}",
             f"{report.schema_org.score}",
             f"{report.content.score}",
-        )
+        ]
+        if has_agent:
+            ar_score = (
+                f"{report.agent_readiness.score}"
+                if report.agent_readiness
+                else "-"
+            )
+            row.append(ar_score)
+        table.add_row(*row)
 
     console.print(table)
 

@@ -8,25 +8,37 @@ from urllib.parse import urlparse
 
 import httpx
 
+from context_cli.core.checks.agents_md import check_agents_md
 from context_cli.core.checks.content import check_content
 from context_cli.core.checks.content_usage import check_content_usage
 from context_cli.core.checks.eeat import check_eeat
 from context_cli.core.checks.llms_txt import check_llms_txt
+from context_cli.core.checks.markdown_accept import check_markdown_accept
+from context_cli.core.checks.mcp_endpoint import check_mcp_endpoint
+from context_cli.core.checks.nlweb import check_nlweb
 from context_cli.core.checks.robots import DEFAULT_TIMEOUT, check_robots
 from context_cli.core.checks.rsl import check_rsl
 from context_cli.core.checks.schema import check_schema_org
+from context_cli.core.checks.semantic_html import check_semantic_html
+from context_cli.core.checks.x402 import check_x402
 from context_cli.core.crawler import CrawlResult, extract_page, extract_pages
 from context_cli.core.discovery import discover_pages
 from context_cli.core.models import (
+    AgentReadinessReport,
+    AgentsMdReport,
     AuditReport,
     ContentReport,
     DiscoveryResult,
     LlmsTxtReport,
+    MarkdownAcceptReport,
+    McpEndpointReport,
+    NlwebReport,
     PageAudit,
     RobotsReport,
     SchemaOrgResult,
     SchemaReport,
     SiteAuditReport,
+    X402Report,
 )
 from context_cli.core.scoring import compute_lint_results, compute_scores
 
@@ -65,7 +77,7 @@ def aggregate_page_scores(
 ) -> tuple[SchemaReport, ContentReport, float]:
     """Aggregate per-page scores into site-level pillar scores.
 
-    Content (40pts) and Schema (25pts) use weighted averages — shallower pages
+    Content (40pts) and Schema (25pts) use weighted averages -- shallower pages
     count more (see ``_page_weight``).
     Robots (25pts) and llms.txt (10pts) are site-wide, used as-is.
     Word/char counts remain simple averages.
@@ -134,10 +146,61 @@ def aggregate_page_scores(
     return agg_schema, agg_content, overall
 
 
+def _build_agent_readiness(
+    agents_md_result: AgentsMdReport | BaseException,
+    md_accept_result: MarkdownAcceptReport | BaseException,
+    mcp_result: McpEndpointReport | BaseException,
+    semantic_html_result: object,
+    x402_result: X402Report | BaseException,
+    nlweb_result: NlwebReport | BaseException,
+    errors: list[str],
+) -> AgentReadinessReport:
+    """Build AgentReadinessReport from individual check results, handling errors."""
+    if isinstance(agents_md_result, BaseException):
+        errors.append(f"AGENTS.md check failed: {agents_md_result}")
+        agents_md_result = AgentsMdReport()
+    if isinstance(md_accept_result, BaseException):
+        errors.append(f"Markdown accept check failed: {md_accept_result}")
+        md_accept_result = MarkdownAcceptReport()
+    if isinstance(mcp_result, BaseException):
+        errors.append(f"MCP endpoint check failed: {mcp_result}")
+        mcp_result = McpEndpointReport()
+    if isinstance(x402_result, BaseException):
+        errors.append(f"x402 check failed: {x402_result}")
+        x402_result = X402Report()
+    if isinstance(nlweb_result, BaseException):
+        errors.append(f"NLWeb check failed: {nlweb_result}")
+        nlweb_result = NlwebReport()
+    # semantic_html is sync, should not be BaseException from gather
+    from context_cli.core.models import SemanticHtmlReport
+    if not isinstance(semantic_html_result, SemanticHtmlReport):
+        semantic_html_result = SemanticHtmlReport()
+
+    total_score = (
+        agents_md_result.score
+        + md_accept_result.score
+        + mcp_result.score
+        + semantic_html_result.score
+        + x402_result.score
+        + nlweb_result.score
+    )
+
+    return AgentReadinessReport(
+        agents_md=agents_md_result,
+        markdown_accept=md_accept_result,
+        mcp_endpoint=mcp_result,
+        semantic_html=semantic_html_result,
+        x402=x402_result,
+        nlweb=nlweb_result,
+        score=total_score,
+        detail=f"Agent readiness: {total_score}/20",
+    )
+
+
 async def audit_url(
     url: str, *, timeout: int = DEFAULT_TIMEOUT, bots: list[str] | None = None
 ) -> AuditReport:
-    """Run a full readiness lint on a single URL. Returns AuditReport with all pillar scores."""
+    """Run a full readiness lint on a single URL. Returns AuditReport."""
     errors: list[str] = []
     raw_robots: str | None = None
     content_usage_result = None
@@ -149,8 +212,21 @@ async def audit_url(
         content_usage_task = check_content_usage(url, client)
         crawl_task = extract_page(url)
 
-        robots_result, llms_txt, cu_result, crawl_result = await asyncio.gather(
+        # Agent readiness async checks
+        agents_md_task = check_agents_md(url, client)
+        markdown_accept_task = check_markdown_accept(url, client)
+        mcp_endpoint_task = check_mcp_endpoint(url, client)
+        x402_task = check_x402(url, client)
+        nlweb_task = check_nlweb(url, client)
+
+        (
+            robots_result, llms_txt, cu_result, crawl_result,
+            agents_md_result, md_accept_result, mcp_result,
+            x402_result, nlweb_result,
+        ) = await asyncio.gather(
             robots_task, llms_task, content_usage_task, crawl_task,
+            agents_md_task, markdown_accept_task, mcp_endpoint_task,
+            x402_task, nlweb_task,
             return_exceptions=True,
         )
 
@@ -186,12 +262,23 @@ async def audit_url(
     schema_org = check_schema_org(html)
     content = check_content(markdown)
 
+    # Sync agent readiness check (needs HTML)
+    semantic_html_result = check_semantic_html(html)
+
+    # Build agent readiness report
+    agent_readiness = _build_agent_readiness(
+        agents_md_result, md_accept_result, mcp_result,
+        semantic_html_result, x402_result, nlweb_result, errors,
+    )
+
     # Token waste metrics
     raw_html_chars = len(html) if html else 0
     clean_md_chars = len(markdown) if markdown else 0
     raw_tokens = raw_html_chars // 4
     clean_tokens = clean_md_chars // 4
-    waste_pct = ((raw_tokens - clean_tokens) / raw_tokens * 100) if raw_tokens > 0 else 0.0
+    waste_pct = (
+        (raw_tokens - clean_tokens) / raw_tokens * 100
+    ) if raw_tokens > 0 else 0.0
     content.raw_html_chars = raw_html_chars
     content.clean_markdown_chars = clean_md_chars
     content.estimated_raw_tokens = raw_tokens
@@ -222,6 +309,7 @@ async def audit_url(
         rsl=rsl_report,
         content_usage=content_usage_result,
         eeat=eeat_report,
+        agent_readiness=agent_readiness,
         errors=errors,
     )
 
@@ -238,7 +326,7 @@ async def audit_site(
     timeout: int = DEFAULT_TIMEOUT,
     bots: list[str] | None = None,
 ) -> SiteAuditReport:
-    """Run a multi-page readiness lint. Discovers pages via sitemap/spider and aggregates scores."""
+    """Run a multi-page readiness lint."""
     errors: list[str] = []
     domain = urlparse(url).netloc
 
@@ -249,14 +337,16 @@ async def audit_site(
     try:
         return await asyncio.wait_for(
             _audit_site_inner(
-                url, domain, max_pages, delay_seconds, errors, _progress, timeout,
-                bots=bots,
+                url, domain, max_pages, delay_seconds, errors, _progress,
+                timeout, bots=bots,
             ),
             timeout=SITE_AUDIT_TIMEOUT,
         )
     except asyncio.TimeoutError:
-        errors.append(f"Audit timed out after {SITE_AUDIT_TIMEOUT}s, returning partial results")
-        # Return whatever we have — the inner function stores partial results
+        errors.append(
+            f"Audit timed out after {SITE_AUDIT_TIMEOUT}s,"
+            " returning partial results"
+        )
         return SiteAuditReport(
             url=url,
             domain=domain,
@@ -281,20 +371,35 @@ async def _audit_site_inner(
     *,
     bots: list[str] | None = None,
 ) -> SiteAuditReport:
-    """Inner implementation of audit_site, wrapped with a timeout by the caller."""
+    """Inner implementation of audit_site."""
     progress("Running site-wide checks...")
 
     content_usage_result = None
 
-    async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        timeout=timeout, follow_redirects=True
+    ) as client:
         # Phase 1: Site-wide checks + seed crawl in parallel
         robots_task = check_robots(url, client, bots=bots)
         llms_task = check_llms_txt(url, client)
         content_usage_task = check_content_usage(url, client)
         crawl_task = extract_page(url)
 
-        robots_result, llms_txt, cu_result, seed_crawl = await asyncio.gather(
+        # Agent readiness async checks (site-wide, on seed page)
+        agents_md_task = check_agents_md(url, client)
+        markdown_accept_task = check_markdown_accept(url, client)
+        mcp_endpoint_task = check_mcp_endpoint(url, client)
+        x402_task = check_x402(url, client)
+        nlweb_task = check_nlweb(url, client)
+
+        (
+            robots_result, llms_txt, cu_result, seed_crawl,
+            agents_md_result, md_accept_result, mcp_result,
+            x402_result, nlweb_result,
+        ) = await asyncio.gather(
             robots_task, llms_task, content_usage_task, crawl_task,
+            agents_md_task, markdown_accept_task, mcp_endpoint_task,
+            x402_task, nlweb_task,
             return_exceptions=True,
         )
 
@@ -335,6 +440,16 @@ async def _audit_site_inner(
             seed_links=seed_links,
         )
 
+    # Semantic HTML sync check on seed page HTML
+    seed_html = seed.html if seed and seed.success else ""
+    semantic_html_result = check_semantic_html(seed_html)
+
+    # Build agent readiness report
+    agent_readiness = _build_agent_readiness(
+        agents_md_result, md_accept_result, mcp_result,
+        semantic_html_result, x402_result, nlweb_result, errors,
+    )
+
     # Phase 3: Audit seed page + batch crawl remaining pages
     pages: list[PageAudit] = []
 
@@ -343,13 +458,16 @@ async def _audit_site_inner(
         schema, content = audit_page_content(seed.html, seed.markdown)
         # Score the page-level pillar checks
         _, _, schema, content, _ = compute_scores(
-            RobotsReport(found=False), LlmsTxtReport(found=False), schema, content
+            RobotsReport(found=False), LlmsTxtReport(found=False),
+            schema, content,
         )
-        pages.append(PageAudit(url=url, schema_org=schema, content=content))
+        pages.append(
+            PageAudit(url=url, schema_org=schema, content=content)
+        )
     elif seed and not seed.success:
         errors.append(f"Seed crawl error: {seed.error}")
 
-    # Crawl remaining sampled pages (exclude seed which is already crawled)
+    # Crawl remaining sampled pages
     remaining_urls = [u for u in discovery.urls_sampled if u != url]
     if remaining_urls:
         progress(f"Crawling {len(remaining_urls)} additional pages...")
@@ -358,13 +476,25 @@ async def _audit_site_inner(
         )
 
         for i, result in enumerate(crawl_results):
-            progress(f"Auditing page {i + 2}/{len(discovery.urls_sampled)}...")
+            progress(
+                f"Auditing page {i + 2}/{len(discovery.urls_sampled)}..."
+            )
             if result.success:
-                schema, content = audit_page_content(result.html, result.markdown)
-                _, _, schema, content, _ = compute_scores(
-                    RobotsReport(found=False), LlmsTxtReport(found=False), schema, content
+                schema, content = audit_page_content(
+                    result.html, result.markdown
                 )
-                pages.append(PageAudit(url=result.url, schema_org=schema, content=content))
+                _, _, schema, content, _ = compute_scores(
+                    RobotsReport(found=False),
+                    LlmsTxtReport(found=False),
+                    schema, content,
+                )
+                pages.append(
+                    PageAudit(
+                        url=result.url,
+                        schema_org=schema,
+                        content=content,
+                    )
+                )
             else:
                 pages.append(PageAudit(
                     url=result.url,
@@ -380,11 +510,12 @@ async def _audit_site_inner(
 
     # Phase 5: Aggregate
     pages_failed = sum(1 for p in pages if p.errors)
-    agg_schema, agg_content, overall = aggregate_page_scores(pages, robots, llms_txt)
+    agg_schema, agg_content, overall = aggregate_page_scores(
+        pages, robots, llms_txt
+    )
 
     # Informational signals from seed page
     rsl_report = check_rsl(raw_robots)
-    seed_html = seed.html if seed and seed.success else ""
     eeat_report = check_eeat(seed_html, base_domain=domain)
 
     return SiteAuditReport(
@@ -398,6 +529,7 @@ async def _audit_site_inner(
         rsl=rsl_report,
         content_usage=content_usage_result,
         eeat=eeat_report,
+        agent_readiness=agent_readiness,
         discovery=discovery,
         pages=pages,
         pages_audited=len(pages),

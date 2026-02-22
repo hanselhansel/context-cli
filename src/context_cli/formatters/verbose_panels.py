@@ -36,6 +36,7 @@ PILLAR_MAX: dict[str, int] = {
     "llms_txt": LLMS_TXT_MAX,
     "schema_org": SCHEMA_MAX,
     "content": CONTENT_MAX,
+    "agent_readiness": 20,
 }
 
 
@@ -412,3 +413,53 @@ def render_eeat_verbose(report: AuditReport | SiteAuditReport) -> Panel | None:
         lines.append(f"  Trust signals: {signals}")
 
     return Panel("\n".join(lines), title="E-E-A-T Detail", border_style="blue")
+
+
+# ── Agent Readiness Panel ──────────────────────────────────────────────────
+
+
+def render_agent_readiness_verbose(
+    report: AuditReport | SiteAuditReport,
+) -> Panel | None:
+    """Render detailed agent readiness panel with sub-check breakdown."""
+    if report.agent_readiness is None:
+        return None
+
+    ar = report.agent_readiness
+    color = _border_color(ar.score, 20)
+    score_text = f"[{color}]{ar.score}[/{color}]/20"
+    lines: list[str] = [
+        f"[bold]Agent Readiness[/bold] — Score: {score_text}"
+    ]
+    lines.append("")
+
+    sub_checks = [
+        ("AGENTS.md", ar.agents_md.score, 5, ar.agents_md.detail),
+        (
+            "Accept: text/markdown",
+            ar.markdown_accept.score,
+            5,
+            ar.markdown_accept.detail,
+        ),
+        ("MCP Endpoint", ar.mcp_endpoint.score, 4, ar.mcp_endpoint.detail),
+        (
+            "Semantic HTML",
+            ar.semantic_html.score,
+            3,
+            ar.semantic_html.detail,
+        ),
+        ("x402 Payment", ar.x402.score, 2, ar.x402.detail),
+        ("NLWeb", ar.nlweb.score, 1, ar.nlweb.detail),
+    ]
+
+    for name, score, max_pts, detail in sub_checks:
+        s_color = "green" if score > 0 else "red"
+        lines.append(f"  [{s_color}]{score}/{max_pts}[/{s_color}]  {name}")
+        if detail:
+            lines.append(f"        [dim]{detail}[/dim]")
+
+    return Panel(
+        "\n".join(lines),
+        title="Agent Readiness Detail",
+        border_style=color,
+    )
