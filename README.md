@@ -5,13 +5,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/context-cli.svg)](https://pypi.org/project/context-cli/)
 
-**Lint any URL for LLM readiness. Get a 0-100 score for token efficiency, RAG readiness, and LLM extraction quality.**
+**Lint any URL for LLM readiness. Get a 0-100 score for token efficiency, RAG readiness, agent compatibility, and LLM extraction quality.**
 
 ## What is Context CLI?
 
-Context CLI is an LLM Readiness Linter that checks how well a URL is structured for AI consumption. As LLM-powered search engines, RAG pipelines, and AI agents become primary consumers of web content, your pages need to be optimized for token efficiency, structured data extraction, and machine-readable formatting.
+Context CLI is an LLM Readiness Linter that checks how well a URL is structured for AI consumption. As LLM-powered search engines, RAG pipelines, and AI agents become primary consumers of web content, your pages need to be optimized for token efficiency, structured data extraction, agent interoperability, and machine-readable formatting.
 
-Context CLI analyzes your content across four pillars and returns a structured score from 0 to 100.
+Context CLI analyzes your content across five pillars (V3 scoring) and returns a structured score from 0 to 100.
 
 ## Features
 
@@ -19,13 +19,18 @@ Context CLI analyzes your content across four pillars and returns a structured s
 - **llms.txt & llms-full.txt** -- detects both standard and extended LLM instruction files
 - **Schema.org JSON-LD** -- extracts and evaluates structured data with high-value type weighting (Product, Article, FAQ, HowTo)
 - **Content density** -- measures useful content vs. boilerplate with readability scoring, heading structure analysis, and answer-first detection
+- **Agent Readiness (V3)** -- 20-point pillar checking AGENTS.md, `Accept: text/markdown`, MCP endpoints, semantic HTML, x402 payment signaling, and NLWeb support
+- **Markdown-for-Agents engine** -- convert any URL to clean, token-efficient markdown; open-source alternative to Cloudflare's Markdown for Agents
+- **Serve modes** -- reverse proxy, ASGI middleware, and WSGI middleware that serve markdown to agents via `Accept: text/markdown`
 - **Batch mode** -- lint multiple URLs from a file with `--file` and configurable `--concurrency`
 - **Custom bot list** -- override default bots with `--bots` for targeted checks
 - **Verbose output** -- detailed per-pillar breakdown with scoring explanations and recommendations
 - **Rich CLI output** -- formatted tables and scores via Rich
 - **JSON / CSV / Markdown output** -- machine-readable results for pipelines
-- **MCP server** -- expose the linter as a tool for AI agents via FastMCP
-- **Context Compiler** -- LLM-powered `llms.txt` and `schema.jsonld` generation, with batch mode for multiple URLs
+- **MCP server** -- expose the linter as a tool for AI agents via FastMCP (8 tools including agent readiness, markdown conversion, and AGENTS.md generation)
+- **Context Compiler** -- LLM-powered `llms.txt`, `schema.jsonld`, and `AGENTS.md` generation, with batch mode for multiple URLs
+- **Web server config generation** -- generate nginx, Apache, and Caddy configs for `Accept: text/markdown` routing
+- **x402 payment config generation** -- generate payment signaling configuration for monetizing agent access
 - **CI/CD integration** -- `--fail-under` threshold, `--fail-on-blocked-bots`, per-pillar thresholds, baseline regression detection, GitHub Step Summary
 - **GitHub Action** -- composite action for CI pipelines with baseline support
 - **Citation Radar** -- query AI models to see what they cite and recommend, with brand tracking and domain classification
@@ -190,6 +195,48 @@ Use `--fail-under` with `--quiet` to override the default threshold:
 context-cli lint example.com --quiet --fail-under 70
 ```
 
+### Markdown Conversion
+
+Convert any URL to clean, token-efficient markdown optimized for LLM consumption:
+
+```bash
+context-cli markdown https://example.com
+```
+
+Show token reduction statistics (raw HTML tokens vs. clean markdown tokens):
+
+```bash
+context-cli markdown https://example.com --stats
+```
+
+Generate a static markdown site (one `.md` file per discovered page):
+
+```bash
+context-cli markdown https://example.com --static -o ./output/
+```
+
+The markdown engine uses a three-stage pipeline (Sanitize, Extract, Convert) to strip boilerplate, navigation, ads, and scripts, producing clean markdown that typically achieves 70%+ token reduction. See [docs/markdown-engine.md](docs/markdown-engine.md) for details.
+
+### Reverse Proxy Server
+
+Serve markdown to AI agents automatically via `Accept: text/markdown` content negotiation:
+
+```bash
+context-cli serve --upstream https://example.com --port 8080
+```
+
+When an AI agent sends a request with `Accept: text/markdown`, the proxy fetches the upstream HTML, converts it through the markdown engine, and returns clean markdown. Regular browser requests receive the original HTML unchanged.
+
+### V3 Scoring
+
+Use the V3 scoring model with the Agent Readiness pillar:
+
+```bash
+context-cli lint https://example.com --scoring v3
+```
+
+V3 adds a 20-point Agent Readiness pillar and rebalances the existing pillars. See [docs/scoring-v3.md](docs/scoring-v3.md) for the full methodology.
+
 ### Start MCP server
 
 ```bash
@@ -214,6 +261,16 @@ To use Context CLI as a tool in Claude Desktop, add this to your Claude Desktop 
 ```
 
 Once configured, Claude can call the `audit_url` tool directly to check any URL's LLM readiness.
+
+### New MCP Tools (v3.0)
+
+In addition to the existing tools (`audit`, `generate`, `compare`, `history`, `recommend`), v3.0 adds:
+
+- **`agent_readiness_audit`** -- run agent readiness checks (AGENTS.md, Accept: text/markdown, MCP endpoints, semantic HTML, x402, NLWeb) against a URL
+- **`convert_to_markdown`** -- convert any URL's HTML to clean, token-efficient markdown
+- **`generate_agents_md`** -- generate an AGENTS.md file for a given URL based on its content and structure
+
+See [docs/mcp-integration.md](docs/mcp-integration.md) for full tool documentation.
 
 ## Context Compiler (Generate)
 
@@ -264,6 +321,71 @@ context-cli generate example.com --profile ecommerce
 ```
 
 Available: `generic`, `cpg`, `saas`, `ecommerce`, `blog`.
+
+### AGENTS.md Generation
+
+Generate an [AGENTS.md](https://docs.google.com/document/d/1ON2MRbDC2RVJpKMIoluHFz-bGDAELz3RjMLErxEDqn4) file that tells AI agents how to interact with your site:
+
+```bash
+context-cli generate example.com --agents-md
+```
+
+### Web Server Config Generation
+
+Generate web server configuration snippets for routing `Accept: text/markdown` requests:
+
+```bash
+context-cli generate-config nginx
+context-cli generate-config apache
+context-cli generate-config caddy
+```
+
+Each generates a config snippet that detects `Accept: text/markdown` in incoming requests and routes them to the Context CLI markdown endpoint or a local markdown-serving backend.
+
+### x402 Payment Config Generation
+
+Generate x402 payment signaling configuration for monetizing AI agent access:
+
+```bash
+context-cli generate-x402
+```
+
+## Serve Modes
+
+Context CLI provides three ways to serve markdown to AI agents that send `Accept: text/markdown` requests.
+
+### Reverse Proxy
+
+Run a standalone reverse proxy that sits in front of your existing site:
+
+```bash
+context-cli serve --upstream https://example.com --port 8080
+```
+
+Requests with `Accept: text/markdown` receive converted markdown. All other requests are proxied to the upstream unchanged.
+
+### ASGI Middleware (FastAPI / Starlette)
+
+Add markdown serving to any ASGI application:
+
+```python
+from context_cli.middleware import MarkdownASGIMiddleware
+
+app = FastAPI()
+app = MarkdownASGIMiddleware(app)
+```
+
+### WSGI Middleware (Django / Flask)
+
+Add markdown serving to any WSGI application:
+
+```python
+from context_cli.middleware import MarkdownWSGIMiddleware
+
+app = MarkdownWSGIMiddleware(app)
+```
+
+Both middleware variants intercept requests with `Accept: text/markdown`, convert the response HTML through the markdown engine, and return clean markdown with `Content-Type: text/markdown`.
 
 ## Citation Radar
 
@@ -326,7 +448,9 @@ The action sets up Python, installs context-cli, and runs the lint. Outputs `sco
 
 ## Score Breakdown
 
-Context CLI returns a score from 0 to 100, composed of four pillars:
+Context CLI supports two scoring models. V2 (default) uses four pillars; V3 adds a fifth pillar for agent readiness.
+
+### V2 Scoring (default)
 
 | Pillar | Max Points | What it measures |
 |---|---|---|
@@ -335,14 +459,39 @@ Context CLI returns a score from 0 to 100, composed of four pillars:
 | Schema.org JSON-LD | 25 | Structured data markup (Product, Article, FAQ, etc.) |
 | llms.txt presence | 10 | Whether a /llms.txt file exists for LLM guidance |
 
-### Scoring rationale (2026-02-18)
+### V3 Scoring (`--scoring v3`)
 
-The weights reflect how AI search engines (ChatGPT, Perplexity, Claude) actually consume web content:
+| Pillar | Max Points | What it measures |
+|---|---|---|
+| Content density | 35 | Quality and depth of extractable text content |
+| Robots.txt AI bot access | 20 | Whether AI crawlers are allowed in robots.txt |
+| Schema.org JSON-LD | 20 | Structured data markup (Product, Article, FAQ, etc.) |
+| Agent Readiness | 20 | Preparedness for autonomous AI agent interaction |
+| llms.txt presence | 5 | Whether a /llms.txt file exists for LLM guidance |
+
+The Agent Readiness pillar checks six sub-signals:
+
+| Sub-check | Points | What it detects |
+|---|---|---|
+| AGENTS.md | 5 | Presence of an AGENTS.md file describing agent interaction |
+| Accept: text/markdown | 5 | Server responds to `Accept: text/markdown` with markdown content |
+| MCP endpoint | 4 | Presence of a discoverable MCP (Model Context Protocol) endpoint |
+| Semantic HTML | 3 | Quality of semantic HTML structure (landmark elements, ARIA roles) |
+| x402 payment signaling | 2 | HTTP 402 or x402 headers indicating payment-gated agent access |
+| NLWeb support | 1 | Support for the NLWeb protocol for natural language web queries |
+
+See [docs/scoring-v3.md](docs/scoring-v3.md) for the full V3 methodology.
+
+### Scoring rationale
+
+The V2 weights reflect how AI search engines (ChatGPT, Perplexity, Claude) actually consume web content:
 
 - **Content density (40 pts)** is weighted highest because it's what LLMs extract and cite when answering questions. Rich, well-structured content with headings and lists gives AI better material to work with.
 - **Robots.txt (25 pts)** is the gatekeeper -- if a bot is blocked, it literally cannot crawl. It's critical but largely binary (either you're blocking or you're not).
 - **Schema.org (25 pts)** provides structured "cheat sheets" that help AI understand entities. High-value types (Product, Article, FAQ, HowTo, Recipe) receive bonus weighting. Valuable but not required for citation.
 - **llms.txt (10 pts)** is an emerging standard. Both `/llms.txt` and `/llms-full.txt` are checked. No major AI search engine heavily weights it yet, but it signals forward-thinking AI readiness.
+
+V3 rebalances these weights to accommodate the new Agent Readiness pillar, reflecting the growing importance of direct agent interaction alongside traditional crawl-and-index patterns.
 
 ## AI Bots Checked
 
