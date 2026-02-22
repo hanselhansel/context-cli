@@ -50,6 +50,16 @@ markdown = [
     "markdownify>=0.13",
     "readabilipy>=0.2",
 ]
+serve = [
+    "aiohttp>=3.9",
+    "markdownify>=0.13",
+    "readabilipy>=0.2",
+]
+middleware = [
+    "starlette>=0.37",
+    "markdownify>=0.13",
+    "readabilipy>=0.2",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
@@ -59,6 +69,8 @@ dev = [
     "litellm>=1.40",
     "markdownify>=0.13",
     "readabilipy>=0.2",
+    "aiohttp>=3.9",
+    "starlette>=0.37",
     "types-PyYAML>=6.0",
 ]
 
@@ -100,5 +112,5 @@ check_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["crawl4ai.*", "bs4.*", "litellm.*", "markdownify.*", "readabilipy.*"]
+module = ["crawl4ai.*", "bs4.*", "litellm.*", "markdownify.*", "readabilipy.*", "aiohttp.*", "starlette.*"]
 ignore_missing_imports = true
