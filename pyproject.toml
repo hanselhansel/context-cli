@@ -46,6 +46,10 @@ Issues = "https://github.com/hanselhansel/context-cli/issues"
 generate = [
     "litellm>=1.40",
 ]
+markdown = [
+    "markdownify>=0.13",
+    "readabilipy>=0.2",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
@@ -53,6 +57,8 @@ dev = [
     "mypy>=1.10",
     "ruff>=0.4",
     "litellm>=1.40",
+    "markdownify>=0.13",
+    "readabilipy>=0.2",
     "types-PyYAML>=6.0",
 ]
 
@@ -94,5 +100,5 @@ check_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["crawl4ai.*", "bs4.*", "litellm.*"]
+module = ["crawl4ai.*", "bs4.*", "litellm.*", "markdownify.*", "readabilipy.*"]
 ignore_missing_imports = true
