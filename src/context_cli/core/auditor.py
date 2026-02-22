@@ -219,12 +219,18 @@ async def audit_url(
         x402_task = check_x402(url, client)
         nlweb_task = check_nlweb(url, client)
 
+        # Run all checks concurrently — split into two gathers to stay
+        # within mypy's asyncio.gather overload limits (max ~6 args).
+        # Tasks from the second gather are already scheduled by the event
+        # loop while the first gather is running.
+        robots_result, llms_txt, cu_result, crawl_result = await asyncio.gather(
+            robots_task, llms_task, content_usage_task, crawl_task,
+            return_exceptions=True,
+        )
         (
-            robots_result, llms_txt, cu_result, crawl_result,
             agents_md_result, md_accept_result, mcp_result,
             x402_result, nlweb_result,
         ) = await asyncio.gather(
-            robots_task, llms_task, content_usage_task, crawl_task,
             agents_md_task, markdown_accept_task, mcp_endpoint_task,
             x402_task, nlweb_task,
             return_exceptions=True,
@@ -392,12 +398,14 @@ async def _audit_site_inner(
         x402_task = check_x402(url, client)
         nlweb_task = check_nlweb(url, client)
 
+        robots_result, llms_txt, cu_result, seed_crawl = await asyncio.gather(
+            robots_task, llms_task, content_usage_task, crawl_task,
+            return_exceptions=True,
+        )
         (
-            robots_result, llms_txt, cu_result, seed_crawl,
             agents_md_result, md_accept_result, mcp_result,
             x402_result, nlweb_result,
         ) = await asyncio.gather(
-            robots_task, llms_task, content_usage_task, crawl_task,
             agents_md_task, markdown_accept_task, mcp_endpoint_task,
             x402_task, nlweb_task,
             return_exceptions=True,

@@ -31,9 +31,10 @@ def check_semantic_html(html: str) -> SemanticHtmlReport:
     has_footer = soup.find("footer") is not None
     has_nav = soup.find("nav") is not None
 
-    aria_landmarks = len(
-        soup.find_all(attrs={"role": lambda v: v and v.lower() in ARIA_LANDMARK_ROLES})
-    )
+    def _is_aria_landmark(v: str | None) -> bool:
+        return bool(v and v.lower() in ARIA_LANDMARK_ROLES)
+
+    aria_landmarks = len(soup.find_all(attrs={"role": _is_aria_landmark}))
 
     score = 0.0
     if has_main or has_article:

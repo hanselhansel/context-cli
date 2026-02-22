@@ -233,22 +233,32 @@ def render_batch_rich(
 
     for report in batch_report.reports:
         color = overall_color(report.overall_score)
-        row = [
-            report.url,
-            Text(f"{report.overall_score}", style=color),
-            f"{report.robots.score}",
-            f"{report.llms_txt.score}",
-            f"{report.schema_org.score}",
-            f"{report.content.score}",
-        ]
+        ar_score = ""
         if has_agent:
             ar_score = (
                 f"{report.agent_readiness.score}"
                 if report.agent_readiness
                 else "-"
             )
-            row.append(ar_score)
-        table.add_row(*row)
+        if has_agent:
+            table.add_row(
+                report.url,
+                Text(f"{report.overall_score}", style=color),
+                f"{report.robots.score}",
+                f"{report.llms_txt.score}",
+                f"{report.schema_org.score}",
+                f"{report.content.score}",
+                ar_score,
+            )
+        else:
+            table.add_row(
+                report.url,
+                Text(f"{report.overall_score}", style=color),
+                f"{report.robots.score}",
+                f"{report.llms_txt.score}",
+                f"{report.schema_org.score}",
+                f"{report.content.score}",
+            )
 
     console.print(table)
 
