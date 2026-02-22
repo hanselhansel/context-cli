@@ -15,6 +15,7 @@ from context_cli.cli import compare as _compare_mod  # noqa: E402
 from context_cli.cli import generate as _generate_mod  # noqa: E402
 from context_cli.cli import history as _history_mod  # noqa: E402
 from context_cli.cli import leaderboard as _lb_mod  # noqa: E402
+from context_cli.cli import markdown as _markdown_mod  # noqa: E402
 from context_cli.cli import mcp_cmd as _mcp_mod  # noqa: E402
 from context_cli.cli import radar as _radar_mod  # noqa: E402
 from context_cli.cli import watch as _watch_mod  # noqa: E402
@@ -25,6 +26,7 @@ _compare_mod.register(app)
 _generate_mod.register(app)
 _history_mod.register(app)
 _lb_mod.register(app)
+_markdown_mod.register(app)
 _mcp_mod.register(app)
 _radar_mod.register(app)
 _watch_mod.register(app)
