@@ -187,6 +187,16 @@ Context CLI exposes its audit functionality as MCP (Model Context Protocol) tool
 
 Automated tests for the MCP layer run as part of the normal test suite (`pytest tests/ -v`), but manual testing with a real MCP client is recommended for schema and end-to-end validation.
 
+## Good First Issues
+
+New to the project? Look for issues labeled [`good first issue`](https://github.com/hanselhansel/context-cli/labels/good%20first%20issue) on GitHub. Great starting points include:
+
+- Adding or improving **tests** for existing functionality
+- Fixing **typos** or improving **documentation**
+- Small **bug fixes** with a clear reproduction path
+
+Pick one, comment that you're working on it, and open a PR when ready.
+
 ## Reporting Issues
 
 Found a bug or have a feature request? [Open an issue](https://github.com/hanselhansel/context-cli/issues) with:
