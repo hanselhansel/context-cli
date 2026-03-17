@@ -51,7 +51,7 @@ crawl4ai-setup
 ### Development install
 
 ```bash
-git clone https://github.com/your-org/context-cli.git
+git clone https://github.com/hanselhansel/context-cli.git
 cd context-cli
 pip install -e ".[dev]"
 crawl4ai-setup
