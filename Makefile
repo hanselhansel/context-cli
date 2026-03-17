@@ -1,28 +1,30 @@
-.PHONY: test lint format typecheck ci install clean build-check release worktree-new worktree-remove worktree-list worktree-cleanup
+.PHONY: test lint format typecheck ci install clean build-check release worktree-new worktree-remove worktree-list worktree-cleanup coverage audit help
+.DEFAULT_GOAL := help
 
-install:
+install: ## Install dev dependencies
 	pip install -e ".[dev]"
 
-test:
+test: ## Run test suite
 	pytest tests/ -v
 
-lint:
+lint: ## Run ruff linter
 	ruff check src/ tests/
 
-format:
+format: ## Format code with ruff
 	ruff format src/ tests/
 
-typecheck:
+typecheck: ## Run mypy type checker
 	rm -rf .mypy_cache
 	mypy src/
 
+ci: ## Run lint + typecheck + tests
 ci: lint typecheck test
 
-clean:
+clean: ## Remove build artifacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache dist build *.egg-info
 	find . -type d -name __pycache__ -exec rm -rf {} +
 
-build-check:
+build-check: ## Build and check package
 	rm -rf dist/
 	python -m build
 	twine check dist/*
@@ -64,3 +66,6 @@ coverage: ## Run tests with coverage report
 
 audit: ## Run security audit on dependencies
 	pip-audit
+
+help: ## Show available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
