@@ -2,6 +2,15 @@
 
 Thanks for your interest in contributing to Context CLI! This guide will help you get set up and submit your first pull request.
 
+## Philosophy
+
+These principles guide all code in the project:
+
+- **Async-first** — all I/O uses `async`/`await`. The CLI bridges to sync with `asyncio.run()`.
+- **Pydantic-first** — every data contract is a Pydantic model with `Field(description=...)` on every field. These propagate to MCP tool schemas automatically.
+- **Errors don't crash** — exceptions during audits are captured in `AuditReport.errors`, not raised to the caller.
+- **CLI is a thin wrapper** — core logic lives in `core/`. Both the Typer CLI (`main.py`) and the MCP server (`server.py`) are thin wrappers that delegate to the same core functions.
+
 ## Development Setup
 
 ### Prerequisites
