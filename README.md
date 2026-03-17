@@ -544,6 +544,22 @@ pytest
 ruff check src/ tests/
 ```
 
+## Comparison with Similar Tools
+
+| Feature | Context CLI | Google Lighthouse | Screaming Frog |
+|---|:---:|:---:|:---:|
+| AI/LLM scoring | Yes (0-100) | No | No |
+| Robots.txt AI bot checks | 13 bots | No | Basic |
+| llms.txt detection | Yes | No | No |
+| Schema.org analysis | Weighted by type | Basic | Yes |
+| Agent readiness (V3) | Yes | No | No |
+| Markdown conversion | Yes | No | No |
+| MCP server | Yes (8 tools) | No | No |
+| CI/CD integration | Yes (thresholds, baselines) | Yes (via CI) | No |
+| Open source | Yes (MIT) | Yes | No (commercial) |
+| Citation Radar | Yes | No | No |
+| Share-of-Recommendation | Yes | No | No |
+
 ## Troubleshooting
 
 ### `crawl4ai-setup` fails or hangs
