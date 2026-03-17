@@ -4,6 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/context-cli.svg)](https://pypi.org/project/context-cli/)
+[![Downloads](https://img.shields.io/pypi/dm/context-linter)](https://pypi.org/project/context-linter/)
 
 **Lint any URL for LLM readiness. Get a 0-100 score for token efficiency, RAG readiness, agent compatibility, and LLM extraction quality.**
 
