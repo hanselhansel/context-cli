@@ -125,6 +125,26 @@ Key design principles:
 - Ensure all tests pass and linting is clean
 - Describe what the PR does and why in the PR description
 
+## Commit Conventions
+
+Use the format `type: description` (lowercase, imperative mood).
+
+Allowed types:
+
+| Type | Use for |
+|------|---------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `ci` | CI/CD configuration |
+| `chore` | Maintenance, deps, tooling |
+| `test` | Adding or updating tests |
+| `refactor` | Code change that neither fixes a bug nor adds a feature |
+| `style` | Formatting, whitespace, linting (no logic change) |
+| `perf` | Performance improvement |
+
+Keep commits atomic — one logical change per commit. Write the subject line in imperative mood ("add feature", not "added feature").
+
 ## Adding a New Lint Pillar
 
 If you're adding a new scoring pillar:
