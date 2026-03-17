@@ -594,6 +594,20 @@ pip install context-linter[generate]
 pip install context-linter[dev]
 ```
 
+## FAQ
+
+### How is Context CLI different from Google Lighthouse?
+
+Lighthouse measures web performance, accessibility, and SEO for human visitors. Context CLI measures how well your content is structured for LLM consumption -- token efficiency, AI bot access, structured data extraction, and agent readiness. They are complementary tools solving different problems.
+
+### Does Context CLI support JavaScript-rendered pages?
+
+Yes. Context CLI uses a headless browser (via crawl4ai and Playwright) to render pages, so JavaScript-rendered content is fully supported. Single-page applications, React sites, and dynamically loaded content are all handled.
+
+### Can I use Context CLI in CI/CD pipelines?
+
+Yes. Use `--fail-under` to set a minimum score threshold, `--fail-on-blocked-bots` to fail if AI crawlers are blocked, and per-pillar thresholds like `--robots-min` and `--content-min`. Baseline regression detection is also available with `--save-baseline` and `--baseline`. See [docs/ci-integration.md](docs/ci-integration.md) for full details and a ready-to-use GitHub Action.
+
 ## License
 
 MIT
