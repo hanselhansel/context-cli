@@ -542,6 +542,58 @@ pytest
 ruff check src/ tests/
 ```
 
+## Troubleshooting
+
+### `crawl4ai-setup` fails or hangs
+
+crawl4ai requires Playwright browsers. If setup fails, install them manually:
+
+```bash
+playwright install chromium
+```
+
+On CI environments, you may also need system dependencies:
+
+```bash
+playwright install-deps chromium
+```
+
+### SSL certificate errors
+
+If you see SSL errors when linting HTTPS URLs, ensure your system certificates are up to date:
+
+```bash
+pip install --upgrade certifi
+```
+
+On macOS, you may need to run the certificate install script bundled with Python:
+
+```bash
+/Applications/Python\ 3.x/Install\ Certificates.command
+```
+
+### Empty results or zero score
+
+If the linter returns an empty report or a score of 0, the page may be JavaScript-rendered and the headless browser failed to load it. Try increasing the timeout:
+
+```bash
+context-cli lint example.com --timeout 60
+```
+
+Also verify that `crawl4ai-setup` completed successfully and that Playwright browsers are installed.
+
+### `ModuleNotFoundError` for optional dependencies
+
+Some features require optional extras. Install them as needed:
+
+```bash
+# For generate, radar, and benchmark commands
+pip install context-linter[generate]
+
+# For development
+pip install context-linter[dev]
+```
+
 ## License
 
 MIT
