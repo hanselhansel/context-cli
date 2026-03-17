@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PyPI version](https://img.shields.io/pypi/v/context-cli.svg)](https://pypi.org/project/context-cli/)
 [![Downloads](https://img.shields.io/pypi/dm/context-linter)](https://pypi.org/project/context-linter/)
+[![Coverage](https://img.shields.io/badge/coverage-report-brightgreen)](https://github.com/hanselhansel/context-cli/actions)
 
 **Lint any URL for LLM readiness. Get a 0-100 score for token efficiency, RAG readiness, agent compatibility, and LLM extraction quality.**
 
