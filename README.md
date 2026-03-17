@@ -7,6 +7,24 @@
 
 **Lint any URL for LLM readiness. Get a 0-100 score for token efficiency, RAG readiness, agent compatibility, and LLM extraction quality.**
 
+## Table of Contents
+
+- [What is Context CLI?](#what-is-context-cli)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [CLI Usage](#cli-usage)
+- [MCP Integration](#mcp-integration)
+- [Context Compiler (Generate)](#context-compiler-generate)
+- [Serve Modes](#serve-modes)
+- [Citation Radar](#citation-radar)
+- [Share-of-Recommendation Benchmark](#share-of-recommendation-benchmark)
+- [GitHub Action](#github-action)
+- [Score Breakdown](#score-breakdown)
+- [AI Bots Checked](#ai-bots-checked)
+- [Development](#development)
+- [License](#license)
+
 ## What is Context CLI?
 
 Context CLI is an LLM Readiness Linter that checks how well a URL is structured for AI consumption. As LLM-powered search engines, RAG pipelines, and AI agents become primary consumers of web content, your pages need to be optimized for token efficiency, structured data extraction, agent interoperability, and machine-readable formatting.
