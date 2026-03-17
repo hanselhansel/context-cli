@@ -77,6 +77,26 @@ pip install -e ".[dev]"
 crawl4ai-setup
 ```
 
+### Docker
+
+Build and run Context CLI in a container with all dependencies pre-installed:
+
+```bash
+docker build -t context-cli .
+```
+
+Lint a URL:
+
+```bash
+docker run --rm context-cli lint example.com
+```
+
+Pass additional flags as normal:
+
+```bash
+docker run --rm context-cli lint example.com --single --json
+```
+
 ## Quick Start
 
 ```bash
