@@ -629,3 +629,12 @@ Yes. Use `--fail-under` to set a minimum score threshold, `--fail-on-blocked-bot
 ## License
 
 MIT
+
+## Acknowledgments
+
+Context CLI is built on the shoulders of excellent open-source projects:
+
+- [crawl4ai](https://github.com/unclecode/crawl4ai) -- async web crawling and content extraction
+- [Rich](https://github.com/Textualize/rich) -- beautiful terminal output and formatting
+- [FastMCP](https://github.com/jlowin/fastmcp) -- Model Context Protocol server framework
+- [Ruff](https://github.com/astral-sh/ruff) -- fast Python linter and formatter
