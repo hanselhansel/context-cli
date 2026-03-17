@@ -61,3 +61,6 @@ release:
 coverage: ## Run tests with coverage report
 	pytest tests/ -v --cov=context_cli --cov-report=html
 	@echo "Coverage report: htmlcov/index.html"
+
+audit: ## Run security audit on dependencies
+	pip-audit
