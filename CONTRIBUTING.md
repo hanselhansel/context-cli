@@ -85,6 +85,33 @@ src/context_cli/
     └── discovery.py     # Sitemap/spider page discovery
 ```
 
+### Data Flow
+
+```
+CLI input (url)          MCP request (url)
+       \                      /
+        v                    v
+    main.py              server.py
+        \                  /
+         v                v
+       auditor.py  (orchestration)
+          |
+          v
+       discovery.py  (find pages: sitemap, spider)
+          |
+          v
+       crawler.py  (fetch & extract via headless browser)
+          |
+          v
+       auditor.py  (scoring & pillar checks)
+          |
+          v
+       models.py  (AuditReport Pydantic model)
+          |
+          v
+   CLI text output       MCP JSON response
+```
+
 Key design principles:
 
 - **`auditor.py`** is the core entry point -- both CLI and MCP server call `audit_url()` / `audit_site()`
