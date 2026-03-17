@@ -28,6 +28,6 @@ This directory contains detailed documentation for Context CLI.
 
 | Document | Description |
 |---|---|
-| [context-cli-pivot-plan.md](context-cli-pivot-plan.md) | Pivot plan from AEO-CLI to Context CLI (v2.0.0) |
+| [context-cli-pivot-plan.md](context-cli-pivot-plan.md) | Pivot plan from Context CLI to Context CLI (v2.0.0) |
 | [long-running-session-plan.md](long-running-session-plan.md) | Multi-day development plan for context-cli evolution |
 | [README-SECTIONS.md](README-SECTIONS.md) | README section mapping and maintenance guide |

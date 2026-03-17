@@ -3,7 +3,7 @@
 Scoring: Content=40 | Robots=25 | Schema=25 | llms.txt=10 (total=100)
 Bots: GPTBot, ChatGPT-User, Google-Extended, ClaudeBot, PerplexityBot, Amazonbot, OAI-SearchBot + 6 more
 Commands: `pytest` | `ruff check src/ tests/` | `mypy src/` | `make ci`
-CURRENT PHASE: 2.0.0 (Rebrand — pivot from AEO-CLI to Context CLI)
+CURRENT PHASE: 2.0.0 (Rebrand — pivot from Context CLI to Context CLI)
 AGENT TEAMS: MANDATORY for ALL phases. No exceptions. See "Agent Teams" section below.
 
 ## Session Workflow (MANDATORY — enforced by hooks)

@@ -31,9 +31,7 @@ htmlcov/
 Thumbs.db
 
 # Generated output
-aeo-output/
+context-output/
 
 # Claude Code local settings
 .claude/settings.local.json
-
-context-output/
