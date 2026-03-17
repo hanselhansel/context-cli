@@ -26,3 +26,9 @@ jobs:
         run: mypy src/
       - name: Run tests
         run: pytest tests/ -v
+      - name: Upload coverage report
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
