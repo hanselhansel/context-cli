@@ -174,6 +174,19 @@ When choosing a version number:
 - **Minor** (0.1.1 -> 0.2.0) — new features, new lint pillars, new CLI flags
 - **Major** (0.2.0 -> 1.0.0) — breaking changes to CLI interface or MCP tool schemas
 
+## Testing MCP Tools
+
+Context CLI exposes its audit functionality as MCP (Model Context Protocol) tools. To test them locally:
+
+1. Start the MCP server:
+   ```bash
+   context-cli mcp
+   ```
+2. Connect with any MCP-compatible client — for example, add it to Claude Desktop's config or use a standalone MCP client.
+3. MCP tool definitions live in `server.py`. When you change tool signatures or descriptions, verify that the updated schema appears correctly in the client.
+
+Automated tests for the MCP layer run as part of the normal test suite (`pytest tests/ -v`), but manual testing with a real MCP client is recommended for schema and end-to-end validation.
+
 ## Reporting Issues
 
 Found a bug or have a feature request? [Open an issue](https://github.com/hanselhansel/context-cli/issues) with:
