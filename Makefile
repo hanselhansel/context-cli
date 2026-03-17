@@ -57,3 +57,7 @@ release:
 	git commit -m "Release v$(VERSION)"
 	git tag v$(VERSION)
 	git push origin main --tags
+
+coverage: ## Run tests with coverage report
+	pytest tests/ -v --cov=context_cli --cov-report=html
+	@echo "Coverage report: htmlcov/index.html"
