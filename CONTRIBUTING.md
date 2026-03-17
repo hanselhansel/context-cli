@@ -44,7 +44,19 @@ context-cli lint example.com --single
 pytest tests/ -v
 ```
 
-Tests use `pytest-asyncio` with `asyncio_mode = "auto"`, so async test functions work without extra decorators.
+Run tests with coverage:
+
+```bash
+make coverage
+```
+
+Run a single test by name:
+
+```bash
+pytest tests/test_auditor.py -k "test_name" -v
+```
+
+Tests use `pytest-asyncio` with `asyncio_mode = "auto"`, so async test functions work without extra decorators. You do not need to add `@pytest.mark.asyncio` — any `async def test_*` function is automatically detected.
 
 ## Linting
 
