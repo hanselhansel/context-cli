@@ -157,6 +157,23 @@ If you're adding a new scoring pillar:
 6. Add tests in `tests/`
 7. Update `docs/scoring.md` with the new pillar's methodology
 
+## Release Process
+
+Context CLI follows [semantic versioning](https://semver.org/) (major.minor.patch).
+
+1. The canonical version lives in `pyproject.toml` under `[project] version`.
+2. To cut a release:
+   ```bash
+   make release VERSION=x.y.z
+   ```
+   This bumps the version, creates a git tag, and pushes to origin.
+3. Publishing to PyPI is automated via GitHub Actions — a workflow triggers on new version tags and builds + publishes the package.
+
+When choosing a version number:
+- **Patch** (0.1.0 -> 0.1.1) — bug fixes, docs, internal refactors
+- **Minor** (0.1.1 -> 0.2.0) — new features, new lint pillars, new CLI flags
+- **Major** (0.2.0 -> 1.0.0) — breaking changes to CLI interface or MCP tool schemas
+
 ## Reporting Issues
 
 Found a bug or have a feature request? [Open an issue](https://github.com/hanselhansel/context-cli/issues) with:
