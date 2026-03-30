@@ -33,6 +33,10 @@ Context CLI is an LLM Readiness Linter that checks how well a URL is structured 
 
 Context CLI analyzes your content across five pillars (V3 scoring) and returns a structured score from 0 to 100.
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/hanselhansel-aeo-cli).
+
 ## Features
 
 - **Robots.txt AI bot access** -- checks 13 AI crawlers (GPTBot, ClaudeBot, DeepSeek-AI, Grok, and more)
